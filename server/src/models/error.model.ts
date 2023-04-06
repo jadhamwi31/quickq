@@ -1,0 +1,22 @@
+import STATUS_CODE from "http-status-codes";
+
+export class CustomError extends Error {
+	status: number;
+	constructor(message: string, status: number, name?: string) {
+		super(message);
+		this.status = status;
+		this.name = name ?? "Error";
+	}
+}
+
+export class MissingPropertiesError extends CustomError {
+	constructor(message: string) {
+		super(message, STATUS_CODE.BAD_REQUEST, "Bad Request");
+	}
+}
+
+export class UnauthorizedError extends CustomError {
+	constructor(message: string) {
+		super(message, STATUS_CODE.UNAUTHORIZED, "Unauthorized");
+	}
+}
