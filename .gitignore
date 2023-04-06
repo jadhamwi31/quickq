@@ -1,3 +1,4 @@
 *.bkp
 *.btmp
 *.dtmp
+node_modules
