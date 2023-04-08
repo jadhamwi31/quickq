@@ -1,5 +1,5 @@
-import { IUser } from "./user.interfaces";
+import { User } from "../../models/user.model";
 
 export interface ISeeds {
-	users: IUser[];
+	users: User[];
 }

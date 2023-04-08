@@ -1,5 +1,8 @@
 import { DataSource } from "typeorm";
 import { User } from "./user.model";
+import { Dish } from "./dish.model";
+import { Ingredient } from "./ingredient.model";
+import { DishIngredient } from "./shared.model";
 
 export let AppDataSource: DataSource;
 
@@ -15,7 +18,7 @@ export const createAppDataSource = async () => {
 		database: DB_NAME,
 		synchronize: true,
 		logging: true,
-		entities: [User],
+		entities: [User, Dish, Ingredient, DishIngredient],
 	});
 
 	await AppDataSource.initialize();

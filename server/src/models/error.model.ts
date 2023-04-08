@@ -20,3 +20,15 @@ export class UnauthorizedError extends CustomError {
 		super(message, STATUS_CODE.UNAUTHORIZED, "Unauthorized");
 	}
 }
+
+export class ConflictError extends CustomError {
+	constructor(message: string) {
+		super(message, STATUS_CODE.CONFLICT, "Conflict");
+	}
+}
+
+export class NotFoundError extends CustomError {
+	constructor(message: string) {
+		super(message, STATUS_CODE.NOT_FOUND, "Not Found");
+	}
+}

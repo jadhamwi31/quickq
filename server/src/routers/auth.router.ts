@@ -4,4 +4,8 @@ import { AuthValidators } from "../validators/auth.validators";
 
 export const AuthRouter = Router();
 
-AuthRouter.post("/login", AuthValidators.validateLogin, UserController.login);
+AuthRouter.post(
+	"/login",
+	AuthValidators.validateLogin,
+	UserController.loginHandler
+);

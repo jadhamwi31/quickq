@@ -5,6 +5,7 @@ import { AuthRouter } from "./routers/auth.router";
 import cors from "cors";
 import { json, urlencoded } from "body-parser";
 import { errorMiddleware } from "./middlewares/error.middleware";
+import { IngredientsRouter } from "./routers/ingredients.router";
 
 dotenv.config();
 
@@ -19,6 +20,7 @@ dotenv.config();
 
 	// routers
 	app.use("/auth", AuthRouter);
+	app.use("/ingredients", IngredientsRouter);
 
 	app.use(errorMiddleware);
 

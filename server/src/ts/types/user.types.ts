@@ -1,5 +1,3 @@
-import { IUser } from "../interfaces/user.interfaces";
+import { User } from "../../models/user.model";
 
 export type UserRoleType = "manager" | "cashier" | "chef";
-
-export type UserCredentialsType = Omit<IUser, "role">;

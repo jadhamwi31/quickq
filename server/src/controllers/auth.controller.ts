@@ -1,10 +1,10 @@
 import { NextFunction, Request, Response } from "express";
-import { UserCredentialsType } from "../ts/types/user.types";
 import { AuthService } from "../services/auth.service";
 import { StatusCodes } from "http-status-codes";
+import { User } from "../models/user.model";
 
-const login = async (
-	req: Request<any, any, UserCredentialsType>,
+const loginHandler = async (
+	req: Request<any, any, Pick<User, "username" | "password">>,
 	res: Response,
 	next: NextFunction
 ) => {
@@ -13,7 +13,7 @@ const login = async (
 		const jwt = await AuthService.login(username, password);
 
 		return res
-			.status(200)
+			.status(StatusCodes.OK)
 			.cookie("jwt", jwt)
 			.send({ code: StatusCodes.OK, message: "logged in successfully" });
 	} catch (e) {
@@ -22,5 +22,5 @@ const login = async (
 };
 
 export const UserController = {
-	login,
+	loginHandler,
 };

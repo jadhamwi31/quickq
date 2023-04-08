@@ -1,18 +1,18 @@
 import { NextFunction, Request, Response } from "express";
-import { UserCredentialsType } from "../ts/types/user.types";
 import { CustomError, MissingPropertiesError } from "../models/error.model";
+import { User } from "../models/user.model";
 
 const validateLogin = (
-	req: Request<any, any, Partial<UserCredentialsType>>,
-	res: Response,
+	req: Request<any, any, Partial<Pick<User, "username" | "password">>>,
+	_: Response,
 	next: NextFunction
 ) => {
 	const { username, password } = req.body;
 	if (!username) {
-		next(new MissingPropertiesError("username is required"));
+		return next(new MissingPropertiesError("username is required"));
 	}
 	if (!password) {
-		next(new MissingPropertiesError("password is required"));
+		return next(new MissingPropertiesError("password is required"));
 	}
 	next();
 };
