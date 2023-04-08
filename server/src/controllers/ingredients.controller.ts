@@ -13,7 +13,7 @@ const createNewIngredientHandler = async (
 		await IngredientsService.createNewIngredient({ name, unit });
 		return res
 			.status(StatusCodes.OK)
-			.send({ message: "ingredient resource created", code: StatusCodes.OK });
+			.send({ message: "ingredient created", code: StatusCodes.OK });
 	} catch (e) {
 		next(e);
 	}

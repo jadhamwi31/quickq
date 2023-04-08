@@ -1,11 +1,17 @@
-import { Column, Entity, ManyToOne, PrimaryColumn } from "typeorm";
+import {
+	Column,
+	Entity,
+	ManyToOne,
+	PrimaryColumn,
+	PrimaryGeneratedColumn,
+} from "typeorm";
 import { UserRoleType } from "../ts/types/user.types";
 import { Dish } from "./dish.model";
 import { Ingredient } from "./ingredient.model";
 
 @Entity()
 export class DishIngredient {
-	@PrimaryColumn()
+	@PrimaryGeneratedColumn()
 	id: number;
 
 	@ManyToOne(() => Dish, (dish) => dish.dishIngredients)
@@ -14,6 +20,6 @@ export class DishIngredient {
 	@ManyToOne(() => Ingredient, (ingredient) => ingredient.dishIngredients)
 	ingredient: Ingredient;
 
-	@Column()
+	@Column({ type: "real" })
 	amount: number;
 }

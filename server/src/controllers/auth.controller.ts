@@ -15,7 +15,7 @@ const loginHandler = async (
 		return res
 			.status(StatusCodes.OK)
 			.cookie("jwt", jwt)
-			.send({ code: StatusCodes.OK, message: "logged in successfully" });
+			.send({ code: StatusCodes.OK, message: "logged in" });
 	} catch (e) {
 		next(e);
 	}

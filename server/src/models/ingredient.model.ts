@@ -4,11 +4,13 @@ import {
 	OneToMany,
 	PrimaryColumn,
 	PrimaryGeneratedColumn,
+	Unique,
 } from "typeorm";
 import { UserRoleType } from "../ts/types/user.types";
 import { DishIngredient } from "./shared.model";
 
 @Entity()
+@Unique(["name"])
 export class Ingredient {
 	@PrimaryGeneratedColumn()
 	id: number;

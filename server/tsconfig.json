@@ -13,5 +13,7 @@
 		"strictNullChecks": false,
 		"resolveJsonModule": true
 	},
-	"include": ["./src/**/*.json", "./src/**/*.ts"]
+
+	"include": ["./src/**/*.json", "./src/**/*.ts", "@types/express/index.d.ts"],
+	"typeRoots": ["./node_modules/@types", "@types"]
 }

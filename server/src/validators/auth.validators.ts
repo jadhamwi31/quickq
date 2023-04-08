@@ -14,7 +14,7 @@ const validateLogin = (
 	if (!password) {
 		return next(new MissingPropertiesError("password is required"));
 	}
-	next();
+	return next();
 };
 
 export const AuthValidators = {

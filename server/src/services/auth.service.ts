@@ -8,7 +8,7 @@ const login = async (username: string, password: string) => {
 	const user = await AppDataSource.getRepository(User).findOneBy({ username });
 	if (user) {
 		if (user.password === password) {
-			const token = JwtService.generateJwt(user);
+			const token = JwtService.generate(user);
 			return token;
 		} else {
 			throw new UnauthorizedError("incorrect password");

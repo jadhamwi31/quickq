@@ -14,7 +14,7 @@ const validateCreateIngredient = (
 	if (!unit) {
 		return next(new MissingPropertiesError("unit is required"));
 	}
-	next();
+	return next();
 };
 
 const validateDeleteIngredient = (
@@ -26,7 +26,7 @@ const validateDeleteIngredient = (
 	if (!name) {
 		return next(new MissingPropertiesError("name is required"));
 	}
-	next();
+	return next();
 };
 
 export const IngredientsValidators = {

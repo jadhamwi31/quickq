@@ -1,7 +1,15 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import {
+	Column,
+	Entity,
+	JoinColumn,
+	OneToMany,
+	PrimaryGeneratedColumn,
+	Unique,
+} from "typeorm";
 import { DishIngredient } from "./shared.model";
 
 @Entity()
+@Unique(["name"])
 export class Dish {
 	@PrimaryGeneratedColumn()
 	id: number;
@@ -9,12 +17,12 @@ export class Dish {
 	@Column()
 	name: string;
 
-	@Column()
+	@Column({ type: "real" })
 	price: number;
 
 	@Column()
 	description: string;
 
 	@OneToMany(() => DishIngredient, (dishIngredient) => dishIngredient.dish)
-	public dishIngredients: DishIngredient[];
+	dishIngredients: Partial<DishIngredient>[];
 }
