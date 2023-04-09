@@ -23,6 +23,19 @@ const validateCreateNewDish = (
 	return next();
 };
 
+const validateDeleteDish = (
+	req: Request<Partial<Pick<IDish, "name">>>,
+	res: Response,
+	next: NextFunction
+) => {
+	const { name } = req.params;
+	if (!name) {
+		return next(new MissingPropertiesError("name is required"));
+	}
+	return next();
+};
+
 export const DishesValidator = {
 	validateCreateNewDish,
+	validateDeleteDish,
 };

@@ -19,6 +19,37 @@ const createNewDishHandler = async (
 	}
 };
 
+const deleteDishHandler = async (
+	req: Request<Pick<IDish, "name">>,
+	res: Response,
+	next: NextFunction
+) => {
+	const { name } = req.params;
+	try {
+		await DishesService.deleteDish(name);
+		return res
+			.status(StatusCodes.OK)
+			.send({ code: StatusCodes.OK, message: "dish deleted" });
+	} catch (e) {
+		next(e);
+	}
+};
+
+const getDishesHandler = async (
+	req: Request,
+	res: Response,
+	next: NextFunction
+) => {
+	try {
+		const dishes = await DishesService.getDishes();
+		return res.status(StatusCodes.OK).send(dishes);
+	} catch (e) {
+		next(e);
+	}
+};
+
 export const DishesController = {
 	createNewDishHandler,
+	deleteDishHandler,
+	getDishesHandler,
 };

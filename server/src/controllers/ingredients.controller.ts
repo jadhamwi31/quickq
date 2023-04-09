@@ -35,7 +35,21 @@ const deleteIngredientHandler = async (
 	}
 };
 
+const getIngredientsHandler = async (
+	req: Request,
+	res: Response,
+	next: NextFunction
+) => {
+	try {
+		const ingredients = await IngredientsService.getIngredients();
+		return res.status(StatusCodes.OK).send(ingredients);
+	} catch (e) {
+		next(e);
+	}
+};
+
 export const IngredientsController = {
 	createNewIngredientHandler,
 	deleteIngredientHandler,
+	getIngredientsHandler,
 };

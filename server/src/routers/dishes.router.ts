@@ -11,3 +11,12 @@ DishesRouter.post(
 	DishesValidator.validateCreateNewDish,
 	DishesController.createNewDishHandler
 );
+
+DishesRouter.delete(
+	"/",
+	authFor(["manager"]),
+	DishesValidator.validateDeleteDish,
+	DishesController.deleteDishHandler
+);
+
+DishesRouter.get("/", authFor(["manager"]), DishesController.getDishesHandler);

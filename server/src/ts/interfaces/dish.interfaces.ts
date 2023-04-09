@@ -1,3 +1,5 @@
+import { IIngredient } from "./ingredient.interfaces";
+
 export interface IDishIngredient {
 	name: string;
 	amount: number;

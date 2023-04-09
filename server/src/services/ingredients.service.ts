@@ -26,4 +26,16 @@ const deleteIngredient = async (name: string) => {
 	await ingredientsRepo.delete({ name });
 };
 
-export const IngredientsService = { createNewIngredient, deleteIngredient };
+const getIngredients = async () => {
+	const ingredientsRepo = AppDataSource.getRepository(Ingredient);
+	return (await ingredientsRepo.find()).map((ingredient) => ({
+		name: ingredient.name,
+		unit: ingredient.unit,
+	}));
+};
+
+export const IngredientsService = {
+	createNewIngredient,
+	deleteIngredient,
+	getIngredients,
+};
