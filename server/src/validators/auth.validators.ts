@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import { CustomError, MissingPropertiesError } from "../models/error.model";
+import { CustomError, BadRequestError } from "../models/error.model";
 import { User } from "../models/user.model";
 
 const validateLogin = (
@@ -9,10 +9,10 @@ const validateLogin = (
 ) => {
 	const { username, password } = req.body;
 	if (!username) {
-		return next(new MissingPropertiesError("username is required"));
+		return next(new BadRequestError("username is required"));
 	}
 	if (!password) {
-		return next(new MissingPropertiesError("password is required"));
+		return next(new BadRequestError("password is required"));
 	}
 	return next();
 };

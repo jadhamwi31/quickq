@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { Ingredient } from "../models/ingredient.model";
-import { MissingPropertiesError } from "../models/error.model";
+import { BadRequestError } from "../models/error.model";
 
 const validateCreateIngredient = (
 	req: Request<any, any, Partial<Pick<Ingredient, "name" | "unit">>>,
@@ -9,10 +9,10 @@ const validateCreateIngredient = (
 ) => {
 	const { name, unit } = req.body;
 	if (!name) {
-		return next(new MissingPropertiesError("name is required"));
+		return next(new BadRequestError("name is required"));
 	}
 	if (!unit) {
-		return next(new MissingPropertiesError("unit is required"));
+		return next(new BadRequestError("unit is required"));
 	}
 	return next();
 };
@@ -24,7 +24,7 @@ const validateDeleteIngredient = (
 ) => {
 	const { name } = req.params;
 	if (!name) {
-		return next(new MissingPropertiesError("name is required"));
+		return next(new BadRequestError("name is required"));
 	}
 	return next();
 };
@@ -41,13 +41,13 @@ const validateUpdateIngredient = async (
 	const { name, unit } = req.body;
 	const ingredientName = req.params.name;
 	if (!name) {
-		return next(new MissingPropertiesError("key : [name] is required in body"));
+		return next(new BadRequestError("key : [name] is required in body"));
 	}
 	if (!unit) {
-		return next(new MissingPropertiesError("key : [unit] is required in body"));
+		return next(new BadRequestError("key : [unit] is required in body"));
 	}
 	if (!ingredientName) {
-		return next(new MissingPropertiesError("name parameter is missing"));
+		return next(new BadRequestError("name parameter is missing"));
 	}
 	return next();
 };

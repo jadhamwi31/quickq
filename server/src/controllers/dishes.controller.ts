@@ -59,7 +59,7 @@ const updateDishHandler = async (
 		await DishesService.updateDish(dishName, dish);
 		return res
 			.status(StatusCodes.OK)
-			.send({ code: StatusCodes.OK, message: "dish created" });
+			.send({ code: StatusCodes.OK, message: "dish updated" });
 	} catch (e) {
 		next(e);
 	}

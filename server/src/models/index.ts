@@ -3,6 +3,7 @@ import { User } from "./user.model";
 import { Dish } from "./dish.model";
 import { Ingredient } from "./ingredient.model";
 import { DishIngredient } from "./shared.model";
+import { Category } from "./category.model";
 
 export let AppDataSource: DataSource;
 
@@ -18,7 +19,7 @@ export const createAppDataSource = async () => {
 		database: DB_NAME,
 		synchronize: true,
 		logging: true,
-		entities: [User, Dish, Ingredient, DishIngredient],
+		entities: [User, Dish, Ingredient, DishIngredient, Category],
 	});
 
 	await AppDataSource.initialize();

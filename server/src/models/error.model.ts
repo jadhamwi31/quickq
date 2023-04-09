@@ -9,7 +9,7 @@ export class CustomError extends Error {
 	}
 }
 
-export class MissingPropertiesError extends CustomError {
+export class BadRequestError extends CustomError {
 	constructor(message: string) {
 		super(message, STATUS_CODE.BAD_REQUEST, "Bad Request");
 	}
@@ -36,11 +36,5 @@ export class ConflictError extends CustomError {
 export class NotFoundError extends CustomError {
 	constructor(message: string) {
 		super(message, STATUS_CODE.NOT_FOUND, "Not Found");
-	}
-}
-
-export class BadRequestError extends CustomError {
-	constructor(message: string) {
-		super(message, STATUS_CODE.BAD_REQUEST, "Bad Request");
 	}
 }

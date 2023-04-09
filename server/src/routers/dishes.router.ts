@@ -20,7 +20,7 @@ DishesRouter.delete(
 );
 
 DishesRouter.put(
-	"/",
+	"/:name",
 	authFor(["manager"]),
 	DishesValidator.validateUpdateDish,
 	DishesController.updateDishHandler

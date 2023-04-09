@@ -10,4 +10,5 @@ export interface IDish {
 	price: number;
 	description: string;
 	ingredients: IDishIngredient[];
+	category: string;
 }

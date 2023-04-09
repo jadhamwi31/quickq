@@ -10,9 +10,9 @@ const createNewIngredient = async (
 		name: ingredient.name,
 	});
 	if (ingredientExists) {
-		throw new ConflictError("ingredient exists");
+		throw new ConflictError("ingredient does exist");
 	}
-	await ingredientsRepo.save(ingredient);
+	await ingredientsRepo.insert(ingredient);
 };
 
 const updateIngredient = async (
@@ -28,7 +28,7 @@ const updateIngredient = async (
 		ingredientRecord.unit = ingredient.unit;
 		await ingredientsRepo.save(ingredientRecord);
 	} else {
-		throw new ConflictError("ingredient exists");
+		throw new ConflictError("ingredient does not exist");
 	}
 };
 

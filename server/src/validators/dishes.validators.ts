@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { IDish } from "../ts/interfaces/dish.interfaces";
-import { MissingPropertiesError } from "../models/error.model";
+import { BadRequestError } from "../models/error.model";
 import { Dish } from "../models/dish.model";
 
 const validateCreateNewDish = (
@@ -10,16 +10,16 @@ const validateCreateNewDish = (
 ) => {
 	const { name, description, price, ingredients } = req.body;
 	if (!name) {
-		return next(new MissingPropertiesError("name is required"));
+		return next(new BadRequestError("name is required"));
 	}
 	if (!description) {
-		return next(new MissingPropertiesError("description is required"));
+		return next(new BadRequestError("description is required"));
 	}
 	if (!price) {
-		return next(new MissingPropertiesError("price is required"));
+		return next(new BadRequestError("price is required"));
 	}
 	if (!ingredients || ingredients.length === 0) {
-		return next(new MissingPropertiesError("ingredients are required"));
+		return next(new BadRequestError("ingredients are required"));
 	}
 	return next();
 };
@@ -31,7 +31,7 @@ const validateDeleteDish = (
 ) => {
 	const { name } = req.params;
 	if (!name) {
-		return next(new MissingPropertiesError("name is required"));
+		return next(new BadRequestError("name is required"));
 	}
 	return next();
 };
@@ -44,19 +44,19 @@ const validateUpdateDish = (
 	const { name, description, price, ingredients } = req.body;
 	const dishName = req.params.name;
 	if (!name) {
-		return next(new MissingPropertiesError("key : name is required"));
+		return next(new BadRequestError("key : name is required"));
 	}
 	if (!description) {
-		return next(new MissingPropertiesError("key : description is required"));
+		return next(new BadRequestError("key : description is required"));
 	}
 	if (!price) {
-		return next(new MissingPropertiesError("key : price is required"));
+		return next(new BadRequestError("key : price is required"));
 	}
 	if (!ingredients || ingredients.length === 0) {
-		return next(new MissingPropertiesError("key : ingredients is required"));
+		return next(new BadRequestError("key : ingredients is required"));
 	}
 	if (!dishName) {
-		return next(new MissingPropertiesError("dish name parameter is missing"));
+		return next(new BadRequestError("dish name parameter is missing"));
 	}
 	return next();
 };
