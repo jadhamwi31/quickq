@@ -29,7 +29,31 @@ const validateDeleteIngredient = (
 	return next();
 };
 
+const validateUpdateIngredient = async (
+	req: Request<
+		Partial<Pick<Ingredient, "name">>,
+		any,
+		Partial<Pick<Ingredient, "name" | "unit">>
+	>,
+	res: Response,
+	next: NextFunction
+) => {
+	const { name, unit } = req.body;
+	const ingredientName = req.params.name;
+	if (!name) {
+		return next(new MissingPropertiesError("key : [name] is required in body"));
+	}
+	if (!unit) {
+		return next(new MissingPropertiesError("key : [unit] is required in body"));
+	}
+	if (!ingredientName) {
+		return next(new MissingPropertiesError("name parameter is missing"));
+	}
+	return next();
+};
+
 export const IngredientsValidators = {
 	validateCreateIngredient,
 	validateDeleteIngredient,
+	validateUpdateIngredient,
 };

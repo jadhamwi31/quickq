@@ -19,6 +19,27 @@ const createNewIngredientHandler = async (
 	}
 };
 
+const updateIngredientHandler = async (
+	req: Request<
+		Pick<Ingredient, "name">,
+		any,
+		Pick<Ingredient, "name" | "unit">
+	>,
+	res: Response,
+	next: NextFunction
+) => {
+	const { name, unit } = req.body;
+	const ingredientName = req.params.name;
+	try {
+		await IngredientsService.updateIngredient(ingredientName, { name, unit });
+		return res
+			.status(StatusCodes.OK)
+			.send({ message: "ingredient updated", code: StatusCodes.OK });
+	} catch (e) {
+		next(e);
+	}
+};
+
 const deleteIngredientHandler = async (
 	req: Request<Pick<Ingredient, "name">>,
 	res: Response,
@@ -52,4 +73,5 @@ export const IngredientsController = {
 	createNewIngredientHandler,
 	deleteIngredientHandler,
 	getIngredientsHandler,
+	updateIngredientHandler,
 };

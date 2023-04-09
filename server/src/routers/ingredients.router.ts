@@ -19,6 +19,13 @@ IngredientsRouter.delete(
 	IngredientsController.deleteIngredientHandler
 );
 
+IngredientsRouter.put(
+	"/:name",
+	authFor(["manager", "chef"]),
+	IngredientsValidators.validateUpdateIngredient,
+	IngredientsController.updateIngredientHandler
+);
+
 IngredientsRouter.get(
 	"/",
 	authFor(["manager", "chef"]),

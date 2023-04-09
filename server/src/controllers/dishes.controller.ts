@@ -48,8 +48,26 @@ const getDishesHandler = async (
 	}
 };
 
+const updateDishHandler = async (
+	req: Request<Pick<IDish, "name">, any, IDish>,
+	res: Response,
+	next: NextFunction
+) => {
+	const dish = req.body;
+	const dishName = req.params.name;
+	try {
+		await DishesService.updateDish(dishName, dish);
+		return res
+			.status(StatusCodes.OK)
+			.send({ code: StatusCodes.OK, message: "dish created" });
+	} catch (e) {
+		next(e);
+	}
+};
+
 export const DishesController = {
 	createNewDishHandler,
 	deleteDishHandler,
+	updateDishHandler,
 	getDishesHandler,
 };

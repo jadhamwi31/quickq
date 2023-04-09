@@ -15,6 +15,23 @@ const createNewIngredient = async (
 	await ingredientsRepo.save(ingredient);
 };
 
+const updateIngredient = async (
+	name: string,
+	ingredient: Pick<Ingredient, "name" | "unit">
+) => {
+	const ingredientsRepo = AppDataSource.getRepository(Ingredient);
+	const ingredientRecord = await ingredientsRepo.findOneBy({
+		name,
+	});
+	if (ingredientRecord) {
+		ingredientRecord.name = ingredient.name;
+		ingredientRecord.unit = ingredient.unit;
+		await ingredientsRepo.save(ingredientRecord);
+	} else {
+		throw new ConflictError("ingredient exists");
+	}
+};
+
 const deleteIngredient = async (name: string) => {
 	const ingredientsRepo = AppDataSource.getRepository(Ingredient);
 	const ingredientExists = await ingredientsRepo.findOneBy({
@@ -38,4 +55,5 @@ export const IngredientsService = {
 	createNewIngredient,
 	deleteIngredient,
 	getIngredients,
+	updateIngredient,
 };

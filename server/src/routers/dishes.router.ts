@@ -19,4 +19,11 @@ DishesRouter.delete(
 	DishesController.deleteDishHandler
 );
 
+DishesRouter.put(
+	"/",
+	authFor(["manager"]),
+	DishesValidator.validateUpdateDish,
+	DishesController.updateDishHandler
+);
+
 DishesRouter.get("/", authFor(["manager"]), DishesController.getDishesHandler);
