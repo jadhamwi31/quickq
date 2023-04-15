@@ -5,7 +5,7 @@ import { ForbiddenError, UnauthorizedError } from "../models/error.model";
 import * as _ from "lodash";
 
 export const authFor = (roles: UserRoleType[]) => {
-	return async (req: Request, res: Response, next: NextFunction) => {
+	return async (req: Request<any>, res: Response, next: NextFunction) => {
 		const authHeader = req.headers["authorization"];
 		const token = authHeader && authHeader.split(" ")[1];
 

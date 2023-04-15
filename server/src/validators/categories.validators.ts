@@ -38,7 +38,7 @@ const validateUpdateCategory = (
 	const categoryName = req.params.name;
 	const { name } = req.body;
 	if (!name) {
-		return next(new BadRequestError("key : name is required"));
+		return next(new BadRequestError("key : [name] is required"));
 	}
 	if (!categoryName) {
 		return next(new BadRequestError("name parameter is required"));

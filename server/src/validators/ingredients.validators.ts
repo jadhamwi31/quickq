@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import { Ingredient } from "../models/ingredient.model";
 import { BadRequestError } from "../models/error.model";
 
-const validateCreateIngredient = (
+const validateCreateIngredient = async (
 	req: Request<any, any, Partial<Pick<Ingredient, "name" | "unit">>>,
 	_: Response,
 	next: NextFunction
@@ -17,7 +17,7 @@ const validateCreateIngredient = (
 	return next();
 };
 
-const validateDeleteIngredient = (
+const validateDeleteIngredient = async (
 	req: Request<Partial<Pick<Ingredient, "name">>>,
 	_: Response,
 	next: NextFunction

@@ -19,4 +19,56 @@ const newTableHandler = async (
 	}
 };
 
-export const TablesController = { newTableHandler };
+const updateTableHandler = async (
+	req: Request<Pick<Table, "id">, any, Pick<Table, "status">>,
+	res: Response,
+	next: NextFunction
+) => {
+	const { id } = req.params;
+	const { status } = req.body;
+	try {
+		await TablesService.updateTable(id, status);
+		return res
+			.status(StatusCodes.OK)
+			.send({ code: StatusCodes.OK, message: "table updated" });
+	} catch (e) {
+		next(e);
+	}
+};
+
+const deleteTableHandler = async (
+	req: Request<Pick<Table, "id">>,
+	res: Response,
+	next: NextFunction
+) => {
+	const { id } = req.params;
+
+	try {
+		await TablesService.deleteTable(id);
+		return res
+			.status(StatusCodes.OK)
+			.send({ code: StatusCodes.OK, message: "table deleted" });
+	} catch (e) {
+		next(e);
+	}
+};
+
+const getTablesHandler = async (
+	req: Request,
+	res: Response,
+	next: NextFunction
+) => {
+	try {
+		const tables = await TablesService.getTables();
+		return res.status(StatusCodes.OK).send(tables);
+	} catch (e) {
+		next(e);
+	}
+};
+
+export const TablesController = {
+	newTableHandler,
+	updateTableHandler,
+	deleteTableHandler,
+	getTablesHandler,
+};
