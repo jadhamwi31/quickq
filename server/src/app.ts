@@ -9,6 +9,7 @@ import { IngredientsRouter } from "./routers/ingredients.router";
 import { DishesRouter } from "./routers/dishes.router";
 import { CategoriesRouter } from "./routers/categories.router";
 import { TablesRouter } from "./routers/tables.router";
+import { OrdersRouter } from "./routers/orders.router";
 
 dotenv.config();
 
@@ -27,6 +28,7 @@ dotenv.config();
 	app.use("/dishes", DishesRouter);
 	app.use("/categories", CategoriesRouter);
 	app.use("/tables", TablesRouter);
+	app.use("/orders", OrdersRouter);
 
 	app.use(errorMiddleware);
 

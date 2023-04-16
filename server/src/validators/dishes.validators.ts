@@ -8,9 +8,12 @@ const validateCreateNewDish = (
 	res: Response,
 	next: NextFunction
 ) => {
-	const { name, description, price, ingredients } = req.body;
+	const { name, description, price, ingredients, category } = req.body;
 	if (!name) {
 		return next(new BadRequestError("name is required"));
+	}
+	if (!category) {
+		return next(new BadRequestError("category is required"));
 	}
 	if (!description) {
 		return next(new BadRequestError("description is required"));

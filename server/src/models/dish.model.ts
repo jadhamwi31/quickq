@@ -7,7 +7,7 @@ import {
 	PrimaryGeneratedColumn,
 	Unique,
 } from "typeorm";
-import { DishIngredient } from "./shared.model";
+import { DishIngredient, OrderDish } from "./shared.model";
 import { Category } from "./category.model";
 
 @Entity()
@@ -26,10 +26,13 @@ export class Dish {
 	description: string;
 
 	@OneToMany(() => DishIngredient, (dishIngredient) => dishIngredient.dish)
-	dishIngredients: Partial<DishIngredient>[];
+	dishIngredients: DishIngredient[];
 
 	@ManyToOne(() => Category, (category) => category.dishes, {
 		onDelete: "SET NULL",
 	})
 	category: Category;
+
+	@OneToMany(() => OrderDish, (orderDish) => orderDish.dish)
+	orderDishes: OrderDish[];
 }

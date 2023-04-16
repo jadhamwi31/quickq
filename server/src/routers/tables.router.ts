@@ -26,4 +26,8 @@ TablesRouter.delete(
 	TablesController.deleteTableHandler
 );
 
-TablesRouter.get("/", TablesController.getTablesHandler);
+TablesRouter.get(
+	"/",
+	authFor(["cashier", "manager"]),
+	TablesController.getTablesHandler
+);

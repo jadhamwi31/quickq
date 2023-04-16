@@ -10,10 +10,12 @@ const newTableHandler = async (
 ) => {
 	const { id } = req.body;
 	try {
-		await TablesService.createNewTable(id);
-		return res
-			.status(StatusCodes.OK)
-			.send({ code: StatusCodes.OK, message: "table added" });
+		const tableCode = await TablesService.createNewTable(id);
+		return res.status(StatusCodes.OK).send({
+			code: StatusCodes.OK,
+			message: "table added",
+			data: { table_code: tableCode },
+		});
 	} catch (e) {
 		next(e);
 	}

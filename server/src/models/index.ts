@@ -2,9 +2,11 @@ import { DataSource } from "typeorm";
 import { User } from "./user.model";
 import { Dish } from "./dish.model";
 import { Ingredient } from "./ingredient.model";
-import { DishIngredient } from "./shared.model";
+import { DishIngredient, OrderDish } from "./shared.model";
 import { Category } from "./category.model";
-import { Table } from "./table.model";
+import { Table, TableCode } from "./table.model";
+import { Order } from "./order.model";
+import { Payment } from "./payment.model";
 
 export let AppDataSource: DataSource;
 
@@ -20,7 +22,18 @@ export const createAppDataSource = async () => {
 		database: DB_NAME,
 		synchronize: true,
 		logging: true,
-		entities: [User, Dish, Ingredient, DishIngredient, Category, Table],
+		entities: [
+			User,
+			Dish,
+			Ingredient,
+			DishIngredient,
+			Category,
+			Table,
+			OrderDish,
+			Order,
+			Payment,
+			TableCode,
+		],
 	});
 
 	await AppDataSource.initialize();
