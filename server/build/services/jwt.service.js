@@ -12,28 +12,25 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.seedDatabase = void 0;
-const models_1 = require("../models");
-const user_model_1 = require("../models/user.model");
-const seeds = require("./seeds.json");
-const dotenv_1 = __importDefault(require("dotenv"));
-dotenv_1.default.config();
-const seedDatabase = () => __awaiter(void 0, void 0, void 0, function* () {
-    const { users } = seeds;
-    const AppDataSource = yield (0, models_1.createAppDataSource)();
-    try {
-        const usersRecords = yield AppDataSource.getRepository(user_model_1.User).find();
-        console.log(usersRecords);
-        if (usersRecords.length === 0) {
-            yield AppDataSource.getRepository(user_model_1.User).insert(users);
-        }
-    }
-    catch (e) {
-        console.log(e);
-    }
-    finally {
-        AppDataSource.destroy();
-    }
+exports.JwtService = void 0;
+const error_model_1 = require("../models/error.model");
+const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+const generate = (payload) => {
+    const PRIVATE_KEY = process.env.PRIVATE_KEY;
+    const token = jsonwebtoken_1.default.sign(JSON.stringify(payload), PRIVATE_KEY);
+    return token;
+};
+const decode = (token) => __awaiter(void 0, void 0, void 0, function* () {
+    return new Promise((resolve, reject) => {
+        const PRIVATE_KEY = process.env.PRIVATE_KEY;
+        jsonwebtoken_1.default.verify(token, PRIVATE_KEY, (err, user) => {
+            if (err)
+                reject(new error_model_1.UnauthorizedError(`jwt token failed to verify ${err.message}`));
+            resolve(user);
+        });
+    });
 });
-exports.seedDatabase = seedDatabase;
-(0, exports.seedDatabase)();
+exports.JwtService = {
+    generate,
+    decode,
+};

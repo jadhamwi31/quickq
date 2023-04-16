@@ -10,7 +10,7 @@ const loginHandler = async (
 	res: Response,
 	next: NextFunction
 ) => {
-	const { username, password, table_code } = req.body;
+	const { username, password, table_code: table_code } = req.body;
 	try {
 		if (username && password) {
 			const jwt = await AuthService.loginByUsernameAndPassword(

@@ -26,7 +26,6 @@ const loginByUsernameAndPassword = async (
 };
 
 const loginByTableCode = async (code: string) => {
-	// get table id from redis using access code
 	const tableCodeRecord = await AppDataSource.getRepository(TableCode).findOne({
 		where: { code },
 		relations: { table: true },
@@ -36,7 +35,6 @@ const loginByTableCode = async (code: string) => {
 		throw new Error("invalid table code");
 	}
 
-	// create token for client
 	const token = JwtService.generate({
 		role: "client",
 		tableId: tableCodeRecord.table.id,

@@ -1,11 +1,13 @@
 import { AppDataSource } from "../models";
 import { Dish } from "../models/dish.model";
-import { NotFoundError } from "../models/error.model";
+import { BadRequestError, NotFoundError } from "../models/error.model";
 import { Order } from "../models/order.model";
 import { Payment } from "../models/payment.model";
 import { OrderDish } from "../models/shared.model";
 import { Table } from "../models/table.model";
+import { IRedisTableValue } from "../ts/interfaces/tables.interfaces";
 import { OrderDishesType } from "../ts/types/order.types";
+import RedisService from "./redis.service";
 
 const createNewOrder = async (newOrder: OrderDishesType, tableId: number) => {
 	const dishesRepo = AppDataSource.getRepository(Dish);
@@ -17,9 +19,17 @@ const createNewOrder = async (newOrder: OrderDishesType, tableId: number) => {
 	if (!tableRecord) {
 		throw new NotFoundError(`table with id ${tableId} doesn't exist`);
 	}
+
+	const redisTableValue: IRedisTableValue = JSON.parse(
+		await RedisService.redis.hget("tables", String(tableId))
+	);
+	if (redisTableValue.status === "Available") {
+		throw new BadRequestError("open table before start ordering");
+	}
 	const order = new Order();
-	const payment = new Payment();
-	await paymentsRepo.insert(payment);
+	const payment = await paymentsRepo.findOneBy({
+		id: redisTableValue.paymentId,
+	});
 	order.payment = payment;
 	order.table = tableRecord;
 	order.orderDishes = [];

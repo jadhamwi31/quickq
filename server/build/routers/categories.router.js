@@ -1,0 +1,12 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.CategoriesRouter = void 0;
+const express_1 = require("express");
+const categories_validators_1 = require("../validators/categories.validators");
+const auth_middleware_1 = require("../middlewares/auth.middleware");
+const categories_controller_1 = require("../controllers/categories.controller");
+exports.CategoriesRouter = (0, express_1.Router)();
+exports.CategoriesRouter.post("/", (0, auth_middleware_1.authFor)(["manager"]), categories_validators_1.CategoriesValidators.validateCreateNewCategory, categories_controller_1.CategoriesController.createNewCategoryHandler);
+exports.CategoriesRouter.delete("/:name", (0, auth_middleware_1.authFor)(["manager"]), categories_validators_1.CategoriesValidators.validateDeleteCategory, categories_controller_1.CategoriesController.deleteCategoryHandler);
+exports.CategoriesRouter.put("/:name", (0, auth_middleware_1.authFor)(["manager"]), categories_validators_1.CategoriesValidators.validateUpdateCategory, categories_controller_1.CategoriesController.updateCategoryHandler);
+exports.CategoriesRouter.get("/", (0, auth_middleware_1.authFor)(["manager"]), categories_controller_1.CategoriesController.getCategoriesHandler);

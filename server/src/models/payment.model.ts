@@ -13,7 +13,7 @@ import { Order } from "./order.model";
 @Entity()
 export class Payment {
 	@PrimaryColumn()
-	id: number;
+	id: string;
 
 	@Column({ type: "timestamptz", nullable: true })
 	date: Date;

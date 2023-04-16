@@ -8,9 +8,10 @@ const newOrderHandler = async (
 	res: Response,
 	next: NextFunction
 ) => {
-	const { dishes: order, tableId } = req.body;
+	const { dishes, tableId } = req.body;
+	const { tableId: clientTableCode } = req.user;
 	try {
-		await OrdersService.createNewOrder(order, tableId);
+		await OrdersService.createNewOrder(dishes, tableId ?? clientTableCode);
 		return res.status(StatusCodes.OK).send({
 			code: StatusCodes.OK,
 			message: `order added to table ${tableId}`,

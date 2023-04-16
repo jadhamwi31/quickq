@@ -15,7 +15,11 @@ export const authFor = (roles: UserRoleType[]) => {
 			const user = await JwtService.decode(token);
 
 			if (_.find(roles, (current) => current === user.role)) {
-				req.user = user;
+				if (user.role === "client") {
+					req.user = { tableId: user.tableId, role: "client" };
+				} else {
+					req.user = user;
+				}
 				return next();
 			} else {
 				throw new ForbiddenError(`forbidden to access as ${user.role}`);

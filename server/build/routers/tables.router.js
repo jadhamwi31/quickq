@@ -1,0 +1,12 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.TablesRouter = void 0;
+const express_1 = require("express");
+const tables_validators_1 = require("../validators/tables.validators");
+const tables_controller_1 = require("../controllers/tables.controller");
+const auth_middleware_1 = require("../middlewares/auth.middleware");
+exports.TablesRouter = (0, express_1.Router)();
+exports.TablesRouter.post("/", (0, auth_middleware_1.authFor)(["manager"]), tables_validators_1.TablesValidators.validateNewTable, tables_controller_1.TablesController.newTableHandler);
+exports.TablesRouter.put("/:id", (0, auth_middleware_1.authFor)(["manager"]), tables_validators_1.TablesValidators.validateUpdateTable, tables_controller_1.TablesController.updateTableHandler);
+exports.TablesRouter.delete("/:id", (0, auth_middleware_1.authFor)(["manager"]), tables_validators_1.TablesValidators.validateDeleteTable, tables_controller_1.TablesController.deleteTableHandler);
+exports.TablesRouter.get("/", (0, auth_middleware_1.authFor)(["cashier", "manager"]), tables_controller_1.TablesController.getTablesHandler);

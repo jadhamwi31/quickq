@@ -10,12 +10,17 @@ import { DishesRouter } from "./routers/dishes.router";
 import { CategoriesRouter } from "./routers/categories.router";
 import { TablesRouter } from "./routers/tables.router";
 import { OrdersRouter } from "./routers/orders.router";
+import RedisService from "./services/redis.service";
+import { TablesService } from "./services/tables.service";
 
 dotenv.config();
 
 (async function () {
 	await createAppDataSource();
+	await RedisService.connect();
 	const app = express();
+
+	TablesService.openTable(49);
 
 	// middlewares
 	app.use(cors({ origin: "http://localhost:3000" }));

@@ -7,11 +7,13 @@ dotenv.config();
 
 export const seedDatabase = async () => {
 	const { users } = seeds;
+
 	const AppDataSource = await createAppDataSource();
 	try {
 		const usersRecords = await AppDataSource.getRepository(User).find();
+
 		if (usersRecords.length === 0) {
-			AppDataSource.getRepository(User).create(users);
+			await AppDataSource.getRepository(User).insert(users);
 		}
 	} catch (e) {
 		console.log(e);

@@ -7,9 +7,11 @@ const validateNewOrder = (
 	res: Response,
 	next: NextFunction
 ) => {
-	const { dishes, tableId: tableNumber } = req.body;
-	if (!tableNumber) {
-		return next(new BadRequestError("table number is required"));
+	const { dishes, tableId } = req.body;
+	const { tableId: clientTableId } = req.user;
+
+	if (!clientTableId && !tableId) {
+		return next(new BadRequestError("table id is required"));
 	}
 	if (dishes.length === 0) {
 		return next(new BadRequestError("dishes are required"));

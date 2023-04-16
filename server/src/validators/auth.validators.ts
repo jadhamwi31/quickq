@@ -8,8 +8,8 @@ const validateLogin = (
 	_: Response,
 	next: NextFunction
 ) => {
-	const { username, password, table_code: access_code } = req.body;
-	if (access_code) {
+	const { username, password, table_code } = req.body;
+	if (table_code) {
 		return next();
 	}
 	if (!username) {
