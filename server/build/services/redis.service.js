@@ -8,24 +8,18 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.OrdersController = void 0;
-const orders_service_1 = require("../services/orders.service");
-const http_status_codes_1 = require("http-status-codes");
-const newOrderHandler = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    const { dishes, tableId } = req.body;
-    const { tableId: clientTableCode } = req.user;
-    try {
-        yield orders_service_1.OrdersService.createNewOrder(dishes, tableId !== null && tableId !== void 0 ? tableId : clientTableCode);
-        return res.status(http_status_codes_1.StatusCodes.OK).send({
-            code: http_status_codes_1.StatusCodes.OK,
-            message: `order added to table ${tableId}`,
+const ioredis_1 = __importDefault(require("ioredis"));
+class RedisService {
+    static connect() {
+        return __awaiter(this, void 0, void 0, function* () {
+            const host = process.env.REDIS_HOST;
+            const port = Number(process.env.REDIS_PORT);
+            this.redis = new ioredis_1.default(port, host);
         });
     }
-    catch (e) {
-        next(e);
-    }
-});
-exports.OrdersController = {
-    newOrderHandler,
-};
+}
+exports.default = RedisService;

@@ -20,8 +20,6 @@ dotenv.config();
 	await RedisService.connect();
 	const app = express();
 
-	TablesService.openTable(49);
-
 	// middlewares
 	app.use(cors({ origin: "http://localhost:3000" }));
 	app.use(json());

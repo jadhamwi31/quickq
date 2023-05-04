@@ -15,6 +15,7 @@ const createNewOrder = async (newOrder: OrderDishesType, tableId: number) => {
 	const ordersRepo = AppDataSource.getRepository(Order);
 	const paymentsRepo = AppDataSource.getRepository(Payment);
 	const ordersDishesRepo = AppDataSource.getRepository(OrderDish);
+
 	const tableRecord = await tablesRepo.findOneBy({ id: tableId });
 	if (!tableRecord) {
 		throw new NotFoundError(`table with id ${tableId} doesn't exist`);

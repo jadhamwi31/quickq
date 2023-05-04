@@ -68,9 +68,26 @@ const getTablesHandler = async (
 	}
 };
 
+const openNewTableSessionHandler = async (
+	req: Request<Pick<Table, "id">>,
+	res: Response,
+	next: NextFunction
+) => {
+	const { id: tableId } = req.params;
+	try {
+		await TablesService.openNewTableSession(tableId);
+		return res
+			.status(StatusCodes.OK)
+			.send({ code: StatusCodes.OK, message: "new table session created" });
+	} catch (e) {
+		next(e);
+	}
+};
+
 export const TablesController = {
 	newTableHandler,
 	updateTableHandler,
 	deleteTableHandler,
 	getTablesHandler,
+	openNewTableSessionHandler,
 };

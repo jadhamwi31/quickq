@@ -23,7 +23,6 @@ const seedDatabase = () => __awaiter(void 0, void 0, void 0, function* () {
     const AppDataSource = yield (0, models_1.createAppDataSource)();
     try {
         const usersRecords = yield AppDataSource.getRepository(user_model_1.User).find();
-        console.log(usersRecords);
         if (usersRecords.length === 0) {
             yield AppDataSource.getRepository(user_model_1.User).insert(users);
         }

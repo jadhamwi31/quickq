@@ -8,6 +8,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.OrdersService = void 0;
 const models_1 = require("../models");
@@ -17,6 +20,7 @@ const order_model_1 = require("../models/order.model");
 const payment_model_1 = require("../models/payment.model");
 const shared_model_1 = require("../models/shared.model");
 const table_model_1 = require("../models/table.model");
+const redis_service_1 = __importDefault(require("./redis.service"));
 const createNewOrder = (newOrder, tableId) => __awaiter(void 0, void 0, void 0, function* () {
     const dishesRepo = models_1.AppDataSource.getRepository(dish_model_1.Dish);
     const tablesRepo = models_1.AppDataSource.getRepository(table_model_1.Table);
@@ -27,9 +31,14 @@ const createNewOrder = (newOrder, tableId) => __awaiter(void 0, void 0, void 0, 
     if (!tableRecord) {
         throw new error_model_1.NotFoundError(`table with id ${tableId} doesn't exist`);
     }
+    const redisTableValue = JSON.parse(yield redis_service_1.default.redis.hget("tables", String(tableId)));
+    if (redisTableValue.status === "Available") {
+        throw new error_model_1.BadRequestError("open table before start ordering");
+    }
     const order = new order_model_1.Order();
-    const payment = new payment_model_1.Payment();
-    yield paymentsRepo.insert(payment);
+    const payment = yield paymentsRepo.findOneBy({
+        id: redisTableValue.paymentId,
+    });
     order.payment = payment;
     order.table = tableRecord;
     order.orderDishes = [];

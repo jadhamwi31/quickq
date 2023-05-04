@@ -43,7 +43,7 @@ const loginByTableCode = (code) => __awaiter(void 0, void 0, void 0, function* (
     }
     const token = jwt_service_1.JwtService.generate({
         role: "client",
-        table_code: tableCodeRecord.table.id,
+        tableId: tableCodeRecord.table.id,
     });
     return token;
 });

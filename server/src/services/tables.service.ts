@@ -1,11 +1,17 @@
 import { uniqueId } from "lodash";
 import { AppDataSource } from "../models";
-import { ConflictError, NotFoundError } from "../models/error.model";
+import {
+	BadRequestError,
+	ConflictError,
+	NotFoundError,
+} from "../models/error.model";
 import { Table, TableCode } from "../models/table.model";
 import { TableStatus } from "../ts/types/table.types";
 import { v4 as uuid } from "uuid";
 import RedisService from "./redis.service";
 import { Payment } from "../models/payment.model";
+import { IRedisTableValue } from "../ts/interfaces/tables.interfaces";
+import { Order } from "../models/order.model";
 const createNewTable = async (id: number) => {
 	const tablesRepo = AppDataSource.getRepository(Table);
 	const tablesCodesRepo = AppDataSource.getRepository(TableCode);
@@ -18,6 +24,7 @@ const createNewTable = async (id: number) => {
 	try {
 		tableRecord.id = id;
 		tableRecord.status = "Available";
+
 		await tablesRepo.insert(tableRecord);
 		tableCodeRecord.code = uuid();
 		tableCodeRecord.table = tableRecord;
@@ -66,14 +73,23 @@ const getTables = async () => {
 	}));
 };
 
-const openTable = async (tableId: number) => {
+const openNewTableSession = async (tableId: number) => {
 	const paymentsRepo = AppDataSource.getRepository(Payment);
+	const tablesRepo = AppDataSource.getRepository(Table);
+	const table = await tablesRepo.findOneBy({ id: tableId });
+	if (table.status === "Busy") {
+		throw new BadRequestError("table is busy");
+	}
 	const paymentId = uuid();
 	const payment = new Payment();
+	table.status = "Busy";
+	table.current_payment_id = paymentId;
 	payment.id = paymentId;
-	paymentsRepo.insert(payment);
+	await paymentsRepo.insert(payment);
+	await tablesRepo.save(table);
+
 	RedisService.redis.hset(
-		"tables",
+		`tables:states`,
 		String(tableId),
 		JSON.stringify({
 			paymentId,
@@ -81,7 +97,7 @@ const openTable = async (tableId: number) => {
 		})
 	);
 	RedisService.redis.publish(
-		"tables_statuses",
+		"table_status",
 		JSON.stringify({
 			tableId,
 			status: "Busy",
@@ -94,5 +110,5 @@ export const TablesService = {
 	updateTable,
 	deleteTable,
 	getTables,
-	openTable,
+	openNewTableSession,
 };

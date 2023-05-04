@@ -24,10 +24,12 @@ const dishes_router_1 = require("./routers/dishes.router");
 const categories_router_1 = require("./routers/categories.router");
 const tables_router_1 = require("./routers/tables.router");
 const orders_router_1 = require("./routers/orders.router");
+const redis_service_1 = __importDefault(require("./services/redis.service"));
 dotenv_1.default.config();
 (function () {
     return __awaiter(this, void 0, void 0, function* () {
         yield (0, models_1.createAppDataSource)();
+        yield redis_service_1.default.connect();
         const app = (0, express_1.default)();
         // middlewares
         app.use((0, cors_1.default)({ origin: "http://localhost:3000" }));

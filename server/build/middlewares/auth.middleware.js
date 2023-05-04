@@ -45,7 +45,12 @@ const authFor = (roles) => {
         try {
             const user = yield jwt_service_1.JwtService.decode(token);
             if (_.find(roles, (current) => current === user.role)) {
-                req.user = user;
+                if (user.role === "client") {
+                    req.user = { tableId: user.tableId, role: "client" };
+                }
+                else {
+                    req.user = user;
+                }
                 return next();
             }
             else {

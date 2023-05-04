@@ -8,12 +8,17 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TablesService = void 0;
 const models_1 = require("../models");
 const error_model_1 = require("../models/error.model");
 const table_model_1 = require("../models/table.model");
 const uuid_1 = require("uuid");
+const redis_service_1 = __importDefault(require("./redis.service"));
+const payment_model_1 = require("../models/payment.model");
 const createNewTable = (id) => __awaiter(void 0, void 0, void 0, function* () {
     const tablesRepo = models_1.AppDataSource.getRepository(table_model_1.Table);
     const tablesCodesRepo = models_1.AppDataSource.getRepository(table_model_1.TableCode);
@@ -66,9 +71,25 @@ const getTables = () => __awaiter(void 0, void 0, void 0, function* () {
         status: tableCode.table.status,
     }));
 });
+const openTable = (tableId) => __awaiter(void 0, void 0, void 0, function* () {
+    const paymentsRepo = models_1.AppDataSource.getRepository(payment_model_1.Payment);
+    const paymentId = (0, uuid_1.v4)();
+    const payment = new payment_model_1.Payment();
+    payment.id = paymentId;
+    paymentsRepo.insert(payment);
+    redis_service_1.default.redis.hset("tables", String(tableId), JSON.stringify({
+        paymentId,
+        status: "Busy",
+    }));
+    redis_service_1.default.redis.publish("tables_statuses", JSON.stringify({
+        tableId,
+        status: "Busy",
+    }));
+});
 exports.TablesService = {
     createNewTable,
     updateTable,
     deleteTable,
     getTables,
+    openTable,
 };

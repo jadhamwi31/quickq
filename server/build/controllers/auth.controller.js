@@ -13,7 +13,7 @@ exports.UserController = void 0;
 const auth_service_1 = require("../services/auth.service");
 const http_status_codes_1 = require("http-status-codes");
 const loginHandler = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    const { username, password, table_code } = req.body;
+    const { username, password, table_code: table_code } = req.body;
     try {
         if (username && password) {
             const jwt = yield auth_service_1.AuthService.loginByUsernameAndPassword(username, password);

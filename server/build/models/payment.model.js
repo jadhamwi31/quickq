@@ -16,7 +16,7 @@ let Payment = class Payment {
 };
 __decorate([
     (0, typeorm_1.PrimaryColumn)(),
-    __metadata("design:type", Number)
+    __metadata("design:type", String)
 ], Payment.prototype, "id", void 0);
 __decorate([
     (0, typeorm_1.Column)({ type: "timestamptz", nullable: true }),

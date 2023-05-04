@@ -3,8 +3,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthValidators = void 0;
 const error_model_1 = require("../models/error.model");
 const validateLogin = (req, _, next) => {
-    const { username, password, table_code: access_code } = req.body;
-    if (access_code) {
+    const { username, password, table_code } = req.body;
+    if (table_code) {
         return next();
     }
     if (!username) {
