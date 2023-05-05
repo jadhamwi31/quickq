@@ -5,8 +5,13 @@ import { Order } from "../models/order.model";
 import { Payment } from "../models/payment.model";
 import { OrderDish } from "../models/shared.model";
 import { Table } from "../models/table.model";
+import { IRedisTableOrder } from "../ts/interfaces/order.interfaces";
 import { IRedisTableValue } from "../ts/interfaces/tables.interfaces";
-import { OrderDishesType } from "../ts/types/order.types";
+import {
+	OrderDishesType,
+	RedisOrderDish,
+	RedisOrdersQueueOrderType,
+} from "../ts/types/order.types";
 import RedisService from "./redis.service";
 
 const createNewOrder = async (newOrder: OrderDishesType, tableId: number) => {
@@ -22,7 +27,7 @@ const createNewOrder = async (newOrder: OrderDishesType, tableId: number) => {
 	}
 
 	const redisTableValue: IRedisTableValue = JSON.parse(
-		await RedisService.redis.hget("tables", String(tableId))
+		await RedisService.redis.hget("tables:states", String(tableId))
 	);
 	if (redisTableValue.status === "Available") {
 		throw new BadRequestError("open table before start ordering");
@@ -54,6 +59,46 @@ const createNewOrder = async (newOrder: OrderDishesType, tableId: number) => {
 	}
 
 	await ordersRepo.insert(order);
+
+	const orderDishes: RedisOrderDish[] = [];
+	order.orderDishes.forEach((orderDish) => {
+		orderDishes.push({
+			name: orderDish.dish.name,
+			quantity: orderDish.quantity,
+			id: orderDish.dish.id,
+			price: orderDish.dish.price,
+		});
+	});
+
+	const redisTableOrder: IRedisTableOrder = {
+		id: order.id,
+		dishes: orderDishes,
+		status: "Pending",
+	};
+
+	await RedisService.redis.hset(
+		`tables:orders:${tableId}`,
+		order.id,
+		JSON.stringify(redisTableOrder)
+	);
+
+	const redisOrdersQueueOrder: RedisOrdersQueueOrderType = {
+		table_id: tableId,
+		id: order.id,
+		dishes: orderDishes,
+		status: "Pending",
+	};
+
+	await RedisService.redis.hset(
+		"orders",
+		order.id,
+		JSON.stringify(redisOrdersQueueOrder)
+	);
+
+	await RedisService.redis.publish(
+		"orders",
+		JSON.stringify(redisOrdersQueueOrder)
+	);
 };
 
 export const OrdersService = {

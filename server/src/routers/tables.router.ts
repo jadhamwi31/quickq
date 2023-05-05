@@ -37,3 +37,9 @@ TablesRouter.post(
 	authFor(["client", "cashier", "manager"]),
 	TablesController.openNewTableSessionHandler
 );
+
+TablesRouter.get(
+	"/:id/checkout",
+	authFor(["client", "cashier", "manager"]),
+	TablesController.checkoutTableHandler
+);

@@ -84,10 +84,25 @@ const openNewTableSessionHandler = async (
 	}
 };
 
+const checkoutTableHandler = async (
+	req: Request<Pick<Table, "id">>,
+	res: Response,
+	next: NextFunction
+) => {
+	const { id: tableId } = req.params;
+	try {
+		const data = await TablesService.checkoutTable(tableId);
+		return res.status(StatusCodes.OK).send({ code: StatusCodes.OK, data });
+	} catch (e) {
+		next(e);
+	}
+};
+
 export const TablesController = {
 	newTableHandler,
 	updateTableHandler,
 	deleteTableHandler,
 	getTablesHandler,
 	openNewTableSessionHandler,
+	checkoutTableHandler,
 };

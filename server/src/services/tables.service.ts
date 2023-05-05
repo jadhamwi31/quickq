@@ -12,6 +12,7 @@ import RedisService from "./redis.service";
 import { Payment } from "../models/payment.model";
 import { IRedisTableValue } from "../ts/interfaces/tables.interfaces";
 import { Order } from "../models/order.model";
+import { IRedisTableOrder } from "../ts/interfaces/order.interfaces";
 const createNewTable = async (id: number) => {
 	const tablesRepo = AppDataSource.getRepository(Table);
 	const tablesCodesRepo = AppDataSource.getRepository(TableCode);
@@ -105,10 +106,36 @@ const openNewTableSession = async (tableId: number) => {
 	);
 };
 
+const checkoutTable = async (tableId: number) => {
+	const tableOrders = await RedisService.redis
+		.hgetall(`tables:orders:${tableId}`)
+		.then((records): IRedisTableOrder[] => {
+			return Object.values(records).map((order) => {
+				return JSON.parse(order);
+			});
+		});
+	const checkoutTotal = tableOrders.reduce((total, currentOrder) => {
+		return (
+			total +
+			currentOrder.dishes.reduce((orderTotal, currentDish) => {
+				console.log(currentDish);
+
+				return orderTotal + currentDish.price * currentDish.quantity;
+			}, 0)
+		);
+	}, 0);
+
+	return {
+		dishes: [...tableOrders.map((order) => order.dishes)].flat(),
+		total: checkoutTotal,
+	};
+};
+
 export const TablesService = {
 	createNewTable,
 	updateTable,
 	deleteTable,
 	getTables,
 	openNewTableSession,
+	checkoutTable,
 };
