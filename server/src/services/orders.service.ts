@@ -1,3 +1,4 @@
+import { NextFunction, Request, Response } from "express";
 import { AppDataSource } from "../models";
 import { Dish } from "../models/dish.model";
 import { BadRequestError, NotFoundError } from "../models/error.model";
@@ -5,10 +6,14 @@ import { Order } from "../models/order.model";
 import { Payment } from "../models/payment.model";
 import { OrderDish } from "../models/shared.model";
 import { Table } from "../models/table.model";
-import { IRedisTableOrder } from "../ts/interfaces/order.interfaces";
+import {
+	IOrderDish,
+	IRedisTableOrder,
+} from "../ts/interfaces/order.interfaces";
 import { IRedisTableValue } from "../ts/interfaces/tables.interfaces";
 import {
 	OrderDishesType,
+	OrderStatusType,
 	RedisOrderDish,
 	RedisOrdersQueueOrderType,
 } from "../ts/types/order.types";
@@ -101,6 +106,168 @@ const createNewOrder = async (newOrder: OrderDishesType, tableId: number) => {
 	);
 };
 
+const orderBelongsToTable = async (orderId: number, tableId: number) => {
+	const ordersRepo = AppDataSource.getRepository(Order);
+
+	const result = await ordersRepo.findOne({
+		where: { id: orderId, table: { id: tableId } },
+		relations: { table: true },
+	});
+	return result !== null;
+};
+
+const updateOrder = async (orderId: number, dishes: OrderDishesType) => {
+	const ordersDishesRepo = AppDataSource.getRepository(OrderDish);
+	const ordersRepo = AppDataSource.getRepository(Order);
+	const orderDishesRecord = await ordersDishesRepo.find({
+		relations: { dish: true, order: true },
+		where: { order: { id: orderId } },
+	});
+	if (!orderDishesRecord) {
+		throw new NotFoundError("order with this id was not found");
+	}
+
+	const {
+		table: { id: tableId },
+	} = await ordersRepo.findOne({
+		relations: { table: true },
+		where: { id: orderId },
+	});
+
+	orderDishesRecord.forEach((orderDish) => {
+		const dish = dishes.find((dish) => dish.name === orderDish.dish.name);
+		if (dish) {
+			orderDish = {
+				...orderDish,
+				...dish,
+			};
+		}
+	});
+
+	ordersDishesRepo.save(orderDishesRecord);
+
+	// Table Order Update
+	const tableOrderPrevValue: IRedisTableOrder = JSON.parse(
+		await RedisService.redis.hget(`tables:orders:${tableId}`, String(orderId))
+	);
+	const newTableOrderDishes = dishes.map((dish) => {
+		const orderDishPrevValue = tableOrderPrevValue.dishes.find(
+			(currentDish) => currentDish.name === dish.name
+		);
+		return { ...orderDishPrevValue, ...dish };
+	});
+
+	const tableOrderNewValue: IRedisTableOrder = {
+		...tableOrderPrevValue,
+		dishes: newTableOrderDishes,
+	};
+
+	await RedisService.redis.hset(
+		`tables:orders:${tableId}`,
+		orderId,
+		JSON.stringify(tableOrderNewValue)
+	);
+	const ordersQueueOrderPrevValue: RedisOrdersQueueOrderType = JSON.parse(
+		await RedisService.redis.hget(`tables:orders:${tableId}`, String(orderId))
+	);
+
+	const newOrdersQueueOrderDishes = dishes.map((dish) => {
+		const orderDishPrevValue = ordersQueueOrderPrevValue.dishes.find(
+			(currentDish) => currentDish.name === dish.name
+		);
+		return { ...orderDishPrevValue, ...dish };
+	});
+
+	const ordersQueueOrderNewValue: RedisOrdersQueueOrderType = {
+		...ordersQueueOrderPrevValue,
+		dishes: newOrdersQueueOrderDishes,
+	};
+	await RedisService.redis.hset(
+		`orders`,
+		orderId,
+		JSON.stringify(ordersQueueOrderNewValue)
+	);
+
+	const REDIS_ORDER_UPDATE_PUBLISH_MESSAGE = {
+		type: "order_update",
+		data: dishes,
+	};
+
+	await RedisService.publishTo_orders(REDIS_ORDER_UPDATE_PUBLISH_MESSAGE);
+
+	await RedisService.publishTo_table_id_orders(
+		tableId,
+		REDIS_ORDER_UPDATE_PUBLISH_MESSAGE
+	);
+};
+
+const updateOrderStatus = async (orderId: number, status: OrderStatusType) => {
+	const ordersRepo = AppDataSource.getRepository(Order);
+
+	const orderRecord = await ordersRepo.findOne({
+		where: { id: orderId },
+		relations: { table: true },
+	});
+	if (!orderRecord) {
+		throw new NotFoundError("order with this id was not found");
+	}
+	orderRecord.status = status;
+	ordersRepo.save(orderRecord);
+	// Table Order Status Update
+	const tableOrderPrevValue: IRedisTableOrder = JSON.parse(
+		await RedisService.redis.hget(
+			`tables:orders:${orderRecord.table.id}`,
+			String(orderRecord.id)
+		)
+	);
+	const tableOrderNewValue: IRedisTableOrder = {
+		...tableOrderPrevValue,
+		status,
+	};
+
+	await RedisService.redis.hset(
+		`tables:orders:${orderRecord.table.id}`,
+		orderRecord.id,
+		JSON.stringify(tableOrderNewValue)
+	);
+
+	const ORDER_STATUS_UPDATE_PUBLISH_MESSAGE = {
+		type: "order_status_update",
+		data: {
+			orderId: orderId,
+			status,
+		},
+	};
+
+	RedisService.publishTo_table_id_orders(
+		orderRecord.table.id,
+		ORDER_STATUS_UPDATE_PUBLISH_MESSAGE
+	);
+
+	// Order Status Update In Orders Queue
+
+	const queueOrderPrevValue: RedisOrdersQueueOrderType = JSON.parse(
+		await RedisService.redis.hget(
+			`tables:orders:${orderRecord.table.id}`,
+			String(orderRecord.id)
+		)
+	);
+	const queueOrderNewValue: RedisOrdersQueueOrderType = {
+		...queueOrderPrevValue,
+		status,
+	};
+	await RedisService.redis.hset(
+		`orders`,
+		orderRecord.id,
+		JSON.stringify(queueOrderNewValue)
+	);
+
+	await RedisService.publishTo_orders(ORDER_STATUS_UPDATE_PUBLISH_MESSAGE);
+};
+
 export const OrdersService = {
 	createNewOrder,
+	orderBelongsToTable,
+	updateOrder,
+	updateOrderStatus,
 };

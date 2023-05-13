@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import { Table } from "../models/table.model";
 import { TablesService } from "../services/tables.service";
 import { StatusCodes } from "http-status-codes";
+import { ForbiddenError } from "../models/error.model";
 
 const newTableHandler = async (
 	req: Request<any, any, Pick<Table, "id">>,
@@ -90,7 +91,12 @@ const checkoutTableHandler = async (
 	next: NextFunction
 ) => {
 	const { id: tableId } = req.params;
+	const { tableId: clientTableId } = req.user;
+
 	try {
+		if (req.user.role === "client" && tableId !== clientTableId) {
+			throw new ForbiddenError("forbidden to checkout others table");
+		}
 		const data = await TablesService.checkoutTable(tableId);
 		return res.status(StatusCodes.OK).send({ code: StatusCodes.OK, data });
 	} catch (e) {

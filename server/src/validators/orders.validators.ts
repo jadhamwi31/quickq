@@ -1,5 +1,9 @@
 import { NextFunction, Request, Response } from "express";
-import { NewOrderType, OrderDishesType } from "../ts/types/order.types";
+import {
+	NewOrderType,
+	OrderDishesType,
+	UpdateOrderType,
+} from "../ts/types/order.types";
 import { BadRequestError } from "../models/error.model";
 
 const validateNewOrder = (
@@ -27,4 +31,26 @@ const validateNewOrder = (
 	return next();
 };
 
-export const OrdersValidators = { validateNewOrder };
+const validateUpdateOrder = (
+	req: Request<{ orderId: number }, any, Partial<UpdateOrderType>>,
+	res: Response,
+	next: NextFunction
+) => {
+	const { dishes } = req.body;
+	const { orderId } = req.params;
+	if (!dishes) {
+		return next(new BadRequestError("dishes are missing"));
+	}
+	dishes.forEach((dish) => {
+		if (dish.name || dish.quantity) {
+			return next(new BadRequestError("dishes are missing"));
+		}
+	});
+	if (!orderId) {
+		return next(new BadRequestError("order id parameter is missing"));
+	}
+
+	return next();
+};
+
+export const OrdersValidators = { validateNewOrder, validateUpdateOrder };

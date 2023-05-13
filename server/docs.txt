@@ -1,0 +1,4 @@
+Redis Channels Needed
+
+1. table:[id]:orders
+2. orders

@@ -118,15 +118,35 @@ const checkoutTable = async (tableId: number) => {
 		return (
 			total +
 			currentOrder.dishes.reduce((orderTotal, currentDish) => {
-				console.log(currentDish);
-
 				return orderTotal + currentDish.price * currentDish.quantity;
 			}, 0)
 		);
 	}, 0);
 
+	const tableOrdersDishes = [
+		...tableOrders.map((order) => order.dishes),
+	].flat();
+
+	const tableOrdersDishesMap: {
+		[dishName: string]: { quantity: number; price: number };
+	} = {};
+
+	tableOrdersDishes.forEach((orderDish) => {
+		if (orderDish.name in tableOrdersDishesMap) {
+			tableOrdersDishesMap[orderDish.name].quantity += orderDish.quantity;
+		} else {
+			tableOrdersDishesMap[orderDish.name] = {
+				quantity: orderDish.quantity,
+				price: orderDish.price,
+			};
+		}
+	});
+
 	return {
-		dishes: [...tableOrders.map((order) => order.dishes)].flat(),
+		dishes: Object.entries(tableOrdersDishesMap).map(([name, val]) => ({
+			name,
+			...val,
+		})),
 		total: checkoutTotal,
 	};
 };

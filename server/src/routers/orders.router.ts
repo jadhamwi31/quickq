@@ -11,3 +11,15 @@ OrdersRouter.post(
 	OrdersValidators.validateNewOrder,
 	OrdersController.newOrderHandler
 );
+
+OrdersRouter.put(
+	"/:orderId",
+	authFor(["client", "cashier", "manager"]),
+	OrdersController.updateOrderHandler
+);
+
+OrdersRouter.put(
+	"/:orderId",
+	authFor(["chef"]),
+	OrdersController.updateOrderStatusHandler
+);
