@@ -2,9 +2,11 @@ import { NextFunction, Request, Response } from "express";
 import {
 	NewOrderType,
 	OrderDishesType,
+	UpdateOrderStatusType,
 	UpdateOrderType,
 } from "../ts/types/order.types";
 import { BadRequestError } from "../models/error.model";
+import { Order } from "../models/order.model";
 
 const validateNewOrder = (
 	req: Request<any, any, Partial<NewOrderType>>,
@@ -32,25 +34,46 @@ const validateNewOrder = (
 };
 
 const validateUpdateOrder = (
-	req: Request<{ orderId: number }, any, Partial<UpdateOrderType>>,
+	req: Request<Pick<Order, "id">, any, Partial<UpdateOrderType>>,
 	res: Response,
 	next: NextFunction
 ) => {
 	const { dishes } = req.body;
-	const { orderId } = req.params;
+	const { id } = req.params;
 	if (!dishes) {
 		return next(new BadRequestError("dishes are missing"));
 	}
 	dishes.forEach((dish) => {
-		if (dish.name || dish.quantity) {
-			return next(new BadRequestError("dishes are missing"));
+		if (!dish.name) {
+			return next(new BadRequestError("dish name is missing"));
 		}
 	});
-	if (!orderId) {
+	if (!id) {
 		return next(new BadRequestError("order id parameter is missing"));
 	}
 
 	return next();
 };
 
-export const OrdersValidators = { validateNewOrder, validateUpdateOrder };
+const validateUpdateOrderStatus = (
+	req: Request<Pick<Order, "id">, any, Partial<UpdateOrderStatusType>>,
+	res: Response,
+	next: NextFunction
+) => {
+	const { status } = req.body;
+	const { id } = req.params;
+	if (!status) {
+		return next(new BadRequestError("dishes are missing"));
+	}
+	if (!id) {
+		return next(new BadRequestError("order id parameter is missing"));
+	}
+
+	return next();
+};
+
+export const OrdersValidators = {
+	validateNewOrder,
+	validateUpdateOrder,
+	validateUpdateOrderStatus,
+};

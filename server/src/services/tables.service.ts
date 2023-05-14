@@ -97,13 +97,6 @@ const openNewTableSession = async (tableId: number) => {
 			status: "Busy",
 		})
 	);
-	RedisService.redis.publish(
-		"table_status",
-		JSON.stringify({
-			tableId,
-			status: "Busy",
-		})
-	);
 };
 
 const checkoutTable = async (tableId: number) => {

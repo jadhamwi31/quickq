@@ -4,7 +4,7 @@ import { Dish } from "../models/dish.model";
 import { BadRequestError, NotFoundError } from "../models/error.model";
 import { Order } from "../models/order.model";
 import { Payment } from "../models/payment.model";
-import { OrderDish } from "../models/shared.model";
+import { DishIngredient, OrderDish } from "../models/shared.model";
 import { Table } from "../models/table.model";
 import {
 	IOrderDish,
@@ -47,6 +47,7 @@ const createNewOrder = async (newOrder: OrderDishesType, tableId: number) => {
 	order.status = "Pending";
 	order.total = 0;
 	order.orderDishes = [];
+	await ordersRepo.insert(order);
 	for (const orderDish of newOrder) {
 		const dishRecord = await dishesRepo.findOneBy({ name: orderDish.name });
 		if (!dishRecord) {
@@ -62,8 +63,7 @@ const createNewOrder = async (newOrder: OrderDishesType, tableId: number) => {
 
 		order.orderDishes.push(newOrderDish);
 	}
-
-	await ordersRepo.insert(order);
+	await ordersRepo.save(order);
 
 	const orderDishes: RedisOrderDish[] = [];
 	order.orderDishes.forEach((orderDish) => {
@@ -97,11 +97,6 @@ const createNewOrder = async (newOrder: OrderDishesType, tableId: number) => {
 	await RedisService.redis.hset(
 		"orders",
 		order.id,
-		JSON.stringify(redisOrdersQueueOrder)
-	);
-
-	await RedisService.redis.publish(
-		"orders",
 		JSON.stringify(redisOrdersQueueOrder)
 	);
 };
@@ -188,17 +183,10 @@ const updateOrder = async (orderId: number, dishes: OrderDishesType) => {
 		JSON.stringify(ordersQueueOrderNewValue)
 	);
 
-	const REDIS_ORDER_UPDATE_PUBLISH_MESSAGE = {
-		type: "order_update",
-		data: dishes,
-	};
-
-	await RedisService.publishTo_orders(REDIS_ORDER_UPDATE_PUBLISH_MESSAGE);
-
-	await RedisService.publishTo_table_id_orders(
-		tableId,
-		REDIS_ORDER_UPDATE_PUBLISH_MESSAGE
-	);
+	// const REDIS_ORDER_UPDATE_PUBLISH_MESSAGE = {
+	// 	type: "order_update",
+	// 	data: dishes,
+	// };
 };
 
 const updateOrderStatus = async (orderId: number, status: OrderStatusType) => {
@@ -231,18 +219,13 @@ const updateOrderStatus = async (orderId: number, status: OrderStatusType) => {
 		JSON.stringify(tableOrderNewValue)
 	);
 
-	const ORDER_STATUS_UPDATE_PUBLISH_MESSAGE = {
-		type: "order_status_update",
-		data: {
-			orderId: orderId,
-			status,
-		},
-	};
-
-	RedisService.publishTo_table_id_orders(
-		orderRecord.table.id,
-		ORDER_STATUS_UPDATE_PUBLISH_MESSAGE
-	);
+	// const ORDER_STATUS_UPDATE_PUBLISH_MESSAGE = {
+	// 	type: "order_status_update",
+	// 	data: {
+	// 		orderId: orderId,
+	// 		status,
+	// 	},
+	// };
 
 	// Order Status Update In Orders Queue
 
@@ -261,8 +244,45 @@ const updateOrderStatus = async (orderId: number, status: OrderStatusType) => {
 		orderRecord.id,
 		JSON.stringify(queueOrderNewValue)
 	);
+};
 
-	await RedisService.publishTo_orders(ORDER_STATUS_UPDATE_PUBLISH_MESSAGE);
+const getTodayOrders = async () => {
+	const _todayOrders: { [hash: string]: string } =
+		await RedisService.redis.hgetall("orders");
+
+	const todayOrders = Object.values(_todayOrders)
+		.map((value): RedisOrdersQueueOrderType => JSON.parse(value))
+		.sort((a, b) => a.id - b.id);
+
+	return todayOrders;
+};
+
+const getOrdersHistory = async () => {
+	const orders = await AppDataSource.createQueryBuilder()
+		.from(Order, "order")
+		.addSelect(["order.date", "order.total", "order.id"])
+		.leftJoin("order.orderDishes", "order_dish")
+		.addSelect(["order_dish.quantity"])
+		.leftJoin("order_dish.dish", "dish")
+		.addSelect(["dish.name", "dish.price", "dish.description"])
+		.leftJoin("dish.category", "category")
+		.addSelect(["category.name"])
+		.leftJoin("dish.dishIngredients", "dish_ingredient")
+		.addSelect(["dish_ingredient.amount"])
+		.leftJoin("dish_ingredient.ingredient", "ingredient")
+		.addSelect(["ingredient.name"])
+		.orderBy("order.date", "DESC")
+		.getMany();
+	return orders;
+};
+
+const cancelOrder = async (orderId: number) => {
+	const ordersRepo = AppDataSource.getRepository(Order);
+	const orderRecord = await ordersRepo.findOneBy({ id: orderId });
+	if (!orderRecord) {
+		throw new NotFoundError("order with this id was not found");
+	}
+	await ordersRepo.delete(orderRecord);
 };
 
 export const OrdersService = {
@@ -270,4 +290,7 @@ export const OrdersService = {
 	orderBelongsToTable,
 	updateOrder,
 	updateOrderStatus,
+	getTodayOrders,
+	getOrdersHistory,
+	cancelOrder,
 };

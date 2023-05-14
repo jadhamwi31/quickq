@@ -1,7 +1,7 @@
 import { Router } from "express";
-import { OrdersValidators } from "../validators/orders.validators";
 import { OrdersController } from "../controllers/orders.controller";
 import { authFor } from "../middlewares/auth.middleware";
+import { OrdersValidators } from "../validators/orders.validators";
 
 export const OrdersRouter = Router();
 
@@ -13,13 +13,33 @@ OrdersRouter.post(
 );
 
 OrdersRouter.put(
-	"/:orderId",
+	"/:id",
 	authFor(["client", "cashier", "manager"]),
+	OrdersValidators.validateUpdateOrder,
 	OrdersController.updateOrderHandler
 );
 
 OrdersRouter.put(
-	"/:orderId",
+	"/:id",
 	authFor(["chef"]),
+	OrdersValidators.validateUpdateOrderStatus,
 	OrdersController.updateOrderStatusHandler
+);
+
+OrdersRouter.get(
+	"/today",
+	authFor(["chef", "cashier", "manager"]),
+	OrdersController.getTodayOrdersHandler
+);
+
+OrdersRouter.get(
+	"/",
+	authFor(["manager"]),
+	OrdersController.getOrdersHistoryHandler
+);
+
+OrdersRouter.delete(
+	"/:orderId",
+	authFor(["manager", "cashier", "client"]),
+	OrdersController.cancelOrderHandler
 );

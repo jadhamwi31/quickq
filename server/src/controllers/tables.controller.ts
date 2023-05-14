@@ -75,7 +75,11 @@ const openNewTableSessionHandler = async (
 	next: NextFunction
 ) => {
 	const { id: tableId } = req.params;
+	const { role, tableId: clientTableId } = req.user;
 	try {
+		if (role === "client" && clientTableId !== tableId) {
+			throw new ForbiddenError("that's not your table");
+		}
 		await TablesService.openNewTableSession(tableId);
 		return res
 			.status(StatusCodes.OK)
@@ -91,11 +95,11 @@ const checkoutTableHandler = async (
 	next: NextFunction
 ) => {
 	const { id: tableId } = req.params;
-	const { tableId: clientTableId } = req.user;
 
+	const { role, tableId: clientTableId } = req.user;
 	try {
-		if (req.user.role === "client" && tableId !== clientTableId) {
-			throw new ForbiddenError("forbidden to checkout others table");
+		if (role === "client" && clientTableId !== tableId) {
+			throw new ForbiddenError("that's not your table");
 		}
 		const data = await TablesService.checkoutTable(tableId);
 		return res.status(StatusCodes.OK).send({ code: StatusCodes.OK, data });

@@ -32,7 +32,9 @@ export class Order {
 	@ManyToOne(() => Table, (table) => table.orders)
 	table: Table;
 
-	@OneToMany(() => OrderDish, (orderDish) => orderDish.order)
+	@OneToMany(() => OrderDish, (orderDish) => orderDish.order, {
+		onDelete: "CASCADE",
+	})
 	orderDishes: OrderDish[];
 
 	@ManyToOne(() => Payment, (payment) => payment.orders)

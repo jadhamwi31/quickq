@@ -8,6 +8,7 @@ import {
 import { OrdersService } from "../services/orders.service";
 import { StatusCodes } from "http-status-codes";
 import { ForbiddenError } from "../models/error.model";
+import { Order } from "../models/order.model";
 
 const newOrderHandler = async (
 	req: Request<any, any, NewOrderType>,
@@ -28,21 +29,21 @@ const newOrderHandler = async (
 };
 
 const updateOrderHandler = async (
-	req: Request<{ orderId: number }, {}, Partial<UpdateOrderType>>,
+	req: Request<Pick<Order, "id">, any, Partial<UpdateOrderType>>,
 	res: Response,
 	next: NextFunction
 ) => {
 	const { role } = req.user;
-	const { orderId } = req.params;
+	const { id } = req.params;
 	const { dishes } = req.body;
 	try {
 		if (
 			role === "client" &&
-			!OrdersService.orderBelongsToTable(orderId, req.user.tableId)
+			!OrdersService.orderBelongsToTable(id, req.user.tableId)
 		) {
 			throw new ForbiddenError("order should belong to your table");
 		}
-		await OrdersService.updateOrder(orderId, dishes);
+		await OrdersService.updateOrder(id, dishes);
 		return res
 			.status(200)
 			.send({ message: "order updated successfully", code: StatusCodes.OK });
@@ -52,17 +53,65 @@ const updateOrderHandler = async (
 };
 
 const updateOrderStatusHandler = async (
-	req: Request<{ orderId: number }, {}, Partial<UpdateOrderStatusType>>,
+	req: Request<Pick<Order, "id">, any, Partial<UpdateOrderStatusType>>,
 	res: Response,
 	next: NextFunction
 ) => {
-	const { orderId } = req.params;
+	const { id } = req.params;
 	const { status } = req.body;
 	try {
-		await OrdersService.updateOrderStatus(orderId, status);
+		await OrdersService.updateOrderStatus(id, status);
 		return res
 			.status(200)
 			.send({ message: "order updated successfully", code: StatusCodes.OK });
+	} catch (e) {
+		return next(e);
+	}
+};
+
+const getTodayOrdersHandler = async (
+	req: Request,
+	res: Response,
+	next: NextFunction
+) => {
+	try {
+		const orders = await OrdersService.getTodayOrders();
+		return res.status(200).send({
+			code: StatusCodes.OK,
+			data: orders,
+		});
+	} catch (e) {
+		return next(e);
+	}
+};
+
+const getOrdersHistoryHandler = async (
+	req: Request,
+	res: Response,
+	next: NextFunction
+) => {
+	try {
+		const orders = await OrdersService.getOrdersHistory();
+		return res.status(200).send({
+			code: StatusCodes.OK,
+			data: orders,
+		});
+	} catch (e) {
+		return next(e);
+	}
+};
+
+const cancelOrderHandler = async (
+	req: Request<Pick<Order, "id">>,
+	res: Response,
+	next: NextFunction
+) => {
+	try {
+		await OrdersService.cancelOrder(req.params.id);
+		return res.status(200).send({
+			code: StatusCodes.OK,
+			message: "order deleted successfully",
+		});
 	} catch (e) {
 		return next(e);
 	}
@@ -72,4 +121,7 @@ export const OrdersController = {
 	newOrderHandler,
 	updateOrderHandler,
 	updateOrderStatusHandler,
+	getTodayOrdersHandler,
+	getOrdersHistoryHandler,
+	cancelOrderHandler,
 };
