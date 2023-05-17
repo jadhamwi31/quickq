@@ -12,6 +12,7 @@ import { TablesRouter } from "./routers/tables.router";
 import { OrdersRouter } from "./routers/orders.router";
 import RedisService from "./services/redis.service";
 import { TablesService } from "./services/tables.service";
+import { PaymentRouter } from "./routers/payment.router";
 
 dotenv.config();
 
@@ -32,6 +33,7 @@ dotenv.config();
 	app.use("/categories", CategoriesRouter);
 	app.use("/tables", TablesRouter);
 	app.use("/orders", OrdersRouter);
+	app.use("/payments", PaymentRouter);
 
 	app.use(errorMiddleware);
 

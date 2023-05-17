@@ -1,45 +1,45 @@
 import { Router } from "express";
 import { TablesValidators } from "../validators/tables.validators";
 import { TablesController } from "../controllers/tables.controller";
-import { authFor } from "../middlewares/auth.middleware";
+import { authFor as auth } from "../middlewares/auth.middleware";
 
 export const TablesRouter = Router();
 
 TablesRouter.post(
 	"/",
-	authFor(["manager"]),
+	auth(["manager"]),
 	TablesValidators.validateNewTable,
 	TablesController.newTableHandler
 );
 
 TablesRouter.put(
 	"/:id",
-	authFor(["manager"]),
+	auth(["manager"]),
 	TablesValidators.validateUpdateTable,
 	TablesController.updateTableHandler
 );
 
 TablesRouter.delete(
 	"/:id",
-	authFor(["manager"]),
+	auth(["manager"]),
 	TablesValidators.validateDeleteTable,
 	TablesController.deleteTableHandler
 );
 
 TablesRouter.get(
 	"/",
-	authFor(["cashier", "manager"]),
+	auth(["cashier", "manager"]),
 	TablesController.getTablesHandler
 );
 
 TablesRouter.post(
 	"/:id/session",
-	authFor(["client", "cashier", "manager"]),
+	auth(["client", "cashier", "manager"]),
 	TablesController.openNewTableSessionHandler
 );
 
 TablesRouter.get(
-	"/:id/checkout",
-	authFor(["client", "cashier", "manager"]),
+	"/:id/receipt",
+	auth(["client", "cashier", "manager"]),
 	TablesController.checkoutTableHandler
 );
