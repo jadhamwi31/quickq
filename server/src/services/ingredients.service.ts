@@ -1,18 +1,28 @@
 import { AppDataSource } from "../models";
 import { ConflictError, NotFoundError } from "../models/error.model";
 import { Ingredient } from "../models/ingredient.model";
+import { InventoryItem } from "../models/inventory_item.model";
 
 const createNewIngredient = async (
 	ingredient: Pick<Ingredient, "name" | "unit">
 ) => {
 	const ingredientsRepo = AppDataSource.getRepository(Ingredient);
+	const inventoryItemsRepo = AppDataSource.getRepository(InventoryItem);
 	const ingredientExists = await ingredientsRepo.findOneBy({
 		name: ingredient.name,
 	});
 	if (ingredientExists) {
 		throw new ConflictError("ingredient does exist");
 	}
-	await ingredientsRepo.insert(ingredient);
+	const ingredientRecord = new Ingredient();
+	ingredientRecord.name = ingredient.name;
+	ingredientRecord.unit = ingredient.unit;
+	await ingredientsRepo.insert(ingredientRecord);
+	const inventoryItem = new InventoryItem();
+	inventoryItem.ingredient = ingredientRecord;
+	inventoryItem.available = 0;
+	inventoryItem.needed = 0;
+	await inventoryItemsRepo.insert(inventoryItem);
 };
 
 const updateIngredient = async (
@@ -34,10 +44,10 @@ const updateIngredient = async (
 
 const deleteIngredient = async (name: string) => {
 	const ingredientsRepo = AppDataSource.getRepository(Ingredient);
-	const ingredientExists = await ingredientsRepo.findOneBy({
+	const ingredientRecord = await ingredientsRepo.findOneBy({
 		name,
 	});
-	if (!ingredientExists) {
+	if (!ingredientRecord) {
 		throw new NotFoundError("ingredient not found");
 	}
 	await ingredientsRepo.delete({ name });

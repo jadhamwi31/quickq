@@ -26,4 +26,8 @@ DishesRouter.put(
 	DishesController.updateDishHandler
 );
 
-DishesRouter.get("/", authFor(["manager"]), DishesController.getDishesHandler);
+DishesRouter.get(
+	"/",
+	authFor(["manager", "cashier"]),
+	DishesController.getDishesHandler
+);

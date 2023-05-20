@@ -7,6 +7,7 @@ import { Category } from "./category.model";
 import { Table, TableCode } from "./table.model";
 import { Order } from "./order.model";
 import { Payment } from "./payment.model";
+import { InventoryItem } from "./inventory_item.model";
 
 export let AppDataSource: DataSource;
 
@@ -33,6 +34,7 @@ export const createAppDataSource = async () => {
 			Order,
 			Payment,
 			TableCode,
+			InventoryItem,
 		],
 	});
 

@@ -14,6 +14,7 @@ import RedisService from "./services/redis.service";
 import { TablesService } from "./services/tables.service";
 import { PaymentRouter } from "./routers/payment.router";
 import cookieParser from "cookie-parser";
+import { InventoryRouter } from "./routers/inventory.router";
 
 dotenv.config();
 
@@ -36,10 +37,11 @@ dotenv.config();
 	app.use("/tables", TablesRouter);
 	app.use("/orders", OrdersRouter);
 	app.use("/payments", PaymentRouter);
+	app.use("/inventory", InventoryRouter);
 
 	app.use(errorMiddleware);
-
-	app.listen(80, () => {
-		console.log(`Listening on port 80`);
+	const port = process.env.SERVER_PORT;
+	app.listen(port, () => {
+		console.log(`Listening on port ${port}`);
 	});
 })();
