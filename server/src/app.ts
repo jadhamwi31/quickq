@@ -13,6 +13,7 @@ import { OrdersRouter } from "./routers/orders.router";
 import RedisService from "./services/redis.service";
 import { TablesService } from "./services/tables.service";
 import { PaymentRouter } from "./routers/payment.router";
+import cookieParser from "cookie-parser";
 
 dotenv.config();
 
@@ -22,9 +23,10 @@ dotenv.config();
 	const app = express();
 
 	// middlewares
-	app.use(cors({ origin: "http://localhost:3000" }));
+	app.use(cors({ origin: "http://localhost:3000", credentials: true }));
 	app.use(json());
 	app.use(urlencoded({ extended: false }));
+	app.use(cookieParser());
 
 	// routers
 	app.use("/auth", AuthRouter);
