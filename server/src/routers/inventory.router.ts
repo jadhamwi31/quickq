@@ -14,6 +14,6 @@ InventoryRouter.put(
 
 InventoryRouter.get(
 	"/items",
-	// authFor(["manager"]),
+	authFor(["manager"]),
 	InventoryController.getInventoryItems
 );
