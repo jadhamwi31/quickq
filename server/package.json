@@ -5,9 +5,9 @@
 	"main": "index.js",
 	"scripts": {
 		"start": "node ./build/app.js",
-		"seed": "npm run build && node ./build/config/seed.js",
-		"build": "tsc --build",
-		"dev": "nodemon ./src/app.ts"
+		"seed": "node ./src/config/migration.js",
+		"build": "npm run seed && tsc --build",
+		"dev": "npm run seed && nodemon ./src/app.ts"
 	},
 	"keywords": [],
 	"author": "",

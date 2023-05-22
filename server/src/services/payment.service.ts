@@ -15,7 +15,7 @@ const newPayment = async (tableId: number, amountPaid: number) => {
 	}
 
 	const tableOrders: IRedisTableOrder[] = Object.values(
-		await RedisService.redis.hgetall(`tables:orders:${tableId}`)
+		await RedisService.redis.hgetall(`tables:table_${tableId}:orders`)
 	).map((order) => JSON.parse(order));
 	tableOrders.forEach((tableOrder) => {
 		if (tableOrder.status !== "Done") {
@@ -57,4 +57,17 @@ const getPaymentsHistory = async () => {
 		.getMany();
 };
 
-export const PaymentService = { newPayment, getPaymentsHistory };
+const getTodayPayments = async () => {
+	const payins = await RedisService.redis.get("payins");
+	if (payins) {
+		return Number(payins);
+	} else {
+		return null;
+	}
+};
+
+export const PaymentService = {
+	newPayment,
+	getPaymentsHistory,
+	getTodayPayments,
+};

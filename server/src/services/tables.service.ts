@@ -101,7 +101,7 @@ const openNewTableSession = async (tableId: number) => {
 
 const checkoutTable = async (tableId: number) => {
 	const tableOrders = await RedisService.redis
-		.hgetall(`tables:orders:${tableId}`)
+		.hgetall(`tables:table_${tableId}:orders`)
 		.then((records): IRedisTableOrder[] => {
 			return Object.values(records).map((order) => {
 				return JSON.parse(order);

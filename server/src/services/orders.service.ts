@@ -82,7 +82,7 @@ const createNewOrder = async (newOrder: OrderDishesType, tableId: number) => {
 	};
 
 	await RedisService.redis.hset(
-		`tables:orders:${tableId}`,
+		`tables:table_${tableId}:orders`,
 		order.id,
 		JSON.stringify(redisTableOrder)
 	);
@@ -143,7 +143,10 @@ const updateOrder = async (orderId: number, dishes: OrderDishesType) => {
 
 	// Table Order Update
 	const tableOrderPrevValue: IRedisTableOrder = JSON.parse(
-		await RedisService.redis.hget(`tables:orders:${tableId}`, String(orderId))
+		await RedisService.redis.hget(
+			`tables:table_${tableId}:orders`,
+			String(orderId)
+		)
 	);
 	const newTableOrderDishes = dishes.map((dish) => {
 		const orderDishPrevValue = tableOrderPrevValue.dishes.find(
@@ -158,12 +161,15 @@ const updateOrder = async (orderId: number, dishes: OrderDishesType) => {
 	};
 
 	await RedisService.redis.hset(
-		`tables:orders:${tableId}`,
+		`tables:table_${tableId}:orders`,
 		orderId,
 		JSON.stringify(tableOrderNewValue)
 	);
 	const ordersQueueOrderPrevValue: RedisOrdersQueueOrderType = JSON.parse(
-		await RedisService.redis.hget(`tables:orders:${tableId}`, String(orderId))
+		await RedisService.redis.hget(
+			`tables:table_${tableId}:orders`,
+			String(orderId)
+		)
 	);
 
 	const newOrdersQueueOrderDishes = dishes.map((dish) => {
@@ -204,7 +210,7 @@ const updateOrderStatus = async (orderId: number, status: OrderStatusType) => {
 	// Table Order Status Update
 	const tableOrderPrevValue: IRedisTableOrder = JSON.parse(
 		await RedisService.redis.hget(
-			`tables:orders:${orderRecord.table.id}`,
+			`tables:table_${orderRecord.table.id}:orders`,
 			String(orderRecord.id)
 		)
 	);
@@ -214,24 +220,14 @@ const updateOrderStatus = async (orderId: number, status: OrderStatusType) => {
 	};
 
 	await RedisService.redis.hset(
-		`tables:orders:${orderRecord.table.id}`,
+		`tables:table_${orderRecord.table.id}:orders`,
 		orderRecord.id,
 		JSON.stringify(tableOrderNewValue)
 	);
 
-	// const ORDER_STATUS_UPDATE_PUBLISH_MESSAGE = {
-	// 	type: "order_status_update",
-	// 	data: {
-	// 		orderId: orderId,
-	// 		status,
-	// 	},
-	// };
-
-	// Order Status Update In Orders Queue
-
 	const queueOrderPrevValue: RedisOrdersQueueOrderType = JSON.parse(
 		await RedisService.redis.hget(
-			`tables:orders:${orderRecord.table.id}`,
+			`tables:table_${orderRecord.table.id}:orders`,
 			String(orderRecord.id)
 		)
 	);
@@ -247,7 +243,7 @@ const updateOrderStatus = async (orderId: number, status: OrderStatusType) => {
 };
 
 const getTodayOrders = async () => {
-	const _todayOrders: { [hash: string]: string } =
+	const _todayOrders: { [ket: string]: string } =
 		await RedisService.redis.hgetall("orders");
 
 	const todayOrders = Object.values(_todayOrders)

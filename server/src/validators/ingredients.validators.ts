@@ -40,11 +40,8 @@ const validateUpdateIngredient = async (
 ) => {
 	const { name, unit } = req.body;
 	const ingredientName = req.params.name;
-	if (!name) {
-		return next(new BadRequestError("key : [name] is required in body"));
-	}
-	if (!unit) {
-		return next(new BadRequestError("key : [unit] is required in body"));
+	if (!name && !unit) {
+		return next(new BadRequestError("provide updates (name or unit) in body"));
 	}
 	if (!ingredientName) {
 		return next(new BadRequestError("name parameter is missing"));

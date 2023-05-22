@@ -2,6 +2,7 @@ import { AppDataSource } from "../models";
 import { ConflictError, NotFoundError } from "../models/error.model";
 import { Ingredient } from "../models/ingredient.model";
 import { InventoryItem } from "../models/inventory_item.model";
+import RedisService from "./redis.service";
 
 const createNewIngredient = async (
 	ingredient: Pick<Ingredient, "name" | "unit">
@@ -23,6 +24,16 @@ const createNewIngredient = async (
 	inventoryItem.available = 0;
 	inventoryItem.needed = 0;
 	await inventoryItemsRepo.insert(inventoryItem);
+
+	await RedisService.redis.hset(
+		"inventory:items",
+		ingredient.name,
+		JSON.stringify({
+			available: 0,
+			needed: 0,
+			unit: ingredient.unit,
+		})
+	);
 };
 
 const updateIngredient = async (
@@ -34,8 +45,8 @@ const updateIngredient = async (
 		name,
 	});
 	if (ingredientRecord) {
-		ingredientRecord.name = ingredient.name;
-		ingredientRecord.unit = ingredient.unit;
+		if (ingredient.name) ingredientRecord.name = ingredient.name;
+		if (ingredient.unit) ingredientRecord.unit = ingredient.unit;
 		await ingredientsRepo.save(ingredientRecord);
 	} else {
 		throw new ConflictError("ingredient does not exist");

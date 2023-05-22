@@ -34,7 +34,26 @@ const getPaymentsHistoryHandler = async (
 	}
 };
 
+const getPaymentsTodayHandler = async (
+	req: Request,
+	res: Response,
+	next: NextFunction
+) => {
+	try {
+		const payments = await PaymentService.getTodayPayments();
+		return res.status(StatusCodes.OK).send({
+			data: {
+				payments,
+				code: StatusCodes.OK,
+			},
+		});
+	} catch (e) {
+		next(e);
+	}
+};
+
 export const PaymentController = {
 	newPaymentHandler,
 	getPaymentsHistoryHandler,
+	getPaymentsTodayHandler,
 };

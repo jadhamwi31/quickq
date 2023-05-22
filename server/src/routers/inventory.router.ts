@@ -7,13 +7,13 @@ export const InventoryRouter = Router();
 
 InventoryRouter.put(
 	"/items/:ingredientName",
-	authFor(["manager"]),
+	authFor(["manager", "chef", "cashier"]),
 	InventoryValidator.updateInventoryItemValidator,
 	InventoryController.updateInventoryItemHandler
 );
 
 InventoryRouter.get(
 	"/items",
-	authFor(["manager"]),
+	authFor(["manager", "cashier", "chef"]),
 	InventoryController.getInventoryItems
 );
