@@ -10,7 +10,7 @@ const loginHandler = async (
 	res: Response,
 	next: NextFunction
 ) => {
-	const { username, password, table_code: table_code } = req.body;
+	const { username, password, table_code } = req.body;
 	try {
 		if (username && password) {
 			const jwt = await AuthService.loginByUsernameAndPassword(
@@ -19,14 +19,14 @@ const loginHandler = async (
 			);
 			return res
 				.status(StatusCodes.OK)
-				.cookie("jwt", jwt)
+				.cookie("jwt", jwt, { httpOnly: true })
 				.send({ code: StatusCodes.OK, message: "logged in" });
 		}
 		if (table_code) {
 			const jwt = await AuthService.loginByTableCode(table_code);
 			return res
 				.status(StatusCodes.OK)
-				.cookie("jwt", jwt)
+				.cookie("jwt", jwt, { httpOnly: true })
 				.send({ code: StatusCodes.OK, message: "logged in" });
 		}
 	} catch (e) {

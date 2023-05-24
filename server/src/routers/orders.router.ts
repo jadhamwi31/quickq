@@ -28,7 +28,7 @@ OrdersRouter.put(
 
 OrdersRouter.get(
 	"/today",
-	authFor(["chef", "cashier", "manager"]),
+	// authFor(["chef", "cashier", "manager"]),
 	OrdersController.getTodayOrdersHandler
 );
 

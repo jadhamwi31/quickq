@@ -4,7 +4,9 @@ import { User } from "../models/user.model";
 import jwt from "jsonwebtoken";
 import { JwtService } from "./jwt.service";
 import { TableCode } from "../models/table.model";
-
+import { uniqueId } from "lodash";
+import { v4 as uuid } from "uuid";
+import RedisService from "./redis.service";
 const loginByUsernameAndPassword = async (
 	username: string,
 	password: string
@@ -35,10 +37,19 @@ const loginByTableCode = async (code: string) => {
 		throw new Error("invalid table code");
 	}
 
+	const clientId = uuid();
+
 	const token = JwtService.generate({
 		role: "client",
 		tableId: tableCodeRecord.table.id,
+		clientId,
 	});
+
+	await RedisService.redis.hset(
+		`tables:sessions`,
+		tableCodeRecord.table.id,
+		clientId
+	);
 
 	return token;
 };

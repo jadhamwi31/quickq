@@ -1,18 +1,16 @@
-import { uniqueId } from "lodash";
+import { v4 as uuid } from "uuid";
 import { AppDataSource } from "../models";
 import {
 	BadRequestError,
 	ConflictError,
 	NotFoundError,
 } from "../models/error.model";
-import { Table, TableCode } from "../models/table.model";
-import { TableStatus } from "../ts/types/table.types";
-import { v4 as uuid } from "uuid";
-import RedisService from "./redis.service";
 import { Payment } from "../models/payment.model";
-import { IRedisTableValue } from "../ts/interfaces/tables.interfaces";
-import { Order } from "../models/order.model";
+import { Table, TableCode } from "../models/table.model";
 import { IRedisTableOrder } from "../ts/interfaces/order.interfaces";
+import { TableStatus } from "../ts/types/table.types";
+import RedisService from "./redis.service";
+import { Order } from "../models/order.model";
 const createNewTable = async (id: number) => {
 	const tablesRepo = AppDataSource.getRepository(Table);
 	const tablesCodesRepo = AppDataSource.getRepository(TableCode);
@@ -74,74 +72,53 @@ const getTables = async () => {
 	}));
 };
 
-const openNewTableSession = async (tableId: number) => {
+const openNewTableSession = async (tableId: number, clientId: string) => {
 	const paymentsRepo = AppDataSource.getRepository(Payment);
 	const tablesRepo = AppDataSource.getRepository(Table);
 	const table = await tablesRepo.findOneBy({ id: tableId });
 	if (table.status === "Busy") {
 		throw new BadRequestError("table is busy");
 	}
-	const paymentId = uuid();
 	const payment = new Payment();
 	table.status = "Busy";
-	table.current_payment_id = paymentId;
-	payment.id = paymentId;
+	payment.clientId = clientId;
 	await paymentsRepo.insert(payment);
 	await tablesRepo.save(table);
 
-	RedisService.redis.hset(
-		`tables:states`,
-		String(tableId),
-		JSON.stringify({
-			paymentId,
-			status: "Busy",
-		})
+	const redisTableClientId = await RedisService.redis.hget(
+		"tables:sessions",
+		String(tableId)
 	);
+
+	if (redisTableClientId === null) {
+		await RedisService.redis.hset("tables:sessions", String(tableId), clientId);
+	}
 };
 
 const checkoutTable = async (tableId: number) => {
-	const tableOrders = await RedisService.redis
-		.hgetall(`tables:table_${tableId}:orders`)
-		.then((records): IRedisTableOrder[] => {
-			return Object.values(records).map((order) => {
-				return JSON.parse(order);
-			});
-		});
-	const checkoutTotal = tableOrders.reduce((total, currentOrder) => {
-		return (
-			total +
-			currentOrder.dishes.reduce((orderTotal, currentDish) => {
-				return orderTotal + currentDish.price * currentDish.quantity;
-			}, 0)
-		);
-	}, 0);
+	const clientId = await RedisService.redis.hget(
+		"tables:sessions",
+		String(tableId)
+	);
 
-	const tableOrdersDishes = [
-		...tableOrders.map((order) => order.dishes),
-	].flat();
+	const payment = await AppDataSource.createQueryBuilder()
+		.from(Payment, "payment")
+		.select(["payment.clientId"])
+		.where({ clientId })
+		.leftJoin("payment.orders", "order")
+		.addSelect(["order.date", "order.total", "order.id"])
+		.leftJoin("order.orderDishes", "order_dish")
+		.addSelect(["order_dish.quantity"])
+		.leftJoin("order_dish.dish", "dish")
+		.addSelect(["dish.name", "dish.price", "dish.description"])
+		.leftJoin("dish.category", "category")
+		.getOne();
+	const total = payment.orders.reduce(
+		(prev, current) => prev + current.total,
+		0
+	);
 
-	const tableOrdersDishesMap: {
-		[dishName: string]: { quantity: number; price: number };
-	} = {};
-
-	tableOrdersDishes.forEach((orderDish) => {
-		if (orderDish.name in tableOrdersDishesMap) {
-			tableOrdersDishesMap[orderDish.name].quantity += orderDish.quantity;
-		} else {
-			tableOrdersDishesMap[orderDish.name] = {
-				quantity: orderDish.quantity,
-				price: orderDish.price,
-			};
-		}
-	});
-
-	return {
-		dishes: Object.entries(tableOrdersDishesMap).map(([name, val]) => ({
-			name,
-			...val,
-		})),
-		total: checkoutTotal,
-	};
+	return { total, payment };
 };
 
 export const TablesService = {

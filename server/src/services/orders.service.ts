@@ -1,21 +1,17 @@
-import { NextFunction, Request, Response } from "express";
+import moment from "moment";
+import { Between } from "typeorm";
 import { AppDataSource } from "../models";
 import { Dish } from "../models/dish.model";
 import { BadRequestError, NotFoundError } from "../models/error.model";
 import { Order } from "../models/order.model";
 import { Payment } from "../models/payment.model";
-import { DishIngredient, OrderDish } from "../models/shared.model";
+import { OrderDish } from "../models/shared.model";
 import { Table } from "../models/table.model";
-import {
-	IOrderDish,
-	IRedisTableOrder,
-} from "../ts/interfaces/order.interfaces";
-import { IRedisTableValue } from "../ts/interfaces/tables.interfaces";
+import { IRedisTableOrder } from "../ts/interfaces/order.interfaces";
 import {
 	OrderDishesType,
 	OrderStatusType,
 	RedisOrderDish,
-	RedisOrdersQueueOrderType,
 } from "../ts/types/order.types";
 import RedisService from "./redis.service";
 
@@ -31,15 +27,18 @@ const createNewOrder = async (newOrder: OrderDishesType, tableId: number) => {
 		throw new NotFoundError(`table with id ${tableId} doesn't exist`);
 	}
 
-	const redisTableValue: IRedisTableValue = JSON.parse(
-		await RedisService.redis.hget("tables:states", String(tableId))
-	);
-	if (redisTableValue.status === "Available") {
+	if (tableRecord.status === "Available") {
 		throw new BadRequestError("open table before start ordering");
 	}
+
+	const clientId = await RedisService.redis.hget(
+		"tables:sessions",
+		String(tableId)
+	);
+
 	const order = new Order();
 	const payment = await paymentsRepo.findOneBy({
-		id: redisTableValue.paymentId,
+		clientId,
 	});
 	order.payment = payment;
 	order.table = tableRecord;
@@ -65,39 +64,21 @@ const createNewOrder = async (newOrder: OrderDishesType, tableId: number) => {
 	}
 	await ordersRepo.save(order);
 
-	const orderDishes: RedisOrderDish[] = [];
-	order.orderDishes.forEach((orderDish) => {
-		orderDishes.push({
-			name: orderDish.dish.name,
-			quantity: orderDish.quantity,
-			id: orderDish.dish.id,
-			price: orderDish.dish.price,
-		});
-	});
-
 	const redisTableOrder: IRedisTableOrder = {
 		id: order.id,
-		dishes: orderDishes,
+		dishes: order.orderDishes.map(
+			(orderDish): RedisOrderDish => ({
+				id: orderDish.dish.id,
+				name: orderDish.dish.name,
+				quantity: orderDish.quantity,
+			})
+		),
 		status: "Pending",
 	};
-
-	await RedisService.redis.hset(
-		`tables:table_${tableId}:orders`,
-		order.id,
-		JSON.stringify(redisTableOrder)
-	);
-
-	const redisOrdersQueueOrder: RedisOrdersQueueOrderType = {
-		table_id: tableId,
-		id: order.id,
-		dishes: orderDishes,
-		status: "Pending",
-	};
-
 	await RedisService.redis.hset(
 		"orders",
-		order.id,
-		JSON.stringify(redisOrdersQueueOrder)
+		redisTableOrder.id,
+		JSON.stringify(redisTableOrder)
 	);
 };
 
@@ -113,86 +94,49 @@ const orderBelongsToTable = async (orderId: number, tableId: number) => {
 
 const updateOrder = async (orderId: number, dishes: OrderDishesType) => {
 	const ordersDishesRepo = AppDataSource.getRepository(OrderDish);
-	const ordersRepo = AppDataSource.getRepository(Order);
-	const orderDishesRecord = await ordersDishesRepo.find({
+	const dishesRepo = AppDataSource.getRepository(Dish);
+	const orderDishesRecords = await ordersDishesRepo.find({
 		relations: { dish: true, order: true },
 		where: { order: { id: orderId } },
 	});
-	if (!orderDishesRecord) {
+	if (!orderDishesRecords) {
 		throw new NotFoundError("order with this id was not found");
 	}
 
-	const {
-		table: { id: tableId },
-	} = await ordersRepo.findOne({
-		relations: { table: true },
-		where: { id: orderId },
-	});
-
-	orderDishesRecord.forEach((orderDish) => {
-		const dish = dishes.find((dish) => dish.name === orderDish.dish.name);
-		if (dish) {
-			orderDish = {
-				...orderDish,
-				...dish,
-			};
+	for (const dish of dishes) {
+		const dishRecord = await dishesRepo.findOneBy({ name: dish.name });
+		if (!dishRecord) {
+			throw new NotFoundError(`dish ${dish.name} not found`);
 		}
-	});
-
-	ordersDishesRepo.save(orderDishesRecord);
-
-	// Table Order Update
-	const tableOrderPrevValue: IRedisTableOrder = JSON.parse(
-		await RedisService.redis.hget(
-			`tables:table_${tableId}:orders`,
-			String(orderId)
-		)
-	);
-	const newTableOrderDishes = dishes.map((dish) => {
-		const orderDishPrevValue = tableOrderPrevValue.dishes.find(
-			(currentDish) => currentDish.name === dish.name
+		const index = orderDishesRecords.findIndex(
+			(current) => current.dish.name === dish.name
 		);
-		return { ...orderDishPrevValue, ...dish };
-	});
+		if (index >= 0) {
+			orderDishesRecords[index].quantity = dish.quantity;
+		} else {
+			throw new BadRequestError(`you didn't order ${dish.name}`);
+		}
+	}
 
-	const tableOrderNewValue: IRedisTableOrder = {
-		...tableOrderPrevValue,
-		dishes: newTableOrderDishes,
-	};
+	await ordersDishesRepo.save(orderDishesRecords);
+
+	const newRedisOrder: IRedisTableOrder = JSON.parse(
+		await RedisService.redis.hget("orders", String(orderId))
+	);
+
+	newRedisOrder.dishes = orderDishesRecords.map(
+		(orderDish): RedisOrderDish => ({
+			id: orderDish.id,
+			quantity: orderDish.quantity,
+			name: orderDish.dish.name,
+		})
+	);
 
 	await RedisService.redis.hset(
-		`tables:table_${tableId}:orders`,
+		"orders",
 		orderId,
-		JSON.stringify(tableOrderNewValue)
+		JSON.stringify(newRedisOrder)
 	);
-	const ordersQueueOrderPrevValue: RedisOrdersQueueOrderType = JSON.parse(
-		await RedisService.redis.hget(
-			`tables:table_${tableId}:orders`,
-			String(orderId)
-		)
-	);
-
-	const newOrdersQueueOrderDishes = dishes.map((dish) => {
-		const orderDishPrevValue = ordersQueueOrderPrevValue.dishes.find(
-			(currentDish) => currentDish.name === dish.name
-		);
-		return { ...orderDishPrevValue, ...dish };
-	});
-
-	const ordersQueueOrderNewValue: RedisOrdersQueueOrderType = {
-		...ordersQueueOrderPrevValue,
-		dishes: newOrdersQueueOrderDishes,
-	};
-	await RedisService.redis.hset(
-		`orders`,
-		orderId,
-		JSON.stringify(ordersQueueOrderNewValue)
-	);
-
-	// const REDIS_ORDER_UPDATE_PUBLISH_MESSAGE = {
-	// 	type: "order_update",
-	// 	data: dishes,
-	// };
 };
 
 const updateOrderStatus = async (orderId: number, status: OrderStatusType) => {
@@ -207,50 +151,65 @@ const updateOrderStatus = async (orderId: number, status: OrderStatusType) => {
 	}
 	orderRecord.status = status;
 	ordersRepo.save(orderRecord);
-	// Table Order Status Update
-	const tableOrderPrevValue: IRedisTableOrder = JSON.parse(
-		await RedisService.redis.hget(
-			`tables:table_${orderRecord.table.id}:orders`,
-			String(orderRecord.id)
-		)
+
+	const newRedisOrder: IRedisTableOrder = JSON.parse(
+		await RedisService.redis.hget("orders", String(orderId))
 	);
-	const tableOrderNewValue: IRedisTableOrder = {
-		...tableOrderPrevValue,
-		status,
-	};
+	newRedisOrder.status = status;
 
 	await RedisService.redis.hset(
-		`tables:table_${orderRecord.table.id}:orders`,
-		orderRecord.id,
-		JSON.stringify(tableOrderNewValue)
-	);
-
-	const queueOrderPrevValue: RedisOrdersQueueOrderType = JSON.parse(
-		await RedisService.redis.hget(
-			`tables:table_${orderRecord.table.id}:orders`,
-			String(orderRecord.id)
-		)
-	);
-	const queueOrderNewValue: RedisOrdersQueueOrderType = {
-		...queueOrderPrevValue,
-		status,
-	};
-	await RedisService.redis.hset(
-		`orders`,
-		orderRecord.id,
-		JSON.stringify(queueOrderNewValue)
+		"orders",
+		orderId,
+		JSON.stringify(newRedisOrder)
 	);
 };
 
 const getTodayOrders = async () => {
-	const _todayOrders: { [ket: string]: string } =
-		await RedisService.redis.hgetall("orders");
+	const ordersCacheHit = await RedisService.redis.exists("orders");
+	if (!ordersCacheHit) {
+		const dayStart = moment().startOf("day").toDate();
+		const dayEnd = moment().endOf("day").toDate();
+		const _orders = await AppDataSource.createQueryBuilder()
+			.from(Order, "order")
+			.addSelect(["order.id", "order.status"])
+			.leftJoin("order.orderDishes", "order_dish")
+			.addSelect(["order_dish.quantity"])
+			.leftJoin("order_dish.dish", "dish")
+			.addSelect(["dish.name", "dish.price"])
+			.where({ date: Between(dayStart, dayEnd) })
+			.orderBy("order.date", "DESC")
+			.getMany();
 
-	const todayOrders = Object.values(_todayOrders)
-		.map((value): RedisOrdersQueueOrderType => JSON.parse(value))
-		.sort((a, b) => a.id - b.id);
+		const orders: IRedisTableOrder[] = [];
+		for (const order of _orders) {
+			const orderObject: IRedisTableOrder = {
+				id: order.id,
+				status: order.status,
+				dishes: order.orderDishes.map(
+					(orderDish): RedisOrderDish => ({
+						name: orderDish.dish.name,
+						quantity: orderDish.quantity,
 
-	return todayOrders;
+						id: orderDish.dish.id,
+					})
+				),
+			};
+			orders.push(orderObject);
+			await RedisService.redis.hset(
+				"orders",
+				order.id,
+				JSON.stringify(orderObject)
+			);
+		}
+
+		return orders;
+	} else {
+		const _todayOrders = Object.values(
+			await RedisService.redis.hgetall("orders")
+		).map((order): IRedisTableOrder => JSON.parse(order));
+		const _todayOrdersSorted = _todayOrders.sort((a, b) => b.id - a.id);
+		return _todayOrdersSorted;
+	}
 };
 
 const getOrdersHistory = async () => {

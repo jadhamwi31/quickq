@@ -20,9 +20,6 @@ export class Table {
 
 	@OneToMany(() => Order, (order) => order.table)
 	orders: Order[];
-
-	@Column({ nullable: true })
-	current_payment_id: string;
 }
 
 @Entity()

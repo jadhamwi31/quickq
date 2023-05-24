@@ -16,4 +16,4 @@ export type UpdateOrderStatusType = {
 
 export type RedisOrdersQueueOrderType = IRedisTableOrder & { table_id: number };
 
-export type RedisOrderDish = IOrderDish & Pick<Dish, "id" | "price">;
+export type RedisOrderDish = IOrderDish & Pick<Dish, "id">;

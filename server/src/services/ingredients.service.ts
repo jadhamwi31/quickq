@@ -2,6 +2,7 @@ import { AppDataSource } from "../models";
 import { ConflictError, NotFoundError } from "../models/error.model";
 import { Ingredient } from "../models/ingredient.model";
 import { InventoryItem } from "../models/inventory_item.model";
+import { IRedisInventoryItem } from "../ts/interfaces/inventory.interfaces";
 import RedisService from "./redis.service";
 
 const createNewIngredient = async (
@@ -24,16 +25,6 @@ const createNewIngredient = async (
 	inventoryItem.available = 0;
 	inventoryItem.needed = 0;
 	await inventoryItemsRepo.insert(inventoryItem);
-
-	await RedisService.redis.hset(
-		"inventory:items",
-		ingredient.name,
-		JSON.stringify({
-			available: 0,
-			needed: 0,
-			unit: ingredient.unit,
-		})
-	);
 };
 
 const updateIngredient = async (
@@ -61,6 +52,7 @@ const deleteIngredient = async (name: string) => {
 	if (!ingredientRecord) {
 		throw new NotFoundError("ingredient not found");
 	}
+
 	await ingredientsRepo.delete({ name });
 };
 

@@ -3,6 +3,7 @@ import { Table } from "../models/table.model";
 import { TablesService } from "../services/tables.service";
 import { StatusCodes } from "http-status-codes";
 import { ForbiddenError } from "../models/error.model";
+import { v4 as uuid } from "uuid";
 
 const newTableHandler = async (
 	req: Request<any, any, Pick<Table, "id">>,
@@ -76,11 +77,16 @@ const openNewTableSessionHandler = async (
 ) => {
 	const { id: tableId } = req.params;
 	const { role, tableId: clientTableId } = req.user;
+
 	try {
-		if (role === "client" && clientTableId !== tableId) {
+		if (role === "client" && clientTableId != tableId) {
 			throw new ForbiddenError("that's not your table");
 		}
-		await TablesService.openNewTableSession(tableId);
+
+		await TablesService.openNewTableSession(
+			tableId,
+			req.user.clientId || uuid()
+		);
 		return res
 			.status(StatusCodes.OK)
 			.send({ code: StatusCodes.OK, message: "new table session created" });
@@ -98,7 +104,7 @@ const checkoutTableHandler = async (
 
 	const { role, tableId: clientTableId } = req.user;
 	try {
-		if (role === "client" && clientTableId !== tableId) {
+		if (role === "client" && clientTableId != tableId) {
 			throw new ForbiddenError("that's not your table");
 		}
 		const data = await TablesService.checkoutTable(tableId);

@@ -8,6 +8,4 @@ export default class RedisService {
 		const port = Number(process.env.REDIS_PORT);
 		this.redis = new Redis(port, host);
 	}
-
-
 }

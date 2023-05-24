@@ -1,11 +1,12 @@
+import { Between, Equal, LessThan } from "typeorm";
 import { AppDataSource } from "../models";
 import { BadRequestError, ForbiddenError } from "../models/error.model";
 import { Payment } from "../models/payment.model";
 import { IRedisTableOrder } from "../ts/interfaces/order.interfaces";
 import { IRedisTableValue } from "../ts/interfaces/tables.interfaces";
-import { OrdersService } from "./orders.service";
 import RedisService from "./redis.service";
 import { TablesService } from "./tables.service";
+import moment from "moment";
 
 const newPayment = async (tableId: number, amountPaid: number) => {
 	const { total } = await TablesService.checkoutTable(tableId);
@@ -14,22 +15,22 @@ const newPayment = async (tableId: number, amountPaid: number) => {
 		throw new ForbiddenError(`amount paid not equel to check total ${total}`);
 	}
 
-	const tableOrders: IRedisTableOrder[] = Object.values(
-		await RedisService.redis.hgetall(`tables:table_${tableId}:orders`)
-	).map((order) => JSON.parse(order));
-	tableOrders.forEach((tableOrder) => {
+	const {
+		payment: { orders },
+	} = await TablesService.checkoutTable(tableId);
+	orders.forEach((tableOrder) => {
 		if (tableOrder.status !== "Done") {
-			throw new BadRequestError(
-				"pending/in-cook orders are still in the queue"
-			);
+			throw new BadRequestError("pending/in-cook orders still present");
 		}
 	});
 
-	const { paymentId }: IRedisTableValue = JSON.parse(
-		await RedisService.redis.hget(`tables:states`, String(tableId))
+	const clientId = await RedisService.redis.hget(
+		"tables:sessions",
+		String(tableId)
 	);
+
 	const paymentsRepo = AppDataSource.getRepository(Payment);
-	const payment = await paymentsRepo.findOneBy({ id: paymentId });
+	const payment = await paymentsRepo.findOneBy({ clientId });
 	if (payment) {
 		payment.date = new Date();
 		payment.amount = amountPaid;
@@ -37,16 +38,8 @@ const newPayment = async (tableId: number, amountPaid: number) => {
 	} else {
 		throw new BadRequestError("no payment for this table right now");
 	}
-	await RedisService.redis.hset(
-		`tables:states`,
-		String(tableId),
-		JSON.stringify({
-			paymentId: null,
-			status: "Available",
-		})
-	);
-	const prevPayins = Number(await RedisService.redis.get("payins"));
-	await RedisService.redis.set("payins", prevPayins + amountPaid);
+
+	await RedisService.redis.hset("tables:sessions", String(tableId), null);
 };
 
 const getPaymentsHistory = async () => {
@@ -58,12 +51,17 @@ const getPaymentsHistory = async () => {
 };
 
 const getTodayPayments = async () => {
-	const payins = await RedisService.redis.get("payins");
-	if (payins) {
-		return Number(payins);
-	} else {
-		return null;
-	}
+	const dayStart = moment().startOf("day").toDate();
+	const dayEnd = moment().endOf("day").toDate();
+
+	const todayPayments = await AppDataSource.getRepository(Payment).find({
+		where: { date: Between(dayStart, dayEnd) },
+	});
+
+	return {
+		payments: todayPayments,
+		total: todayPayments.reduce((prev, current) => prev + current.amount, 0),
+	};
 };
 
 export const PaymentService = {

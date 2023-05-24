@@ -9,5 +9,6 @@ export interface IUserCredentials {
 export interface IUserTokenPayload {
 	username?: string;
 	tableId?: number;
+	clientId?: string;
 	role: UserRoleType;
 }

@@ -4,16 +4,16 @@ import {
 	OneToMany,
 	PrimaryColumn,
 	PrimaryGeneratedColumn,
-	Unique,
 } from "typeorm";
-import { DishIngredient } from "./shared.model";
-import { Dish } from "./dish.model";
 import { Order } from "./order.model";
 
 @Entity()
 export class Payment {
-	@PrimaryColumn()
+	@PrimaryGeneratedColumn()
 	id: string;
+
+	@PrimaryColumn()
+	clientId: string;
 
 	@Column({ type: "timestamptz", nullable: true })
 	date: Date;

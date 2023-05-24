@@ -42,10 +42,8 @@ const getPaymentsTodayHandler = async (
 	try {
 		const payments = await PaymentService.getTodayPayments();
 		return res.status(StatusCodes.OK).send({
-			data: {
-				payments,
-				code: StatusCodes.OK,
-			},
+			code: StatusCodes.OK,
+			data: payments,
 		});
 	} catch (e) {
 		next(e);
