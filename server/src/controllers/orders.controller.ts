@@ -106,8 +106,16 @@ const cancelOrderHandler = async (
 	res: Response,
 	next: NextFunction
 ) => {
+	const { id: orderId } = req.params;
+	const { role } = req.user;
 	try {
-		await OrdersService.cancelOrder(req.params.id);
+		if (
+			role === "client" &&
+			!OrdersService.orderBelongsToTable(orderId, req.user.tableId)
+		) {
+			throw new ForbiddenError("order should belong to your table");
+		}
+		await OrdersService.cancelOrder(orderId);
 		return res.status(200).send({
 			code: StatusCodes.OK,
 			message: "order deleted successfully",

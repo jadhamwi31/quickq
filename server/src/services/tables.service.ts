@@ -9,6 +9,33 @@ import { Payment } from "../models/payment.model";
 import { Table, TableCode, TableSession } from "../models/table.model";
 import { TableStatus } from "../ts/types/table.types";
 import RedisService from "./redis.service";
+import { OrdersService } from "./orders.service";
+
+const getTableSessionClientId = async (tableId: number) => {
+	const sessionCacheHit = await RedisService.redis.hexists(
+		"tables:sessions",
+		String(tableId)
+	);
+	if (!sessionCacheHit) {
+		const tableSession = await AppDataSource.getRepository(
+			TableSession
+		).findOne({
+			relations: { table: true },
+			where: { table: { id: tableId } },
+		});
+		if (tableSession) {
+			if (tableSession.clientId) return tableSession.clientId;
+			throw new BadRequestError("open table session first");
+		}
+	} else {
+		const clientId = await RedisService.redis.hget(
+			"tables:sessions",
+			String(tableId)
+		);
+		return clientId;
+	}
+};
+
 const createNewTable = async (id: number) => {
 	const tablesRepo = AppDataSource.getRepository(Table);
 	const tablesCodesRepo = AppDataSource.getRepository(TableCode);
@@ -100,29 +127,17 @@ const openNewTableSession = async (tableId: number, clientId: string) => {
 };
 
 const checkoutTable = async (tableId: number) => {
-	const clientId = await RedisService.redis.hget(
-		"tables:sessions",
-		String(tableId)
-	);
+	const orders = await OrdersService.getTodayOrders();
 
-	const payment = await AppDataSource.createQueryBuilder()
-		.from(Payment, "payment")
-		.select(["payment.clientId"])
-		.where({ clientId })
-		.leftJoin("payment.orders", "order")
-		.addSelect(["order.date", "order.total", "order.id"])
-		.leftJoin("order.orderDishes", "order_dish")
-		.addSelect(["order_dish.quantity"])
-		.leftJoin("order_dish.dish", "dish")
-		.addSelect(["dish.name", "dish.price", "dish.description"])
-		.leftJoin("dish.category", "category")
-		.getOne();
-	const total = payment.orders.reduce(
-		(prev, current) => prev + current.total,
+	const tableOrders = orders.filter((order) => order.tableId == tableId);
+	console.log(tableOrders);
+
+	const total = tableOrders.reduce(
+		(total, current) => total + current.total,
 		0
 	);
 
-	return { total, payment };
+	return { receipt: tableOrders, total };
 };
 
 export const TablesService = {
@@ -132,4 +147,5 @@ export const TablesService = {
 	getTables,
 	openNewTableSession,
 	checkoutTable,
+	getTableSessionClientId,
 };

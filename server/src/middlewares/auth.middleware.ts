@@ -36,6 +36,9 @@ export const authFor = (roles: UserRoleType[]) => {
 						if (!clientId) {
 							throw new ForbiddenError("no session opened on this table");
 						}
+						if (clientId !== user.clientId) {
+							throw new ForbiddenError("you're not on this table");
+						}
 						await RedisService.redis.hset(
 							"tables:sessions",
 							String(user.tableId),

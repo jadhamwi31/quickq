@@ -66,11 +66,15 @@ const createNewOrder = async (newOrder: OrderDishesType, tableId: number) => {
 
 	const redisTableOrder: IRedisTableOrder = {
 		id: order.id,
+		tableId: tableRecord.id,
+		total: order.total,
+		date: order.date.toString(),
 		dishes: order.orderDishes.map(
 			(orderDish): RedisOrderDish => ({
 				id: orderDish.dish.id,
 				name: orderDish.dish.name,
 				quantity: orderDish.quantity,
+				price: orderDish.dish.price,
 			})
 		),
 		status: "Pending",
@@ -83,13 +87,19 @@ const createNewOrder = async (newOrder: OrderDishesType, tableId: number) => {
 };
 
 const orderBelongsToTable = async (orderId: number, tableId: number) => {
-	const ordersRepo = AppDataSource.getRepository(Order);
+	const orders = await getTodayOrders();
 
-	const result = await ordersRepo.findOne({
-		where: { id: orderId, table: { id: tableId } },
-		relations: { table: true },
-	});
-	return result !== null;
+	const order = orders.find((order) => order.id == orderId);
+
+	if (order) {
+		if (order.tableId == tableId) {
+			return true;
+		} else {
+			return false;
+		}
+	} else {
+		throw new NotFoundError("order with this id was not found");
+	}
 };
 
 const updateOrder = async (
@@ -103,9 +113,7 @@ const updateOrder = async (
 		relations: { dish: true, order: true },
 		where: { order: { id: orderId } },
 	});
-	if (!orderDishesRecords) {
-		throw new NotFoundError("order with this id was not found");
-	}
+
 	if (dishesToMutate)
 		for (const dish of dishesToMutate) {
 			const dishRecord = await dishesRepo.findOneBy({ name: dish.name });
@@ -144,6 +152,7 @@ const updateOrder = async (
 			id: orderDish.id,
 			quantity: orderDish.quantity,
 			name: orderDish.dish.name,
+			price: orderDish.dish.price,
 		})
 	);
 
@@ -161,9 +170,6 @@ const updateOrderStatus = async (orderId: number, status: OrderStatusType) => {
 		where: { id: orderId },
 		relations: { table: true },
 	});
-	if (!orderRecord) {
-		throw new NotFoundError("order with this id was not found");
-	}
 	orderRecord.status = status;
 	ordersRepo.save(orderRecord);
 
@@ -199,12 +205,15 @@ const getTodayOrders = async () => {
 		for (const order of _orders) {
 			const orderObject: IRedisTableOrder = {
 				id: order.id,
+				tableId: order.table.id,
 				status: order.status,
+				total: order.total,
+				date: order.date.toString(),
 				dishes: order.orderDishes.map(
 					(orderDish): RedisOrderDish => ({
 						name: orderDish.dish.name,
 						quantity: orderDish.quantity,
-
+						price: orderDish.dish.price,
 						id: orderDish.dish.id,
 					})
 				),
@@ -249,10 +258,8 @@ const getOrdersHistory = async () => {
 const cancelOrder = async (orderId: number) => {
 	const ordersRepo = AppDataSource.getRepository(Order);
 	const orderRecord = await ordersRepo.findOneBy({ id: orderId });
-	if (!orderRecord) {
-		throw new NotFoundError("order with this id was not found");
-	}
 	await ordersRepo.delete(orderRecord);
+	await RedisService.redis.hdel("orders", String(orderId));
 };
 
 export const OrdersService = {
