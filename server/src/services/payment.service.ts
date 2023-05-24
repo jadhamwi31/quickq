@@ -7,6 +7,7 @@ import { IRedisTableValue } from "../ts/interfaces/tables.interfaces";
 import RedisService from "./redis.service";
 import { TablesService } from "./tables.service";
 import moment from "moment";
+import { TableSession } from "../models/table.model";
 
 const newPayment = async (tableId: number, amountPaid: number) => {
 	const { total } = await TablesService.checkoutTable(tableId);
@@ -40,6 +41,13 @@ const newPayment = async (tableId: number, amountPaid: number) => {
 	}
 
 	await RedisService.redis.hset("tables:sessions", String(tableId), null);
+	const tablesSessionsRepo = await AppDataSource.getRepository(TableSession);
+	const tableSessionRecord = await tablesSessionsRepo.findOne({
+		relations: { table: true },
+		where: { table: { id: tableId } },
+	});
+	tableSessionRecord.clientId = null;
+	tablesSessionsRepo.save(tableSessionRecord);
 };
 
 const getPaymentsHistory = async () => {

@@ -21,7 +21,7 @@ TablesRouter.put(
 
 TablesRouter.delete(
 	"/:id",
-	auth(["manager"]),
+	// auth(["manager"]),
 	TablesValidators.validateDeleteTable,
 	TablesController.deleteTableHandler
 );

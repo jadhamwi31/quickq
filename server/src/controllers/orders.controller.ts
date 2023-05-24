@@ -35,7 +35,7 @@ const updateOrderHandler = async (
 ) => {
 	const { role } = req.user;
 	const { id } = req.params;
-	const { dishes } = req.body;
+	const { dishesToMutate, dishesToRemove } = req.body;
 	try {
 		if (
 			role === "client" &&
@@ -43,7 +43,7 @@ const updateOrderHandler = async (
 		) {
 			throw new ForbiddenError("order should belong to your table");
 		}
-		await OrdersService.updateOrder(id, dishes);
+		await OrdersService.updateOrder(id, dishesToMutate, dishesToRemove);
 		return res
 			.status(200)
 			.send({ message: "order updated successfully", code: StatusCodes.OK });

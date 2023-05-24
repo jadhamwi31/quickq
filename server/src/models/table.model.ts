@@ -34,3 +34,16 @@ export class TableCode {
 	@JoinColumn()
 	table: Table;
 }
+
+@Entity()
+export class TableSession {
+	@PrimaryGeneratedColumn()
+	id: number;
+
+	@OneToOne(() => Table)
+	@JoinColumn()
+	table: Table;
+
+	@Column({ nullable: true })
+	clientId: string;
+}

@@ -1,11 +1,4 @@
-import {
-	Column,
-	Entity,
-	ManyToOne,
-	PrimaryColumn,
-	PrimaryGeneratedColumn,
-} from "typeorm";
-import { UserRoleType } from "../ts/types/user.types";
+import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { Dish } from "./dish.model";
 import { Ingredient } from "./ingredient.model";
 import { Order } from "./order.model";
@@ -15,7 +8,9 @@ export class DishIngredient {
 	@PrimaryGeneratedColumn()
 	id: number;
 
-	@ManyToOne(() => Dish, (dish) => dish.dishIngredients)
+	@ManyToOne(() => Dish, (dish) => dish.dishIngredients, {
+		onDelete: "CASCADE",
+	})
 	dish: Dish;
 
 	@ManyToOne(() => Ingredient, (ingredient) => ingredient.dishIngredients)
@@ -30,7 +25,7 @@ export class OrderDish {
 	@PrimaryGeneratedColumn()
 	id: number;
 
-	@ManyToOne(() => Order, (order) => order.orderDishes)
+	@ManyToOne(() => Order, (order) => order.orderDishes, { onDelete: "CASCADE" })
 	order: Order;
 
 	@ManyToOne(() => Dish, (dish) => dish.orderDishes)

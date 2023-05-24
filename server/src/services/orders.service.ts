@@ -92,7 +92,11 @@ const orderBelongsToTable = async (orderId: number, tableId: number) => {
 	return result !== null;
 };
 
-const updateOrder = async (orderId: number, dishes: OrderDishesType) => {
+const updateOrder = async (
+	orderId: number,
+	dishesToMutate: OrderDishesType,
+	dishesToRemove: OrderDishesType
+) => {
 	const ordersDishesRepo = AppDataSource.getRepository(OrderDish);
 	const dishesRepo = AppDataSource.getRepository(Dish);
 	const orderDishesRecords = await ordersDishesRepo.find({
@@ -102,21 +106,32 @@ const updateOrder = async (orderId: number, dishes: OrderDishesType) => {
 	if (!orderDishesRecords) {
 		throw new NotFoundError("order with this id was not found");
 	}
-
-	for (const dish of dishes) {
-		const dishRecord = await dishesRepo.findOneBy({ name: dish.name });
-		if (!dishRecord) {
-			throw new NotFoundError(`dish ${dish.name} not found`);
+	if (dishesToMutate)
+		for (const dish of dishesToMutate) {
+			const dishRecord = await dishesRepo.findOneBy({ name: dish.name });
+			if (!dishRecord) {
+				throw new NotFoundError(`dish ${dish.name} not found`);
+			}
+			const index = orderDishesRecords.findIndex(
+				(current) => current.dish.name === dish.name
+			);
+			if (index >= 0) {
+				orderDishesRecords[index].quantity = dish.quantity;
+			} else {
+				throw new BadRequestError(`you didn't order ${dish.name}`);
+			}
 		}
-		const index = orderDishesRecords.findIndex(
-			(current) => current.dish.name === dish.name
-		);
-		if (index >= 0) {
-			orderDishesRecords[index].quantity = dish.quantity;
-		} else {
-			throw new BadRequestError(`you didn't order ${dish.name}`);
+	if (dishesToRemove)
+		for (const dish of dishesToRemove) {
+			const index = orderDishesRecords.findIndex(
+				(current) => current.dish.name === dish.name
+			);
+			if (index >= 0) {
+				orderDishesRecords.splice(index, 1);
+			} else {
+				throw new BadRequestError(`you didn't order ${dish.name}`);
+			}
 		}
-	}
 
 	await ordersDishesRepo.save(orderDishesRecords);
 

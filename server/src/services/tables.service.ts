@@ -6,20 +6,20 @@ import {
 	NotFoundError,
 } from "../models/error.model";
 import { Payment } from "../models/payment.model";
-import { Table, TableCode } from "../models/table.model";
-import { IRedisTableOrder } from "../ts/interfaces/order.interfaces";
+import { Table, TableCode, TableSession } from "../models/table.model";
 import { TableStatus } from "../ts/types/table.types";
 import RedisService from "./redis.service";
-import { Order } from "../models/order.model";
 const createNewTable = async (id: number) => {
 	const tablesRepo = AppDataSource.getRepository(Table);
 	const tablesCodesRepo = AppDataSource.getRepository(TableCode);
+	const tablesSessionsRepo = AppDataSource.getRepository(TableSession);
 	const tableExists = await tablesRepo.findOneBy({ id });
 	if (tableExists) {
 		throw new ConflictError("table with this id already exists");
 	}
 	const tableRecord = new Table();
 	const tableCodeRecord = new TableCode();
+	const tableSession = new TableSession();
 	try {
 		tableRecord.id = id;
 		tableRecord.status = "Available";
@@ -29,6 +29,10 @@ const createNewTable = async (id: number) => {
 		tableCodeRecord.table = tableRecord;
 
 		await tablesCodesRepo.insert(tableCodeRecord);
+		tableSession.table = tableRecord;
+
+		await tablesSessionsRepo.save(tableSession);
+
 		return tableCodeRecord.code;
 	} catch (e) {
 		tablesRepo.remove(tableRecord);

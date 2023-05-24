@@ -4,6 +4,8 @@ import { JwtService } from "../services/jwt.service";
 import { ForbiddenError, UnauthorizedError } from "../models/error.model";
 import * as _ from "lodash";
 import RedisService from "../services/redis.service";
+import { AppDataSource } from "../models";
+import { TableSession } from "../models/table.model";
 
 export const authFor = (roles: UserRoleType[]) => {
 	return async (req: Request<any>, res: Response<any>, next: NextFunction) => {
@@ -18,10 +20,26 @@ export const authFor = (roles: UserRoleType[]) => {
 						"tables:sessions",
 						String(user.tableId)
 					);
-
-					if (tableClientId !== user.clientId) {
-						throw new ForbiddenError(
-							"unauthorized to access resources after your session has ended"
+					if (tableClientId) {
+						if (tableClientId !== user.clientId) {
+							throw new ForbiddenError(
+								"unauthorized to access resources after your session has ended"
+							);
+						}
+					} else {
+						const tablesSessionsRepo =
+							AppDataSource.getRepository(TableSession);
+						const { clientId } = await tablesSessionsRepo.findOne({
+							where: { table: { id: user.tableId } },
+							relations: { table: true },
+						});
+						if (!clientId) {
+							throw new ForbiddenError("no session opened on this table");
+						}
+						await RedisService.redis.hset(
+							"tables:sessions",
+							String(user.tableId),
+							clientId
 						);
 					}
 				}

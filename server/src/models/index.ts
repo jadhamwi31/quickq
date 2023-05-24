@@ -4,7 +4,7 @@ import { Dish } from "./dish.model";
 import { Ingredient } from "./ingredient.model";
 import { DishIngredient, OrderDish } from "./shared.model";
 import { Category } from "./category.model";
-import { Table, TableCode } from "./table.model";
+import { Table, TableCode, TableSession } from "./table.model";
 import { Order } from "./order.model";
 import { Payment } from "./payment.model";
 import { InventoryItem } from "./inventory_item.model";
@@ -36,6 +36,7 @@ export const createAppDataSource = async () => {
 			Payment,
 			TableCode,
 			InventoryItem,
+			TableSession,
 		],
 	});
 

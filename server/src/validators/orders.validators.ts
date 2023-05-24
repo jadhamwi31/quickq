@@ -38,16 +38,23 @@ const validateUpdateOrder = (
 	res: Response,
 	next: NextFunction
 ) => {
-	const { dishes } = req.body;
+	const { dishesToMutate, dishesToRemove } = req.body;
 	const { id } = req.params;
-	if (!dishes) {
-		return next(new BadRequestError("dishes are missing"));
+	if (!dishesToMutate && !dishesToRemove) {
+		return next(new BadRequestError("invalid order update request"));
 	}
-	dishes.forEach((dish) => {
-		if (!dish.name) {
-			return next(new BadRequestError("dish name is missing"));
-		}
-	});
+	if (dishesToMutate)
+		dishesToMutate.forEach((dish) => {
+			if (!dish.name) {
+				return next(new BadRequestError("dish to mutate : name is missing"));
+			}
+		});
+	if (dishesToRemove)
+		dishesToRemove.forEach((dish) => {
+			if (!dish.name) {
+				return next(new BadRequestError("dish to remove : name is missing"));
+			}
+		});
 	if (!id) {
 		return next(new BadRequestError("order id parameter is missing"));
 	}

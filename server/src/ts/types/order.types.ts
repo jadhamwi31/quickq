@@ -7,7 +7,8 @@ export type OrderDishesType = IOrderDish[];
 
 export type NewOrderType = { dishes: OrderDishesType; tableId: number };
 export type UpdateOrderType = {
-	dishes: OrderDishesType;
+	dishesToMutate: OrderDishesType;
+	dishesToRemove: OrderDishesType;
 };
 
 export type UpdateOrderStatusType = {
