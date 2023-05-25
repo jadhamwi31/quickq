@@ -21,14 +21,14 @@ TablesRouter.put(
 
 TablesRouter.delete(
 	"/:id",
-	// auth(["manager"]),
+	auth(["manager"]),
 	TablesValidators.validateDeleteTable,
 	TablesController.deleteTableHandler
 );
 
 TablesRouter.get(
 	"/",
-	auth(["cashier", "manager"]),
+	auth(["cashier", "manager", "chef"]),
 	TablesController.getTablesHandler
 );
 
@@ -40,6 +40,12 @@ TablesRouter.post(
 
 TablesRouter.get(
 	"/:id/receipt",
-	auth(["client", "cashier", "manager"]),
+	auth(["cashier", "manager"]),
+	TablesController.checkoutTableHandler
+);
+
+TablesRouter.get(
+	"/receipt",
+	auth(["client"]),
 	TablesController.checkoutTableHandler
 );

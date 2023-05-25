@@ -8,7 +8,7 @@ export const PaymentRouter = Router();
 
 PaymentRouter.post(
 	"/",
-	// authFor(["cashier", "manager"]),
+	authFor(["cashier", "manager"]),
 	PaymentValidator.validateNewPayment,
 	PaymentController.newPaymentHandler
 );
@@ -21,6 +21,6 @@ PaymentRouter.get(
 
 PaymentRouter.get(
 	"/today",
-	// authFor(["cashier", "manager"]),
+	authFor(["cashier", "manager"]),
 	PaymentController.getPaymentsTodayHandler
 );

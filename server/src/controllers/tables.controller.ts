@@ -4,6 +4,7 @@ import { TablesService } from "../services/tables.service";
 import { StatusCodes } from "http-status-codes";
 import { ForbiddenError } from "../models/error.model";
 import { v4 as uuid } from "uuid";
+import { IRedisTableOrder } from "../ts/interfaces/order.interfaces";
 
 const newTableHandler = async (
 	req: Request<any, any, Pick<Table, "id">>,
@@ -63,7 +64,7 @@ const getTablesHandler = async (
 	next: NextFunction
 ) => {
 	try {
-		const tables = await TablesService.getTables();
+		const tables = await TablesService.getTables(req.user.role);
 		return res.status(StatusCodes.OK).send(tables);
 	} catch (e) {
 		next(e);
@@ -104,10 +105,15 @@ const checkoutTableHandler = async (
 
 	const { role, tableId: clientTableId } = req.user;
 	try {
-		if (role === "client" && clientTableId != tableId) {
-			throw new ForbiddenError("that's not your table");
+		let data: {
+			receipt: IRedisTableOrder[];
+			total: number;
+		};
+		if (role === "client") {
+			data = await TablesService.checkoutTable(clientTableId);
+		} else {
+			data = await TablesService.checkoutTable(tableId);
 		}
-		const data = await TablesService.checkoutTable(tableId);
 		return res.status(StatusCodes.OK).send({ code: StatusCodes.OK, data });
 	} catch (e) {
 		next(e);

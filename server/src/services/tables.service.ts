@@ -10,6 +10,7 @@ import { Table, TableCode, TableSession } from "../models/table.model";
 import { TableStatus } from "../ts/types/table.types";
 import RedisService from "./redis.service";
 import { OrdersService } from "./orders.service";
+import { UserRoleType } from "../ts/types/user.types";
 
 const getTableSessionClientId = async (tableId: number) => {
 	const sessionCacheHit = await RedisService.redis.hexists(
@@ -58,12 +59,13 @@ const createNewTable = async (id: number) => {
 		await tablesCodesRepo.insert(tableCodeRecord);
 		tableSession.table = tableRecord;
 
-		await tablesSessionsRepo.save(tableSession);
+		await tablesSessionsRepo.insert(tableSession);
 
 		return tableCodeRecord.code;
 	} catch (e) {
 		tablesRepo.remove(tableRecord);
 		tablesCodesRepo.remove(tableCodeRecord);
+		await tablesSessionsRepo.remove(tableSession);
 	}
 };
 
@@ -88,7 +90,7 @@ const deleteTable = async (id: number) => {
 	await tablesRepo.delete(tableRecord);
 };
 
-const getTables = async () => {
+const getTables = async (role: UserRoleType) => {
 	const tablesCodesRepo = AppDataSource.getRepository(TableCode);
 
 	const tablesCodes = await tablesCodesRepo.find({
@@ -97,7 +99,7 @@ const getTables = async () => {
 	});
 
 	return tablesCodes.map((tableCode) => ({
-		code: tableCode.code,
+		code: role === "manager" ? tableCode.code : undefined,
 		id: tableCode.table.id,
 		status: tableCode.table.status,
 	}));
