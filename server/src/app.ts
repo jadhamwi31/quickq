@@ -16,6 +16,7 @@ import { PaymentRouter } from "./routers/payment.router";
 import cookieParser from "cookie-parser";
 import { InventoryRouter } from "./routers/inventory.router";
 import { MenuRouter } from "./routers/menu.router";
+import { CacheRouter } from "./routers/cache.router";
 
 dotenv.config();
 
@@ -40,6 +41,7 @@ dotenv.config();
 	app.use("/payments", PaymentRouter);
 	app.use("/inventory", InventoryRouter);
 	app.use("/menu", MenuRouter);
+	app.use("/cache", CacheRouter);
 
 	app.use(errorMiddleware);
 	const port = process.env.SERVER_PORT;
