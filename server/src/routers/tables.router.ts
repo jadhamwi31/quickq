@@ -34,7 +34,12 @@ TablesRouter.get(
 
 TablesRouter.post(
 	"/:id/session",
-	auth(["client", "cashier", "manager"]),
+	auth(["cashier", "manager"]),
+	TablesController.openNewTableSessionHandler
+);
+TablesRouter.post(
+	"/session",
+	auth(["cashier", "manager"]),
 	TablesController.openNewTableSessionHandler
 );
 

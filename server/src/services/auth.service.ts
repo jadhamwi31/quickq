@@ -44,7 +44,6 @@ const loginByTableCode = async (code: string) => {
 	const tableSession = await tablesSessionsRepo.findOneBy({
 		table: tableCodeRecord.table,
 	});
-
 	tableSession.clientId = clientId;
 	await tablesSessionsRepo.save(tableSession);
 

@@ -1,9 +1,6 @@
 import { AppDataSource } from "../models";
 import { NotFoundError } from "../models/error.model";
-import { Ingredient } from "../models/ingredient.model";
 import { InventoryItem } from "../models/inventory_item.model";
-import { IRedisInventoryItem } from "../ts/interfaces/inventory.interfaces";
-import RedisService from "./redis.service";
 
 const updateInventoryItem = async (
 	ingredientName: string,

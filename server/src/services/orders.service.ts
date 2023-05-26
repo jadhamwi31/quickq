@@ -14,6 +14,7 @@ import {
 	RedisOrderDish,
 } from "../ts/types/order.types";
 import RedisService from "./redis.service";
+import { TablesService } from "./tables.service";
 
 const createNewOrder = async (newOrder: OrderDishesType, tableId: number) => {
 	const dishesRepo = AppDataSource.getRepository(Dish);
@@ -31,10 +32,7 @@ const createNewOrder = async (newOrder: OrderDishesType, tableId: number) => {
 		throw new BadRequestError("open table before start ordering");
 	}
 
-	const clientId = await RedisService.redis.hget(
-		"tables:sessions",
-		String(tableId)
-	);
+	const clientId = await TablesService.getTableSessionClientId(tableId);
 
 	const order = new Order();
 	const payment = await paymentsRepo.findOneBy({
@@ -79,6 +77,8 @@ const createNewOrder = async (newOrder: OrderDishesType, tableId: number) => {
 		),
 		status: "Pending",
 	};
+
+	// Update Orders In Cache
 	await RedisService.redis.hset(
 		"orders",
 		redisTableOrder.id,
@@ -143,24 +143,46 @@ const updateOrder = async (
 
 	await ordersDishesRepo.save(orderDishesRecords);
 
-	const newRedisOrder: IRedisTableOrder = JSON.parse(
-		await RedisService.redis.hget("orders", String(orderId))
-	);
+	const isOrderCached = await RedisService.isCached("orders", String(orderId));
+	if (isOrderCached) {
+		const redisCachedOrder: IRedisTableOrder = JSON.parse(
+			await RedisService.getCachedVersion("orders", String(orderId))
+		);
 
-	newRedisOrder.dishes = orderDishesRecords.map(
-		(orderDish): RedisOrderDish => ({
-			id: orderDish.id,
-			quantity: orderDish.quantity,
-			name: orderDish.dish.name,
-			price: orderDish.dish.price,
-		})
-	);
+		redisCachedOrder.dishes = orderDishesRecords.map(
+			(orderDish): RedisOrderDish => ({
+				id: orderDish.id,
+				quantity: orderDish.quantity,
+				name: orderDish.dish.name,
+				price: orderDish.dish.price,
+			})
+		);
 
-	await RedisService.redis.hset(
-		"orders",
-		orderId,
-		JSON.stringify(newRedisOrder)
-	);
+		// Update Order In Cache
+		await RedisService.redis.hset(
+			"orders",
+			orderId,
+			JSON.stringify(redisCachedOrder)
+		);
+	} else {
+		const orders = await getTodayOrders();
+		const currentOrder = orders.find((order) => order.id == orderId);
+		currentOrder.dishes = orderDishesRecords.map(
+			(orderDish): RedisOrderDish => ({
+				id: orderDish.id,
+				quantity: orderDish.quantity,
+				name: orderDish.dish.name,
+				price: orderDish.dish.price,
+			})
+		);
+
+		// Update Order In Cache
+		await RedisService.redis.hset(
+			"orders",
+			orderId,
+			JSON.stringify(currentOrder)
+		);
+	}
 };
 
 const updateOrderStatus = async (orderId: number, status: OrderStatusType) => {
@@ -171,23 +193,42 @@ const updateOrderStatus = async (orderId: number, status: OrderStatusType) => {
 		relations: { table: true },
 	});
 	orderRecord.status = status;
-	ordersRepo.save(orderRecord);
+	await ordersRepo.save(orderRecord);
 
-	const newRedisOrder: IRedisTableOrder = JSON.parse(
-		await RedisService.redis.hget("orders", String(orderId))
-	);
-	newRedisOrder.status = status;
+	// Update Order Status In Cache
+	const isOrderCached = await RedisService.isCached("orders", String(orderId));
+	if (isOrderCached) {
+		const newRedisOrder: IRedisTableOrder = JSON.parse(
+			await RedisService.redis.hget("orders", String(orderId))
+		);
+		newRedisOrder.status = status;
 
-	await RedisService.redis.hset(
-		"orders",
-		orderId,
-		JSON.stringify(newRedisOrder)
-	);
+		await RedisService.redis.hset(
+			"orders",
+			orderId,
+			JSON.stringify(newRedisOrder)
+		);
+	} else {
+		const orders = await getTodayOrders();
+		const currentOrder = orders.find((order) => order.id == orderId);
+		currentOrder.status = status;
+		await RedisService.redis.hset(
+			"orders",
+			orderId,
+			JSON.stringify(currentOrder)
+		);
+	}
 };
 
 const getTodayOrders = async () => {
-	const ordersCacheHit = await RedisService.redis.exists("orders");
-	if (!ordersCacheHit) {
+	const areOrdersCached = await RedisService.isCached("orders");
+	if (areOrdersCached) {
+		const _todayOrders = Object.values(
+			await RedisService.redis.hgetall("orders")
+		).map((order): IRedisTableOrder => JSON.parse(order));
+		const _todayOrdersSorted = _todayOrders.sort((a, b) => b.id - a.id);
+		return _todayOrdersSorted;
+	} else {
 		const dayStart = moment().startOf("day").toDate();
 		const dayEnd = moment().endOf("day").toDate();
 		const _orders = await AppDataSource.createQueryBuilder()
@@ -202,6 +243,8 @@ const getTodayOrders = async () => {
 			.getMany();
 
 		const orders: IRedisTableOrder[] = [];
+		const redisOrdersToSet: { [orderId: string]: string } = {};
+		// Transform Orders To Redis Order Structure
 		for (const order of _orders) {
 			const orderObject: IRedisTableOrder = {
 				id: order.id,
@@ -219,20 +262,12 @@ const getTodayOrders = async () => {
 				),
 			};
 			orders.push(orderObject);
-			await RedisService.redis.hset(
-				"orders",
-				order.id,
-				JSON.stringify(orderObject)
-			);
+			redisOrdersToSet[order.id] = JSON.stringify(orderObject);
 		}
+		// Update Orders In Redis
+		await RedisService.redis.hmset("orders", redisOrdersToSet);
 
 		return orders;
-	} else {
-		const _todayOrders = Object.values(
-			await RedisService.redis.hgetall("orders")
-		).map((order): IRedisTableOrder => JSON.parse(order));
-		const _todayOrdersSorted = _todayOrders.sort((a, b) => b.id - a.id);
-		return _todayOrdersSorted;
 	}
 };
 

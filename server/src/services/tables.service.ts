@@ -13,27 +13,33 @@ import { OrdersService } from "./orders.service";
 import { UserRoleType } from "../ts/types/user.types";
 
 const getTableSessionClientId = async (tableId: number) => {
-	const sessionCacheHit = await RedisService.redis.hexists(
+	const isTableSessionCached = await RedisService.isCached(
 		"tables:sessions",
 		String(tableId)
 	);
-	if (!sessionCacheHit) {
+	if (isTableSessionCached) {
+		const clientId = await RedisService.getCachedVersion(
+			"tables:sessions",
+			String(tableId)
+		);
+		return clientId;
+	} else {
 		const tableSession = await AppDataSource.getRepository(
 			TableSession
 		).findOne({
 			relations: { table: true },
 			where: { table: { id: tableId } },
 		});
-		if (tableSession) {
-			if (tableSession.clientId) return tableSession.clientId;
-			throw new BadRequestError("open table session first");
+
+		if (tableSession.clientId) {
+			await RedisService.redis.hset(
+				"tables:sessions",
+				String(tableId),
+				tableSession.clientId
+			);
+			return tableSession.clientId;
 		}
-	} else {
-		const clientId = await RedisService.redis.hget(
-			"tables:sessions",
-			String(tableId)
-		);
-		return clientId;
+		throw new BadRequestError("open table session first");
 	}
 };
 
@@ -63,8 +69,8 @@ const createNewTable = async (id: number) => {
 
 		return tableCodeRecord.code;
 	} catch (e) {
-		tablesRepo.remove(tableRecord);
-		tablesCodesRepo.remove(tableCodeRecord);
+		await tablesRepo.remove(tableRecord);
+		await tablesCodesRepo.remove(tableCodeRecord);
 		await tablesSessionsRepo.remove(tableSession);
 	}
 };
@@ -118,21 +124,20 @@ const openNewTableSession = async (tableId: number, clientId: string) => {
 	await paymentsRepo.insert(payment);
 	await tablesRepo.save(table);
 
-	const redisTableClientId = await RedisService.redis.hget(
-		"tables:sessions",
-		String(tableId)
-	);
-
-	if (redisTableClientId === null) {
-		await RedisService.redis.hset("tables:sessions", String(tableId), clientId);
-	}
+	const tablesSessionsRepo = AppDataSource.getRepository(TableSession);
+	const tableSessionRecord = await tablesSessionsRepo.findOne({
+		relations: { table: true },
+		where: { table: { id: tableId } },
+	});
+	tableSessionRecord.clientId = clientId;
+	await tablesSessionsRepo.save(tableSessionRecord);
+	await RedisService.redis.hset("tables:sessions", String(tableId), clientId);
 };
 
 const checkoutTable = async (tableId: number) => {
 	const orders = await OrdersService.getTodayOrders();
 
 	const tableOrders = orders.filter((order) => order.tableId == tableId);
-	console.log(tableOrders);
 
 	const total = tableOrders.reduce(
 		(total, current) => total + current.total,

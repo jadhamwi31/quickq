@@ -77,17 +77,15 @@ const openNewTableSessionHandler = async (
 	next: NextFunction
 ) => {
 	const { id: tableId } = req.params;
-	const { role, tableId: clientTableId } = req.user;
+	const { role, clientId } = req.user;
 
 	try {
-		if (role === "client" && clientTableId != tableId) {
-			throw new ForbiddenError("that's not your table");
+		if (role === "client") {
+			await TablesService.openNewTableSession(tableId, clientId);
+		} else {
+			await TablesService.openNewTableSession(tableId, uuid());
 		}
 
-		await TablesService.openNewTableSession(
-			tableId,
-			req.user.clientId || uuid()
-		);
 		return res
 			.status(StatusCodes.OK)
 			.send({ code: StatusCodes.OK, message: "new table session created" });

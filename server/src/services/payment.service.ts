@@ -7,12 +7,13 @@ import { IRedisTableValue } from "../ts/interfaces/tables.interfaces";
 import RedisService from "./redis.service";
 import { TablesService } from "./tables.service";
 import moment from "moment";
-import { TableSession } from "../models/table.model";
+import { Table, TableSession } from "../models/table.model";
 import { IRedisPayment } from "../ts/interfaces/payment.interfaces";
 
 const newPayment = async (tableId: number, amountPaid: number) => {
 	const { total } = await TablesService.checkoutTable(tableId);
-
+	const clientId = await TablesService.getTableSessionClientId(tableId);
+	const tablesRepo = AppDataSource.getRepository(Table);
 	if (total !== amountPaid) {
 		throw new ForbiddenError(`amount paid not equel to check total ${total}`);
 	}
@@ -23,8 +24,6 @@ const newPayment = async (tableId: number, amountPaid: number) => {
 			throw new BadRequestError("pending/in-cook orders still present");
 		}
 	});
-
-	const clientId = await TablesService.getTableSessionClientId(tableId);
 
 	const paymentsRepo = AppDataSource.getRepository(Payment);
 	const payment = await paymentsRepo.findOneBy({ clientId });
@@ -43,10 +42,13 @@ const newPayment = async (tableId: number, amountPaid: number) => {
 	});
 	tableSessionRecord.clientId = null;
 	tablesSessionsRepo.save(tableSessionRecord);
+	// Clear Table Session From Cache
 	await RedisService.redis.hdel("tables:sessions", String(tableId));
+	// Table Orers
 	const redisTablesOrders: { [orderId: string]: string } =
 		await RedisService.redis.hgetall("orders");
 
+	// Clear Table Orders From Cache
 	for (const _order of Object.values(redisTablesOrders)) {
 		const order: IRedisTableOrder = JSON.parse(_order);
 		if (order.tableId == tableId) {
@@ -54,10 +56,13 @@ const newPayment = async (tableId: number, amountPaid: number) => {
 		}
 	}
 
+	// Previous Cache Values
 	const prevTransactions: Payment[] = JSON.parse(
 		await RedisService.redis.hget("payments", "transactions")
 	);
 	const prevPayins = await RedisService.redis.hget("payments", "payins");
+
+	// Update Trasanctions In Cache
 	await RedisService.redis.hset(
 		"payments",
 		"transactions",
@@ -70,11 +75,17 @@ const newPayment = async (tableId: number, amountPaid: number) => {
 			} as IRedisPayment,
 		])
 	);
+	// Update Payins In Cache
 	await RedisService.redis.hset(
 		"payments",
 		"payins",
 		prevPayins + payment.amount
 	);
+
+	// Update Table Status
+	const tableRecord = await tablesRepo.findOneBy({ id: tableId });
+	tableRecord.status = "Available";
+	await tablesRepo.save(tableRecord);
 };
 
 const getPaymentsHistory = async () => {
@@ -86,8 +97,19 @@ const getPaymentsHistory = async () => {
 };
 
 const getTodayPayments = async () => {
-	const paymentsCacheHit = await RedisService.redis.exists("payments");
-	if (!paymentsCacheHit) {
+	const arePaymentsCached = await RedisService.isCached("payments");
+	if (arePaymentsCached) {
+		const transactions = JSON.parse(
+			await RedisService.getCachedVersion("payments", "transactions")
+		);
+		const payins = Number(
+			await RedisService.getCachedVersion("payments", "payins")
+		);
+		return {
+			transactions,
+			payins,
+		};
+	} else {
 		const dayStart = moment().startOf("day").toDate();
 		const dayEnd = moment().endOf("day").toDate();
 
@@ -99,22 +121,14 @@ const getTodayPayments = async () => {
 			(prev, current) => prev + current.amount,
 			0
 		);
+
+		// Update Payments in Cache
 		await RedisService.redis.hset(
 			"payments",
 			"transactions",
 			JSON.stringify(transactions)
 		);
 		await RedisService.redis.hset("payments", "payins", payins);
-		return {
-			transactions,
-			payins,
-		};
-	} else {
-		const transactions = await RedisService.redis.hget(
-			"payments",
-			"transactions"
-		);
-		const payins = await RedisService.redis.hget("payments", "payins");
 		return {
 			transactions,
 			payins,
