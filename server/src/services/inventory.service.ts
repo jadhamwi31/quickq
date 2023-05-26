@@ -20,7 +20,17 @@ const updateInventoryItem = async (
 };
 
 const getInventoryItems = async () => {
-	return [0, 0];
+	const inventoryItemsRepo = AppDataSource.getRepository(InventoryItem);
+	const inventoryItems = await inventoryItemsRepo.find({
+		relations: { ingredient: true },
+	});
+
+	return inventoryItems.map((inventoryItem) => ({
+		name: inventoryItem.ingredient.name,
+		available: inventoryItem.available,
+		needed: inventoryItem.needed,
+		unit: inventoryItem.ingredient.unit,
+	}));
 };
 
 export const InventoryService = { updateInventoryItem, getInventoryItems };

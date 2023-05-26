@@ -20,7 +20,7 @@ const newPayment = async (tableId: number, amountPaid: number) => {
 
 	const { receipt } = await TablesService.checkoutTable(tableId);
 	receipt.forEach((tableOrder) => {
-		if (tableOrder.status !== "Done") {
+		if (tableOrder.status !== "Ready") {
 			throw new BadRequestError("pending/in-cook orders still present");
 		}
 	});

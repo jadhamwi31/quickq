@@ -38,3 +38,9 @@ export class NotFoundError extends CustomError {
 		super(message, STATUS_CODE.NOT_FOUND, "Not Found");
 	}
 }
+
+export class InternalServerError extends CustomError {
+	constructor(message: string) {
+		super(message, STATUS_CODE.INTERNAL_SERVER_ERROR, "Internal Server Error");
+	}
+}

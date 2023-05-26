@@ -15,6 +15,7 @@ import { TablesService } from "./services/tables.service";
 import { PaymentRouter } from "./routers/payment.router";
 import cookieParser from "cookie-parser";
 import { InventoryRouter } from "./routers/inventory.router";
+import { MenuRouter } from "./routers/menu.router";
 
 dotenv.config();
 
@@ -38,6 +39,7 @@ dotenv.config();
 	app.use("/orders", OrdersRouter);
 	app.use("/payments", PaymentRouter);
 	app.use("/inventory", InventoryRouter);
+	app.use("/menu", MenuRouter);
 
 	app.use(errorMiddleware);
 	const port = process.env.SERVER_PORT;

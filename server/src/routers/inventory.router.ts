@@ -5,7 +5,7 @@ import { InventoryController } from "../controllers/inventory.controller";
 
 export const InventoryRouter = Router();
 
-InventoryRouter.put(
+InventoryRouter.patch(
 	"/items/:ingredientName",
 	authFor(["manager", "chef", "cashier"]),
 	InventoryValidator.updateInventoryItemValidator,

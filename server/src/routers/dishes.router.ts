@@ -7,7 +7,7 @@ export const DishesRouter = Router();
 
 DishesRouter.post(
 	"/",
-	authFor(["manager"]),
+	// authFor(["manager"]),
 	DishesValidator.validateCreateNewDish,
 	DishesController.createNewDishHandler
 );

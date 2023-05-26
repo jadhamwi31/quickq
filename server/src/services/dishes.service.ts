@@ -9,8 +9,12 @@ import {
 import { Ingredient } from "../models/ingredient.model";
 import { DishIngredient } from "../models/shared.model";
 import { IDish } from "../ts/interfaces/dish.interfaces";
-import { GetDishesQueryResultType } from "../ts/types/dish.types";
+import {
+	GetDishesQueryResultType,
+	RedisDishesType,
+} from "../ts/types/dish.types";
 import { Category } from "../models/category.model";
+import RedisService from "./redis.service";
 
 const createNewDish = async (dish: IDish) => {
 	const ingredientsRepo = AppDataSource.getRepository(Ingredient);
@@ -55,6 +59,23 @@ const createNewDish = async (dish: IDish) => {
 	}
 	await dishesIngredientsRepo.save(dishesIngredientsToSave);
 	await dishesRepo.save(dishRecord);
+
+	const redisDish = {
+		name: dishRecord.name,
+		price: dishRecord.price,
+		description: dishRecord.description,
+		ingredients: dishRecord.dishIngredients.map((ingredient) => ({
+			name: ingredient.ingredient.name,
+			amount: ingredient.amount,
+			unit: ingredient.ingredient.unit,
+		})),
+		category: dishRecord.category.name,
+	};
+	await RedisService.redis.hset(
+		"dishes",
+		dishRecord.id,
+		JSON.stringify(redisDish)
+	);
 };
 
 export const deleteDish = async (name: string) => {
@@ -65,38 +86,57 @@ export const deleteDish = async (name: string) => {
 		throw new NotFoundError("dish not found");
 	}
 	await dishesRepo.remove(dishRecord);
-
 	await dishesIngredientsRepo.delete({ dish: dishRecord });
+	await RedisService.redis.hdel("dishes", String(dishRecord.id));
 };
 
 const getDishes = async () => {
-	const _dishes = (await AppDataSource.getRepository(Dish)
-		.createQueryBuilder("dish")
-		.leftJoinAndSelect("dish.dishIngredients", "dish_ingredient")
-		.leftJoinAndSelect("dish_ingredient.ingredient", "ingredient")
-		.leftJoinAndSelect("dish.category", "category")
-		.select([
-			"dish.name",
-			"dish.description",
-			"dish.price",
-			"dish_ingredient.amount",
-			"ingredient.name",
-			"ingredient.unit",
-			"category.name",
-		])
-		.getMany()) as unknown as GetDishesQueryResultType;
+	const areDishesCached = RedisService.isCached("dishes");
 
-	const dishes = _dishes.map((dish) => ({
-		name: dish.name,
-		description: dish.description,
-		price: dish.price,
-		ingredients: dish.dishIngredients.map((ingredient) => ({
-			name: ingredient.ingredient.name,
-			unit: ingredient.ingredient.unit,
-		})),
-		category: dish.category?.name,
-	}));
-	return dishes;
+	if (areDishesCached) {
+		const dishes: RedisDishesType = Object.values(
+			await RedisService.redis.hgetall("dishes")
+		).map((dish) => JSON.parse(dish));
+		return dishes;
+	} else {
+		const _dishes = await AppDataSource.getRepository(Dish)
+			.createQueryBuilder("dish")
+			.leftJoinAndSelect("dish.dishIngredients", "dish_ingredient")
+			.leftJoinAndSelect("dish_ingredient.ingredient", "ingredient")
+			.leftJoinAndSelect("dish.category", "category")
+			.select([
+				"dish.id",
+				"dish.name",
+				"dish.description",
+				"dish.price",
+				"dish_ingredient.amount",
+				"ingredient.name",
+				"ingredient.unit",
+				"category.name",
+			])
+			.getMany();
+
+		const dishes: RedisDishesType = [];
+		const redisDishesToSet: { [orderId: string]: string } = {};
+		for (const dish of _dishes) {
+			const dishObject = {
+				name: dish.name,
+				description: dish.description,
+				price: dish.price,
+				ingredients: dish.dishIngredients.map((ingredient) => ({
+					name: ingredient.ingredient.name,
+					amount: ingredient.amount,
+					unit: ingredient.ingredient.unit,
+				})),
+				category: dish.category?.name,
+			};
+			dishes.push(dishObject);
+			redisDishesToSet[dish.id] = JSON.stringify(dishObject);
+		}
+
+		await RedisService.redis.hmset("dishes", redisDishesToSet);
+		return dishes;
+	}
 };
 
 const updateDish = async (dishName: string, dish: IDish) => {
@@ -136,6 +176,23 @@ const updateDish = async (dishName: string, dish: IDish) => {
 
 	await dishesIngredientsRepo.save(dishesIngredientsToSave);
 	await dishesRepo.save(dishRecord);
+
+	const redisDish = {
+		name: dishRecord.name,
+		price: dishRecord.price,
+		description: dishRecord.description,
+		ingredients: dishRecord.dishIngredients.map((ingredient) => ({
+			name: ingredient.ingredient.name,
+			amount: ingredient.amount,
+			unit: ingredient.ingredient.unit,
+		})),
+		category: dishRecord.category.name,
+	};
+	await RedisService.redis.hset(
+		"dishes",
+		dishRecord.id,
+		JSON.stringify(redisDish)
+	);
 };
 
 export const DishesService = {
