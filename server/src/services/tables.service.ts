@@ -93,7 +93,7 @@ const deleteTable = async (id: number) => {
 	if (!tableRecord) {
 		throw new NotFoundError("table with this id doesn't exist");
 	}
-	await tablesRepo.delete(tableRecord);
+	await tablesRepo.remove(tableRecord);
 };
 
 const getTables = async (role: UserRoleType) => {

@@ -293,7 +293,7 @@ const getOrdersHistory = async () => {
 const cancelOrder = async (orderId: number) => {
 	const ordersRepo = AppDataSource.getRepository(Order);
 	const orderRecord = await ordersRepo.findOneBy({ id: orderId });
-	await ordersRepo.delete(orderRecord);
+	await ordersRepo.remove(orderRecord);
 	await RedisService.redis.hdel("orders", String(orderId));
 };
 

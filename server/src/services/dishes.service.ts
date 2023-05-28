@@ -86,7 +86,11 @@ export const deleteDish = async (name: string) => {
 		throw new NotFoundError("dish not found");
 	}
 	await dishesRepo.remove(dishRecord);
-	await dishesIngredientsRepo.delete({ dish: dishRecord });
+	const dishesIngredients = await dishesIngredientsRepo.find({
+		where: { dish: dishRecord },
+		relations: { dish: true },
+	});
+	await dishesIngredientsRepo.remove(dishesIngredients);
 	await RedisService.redis.hdel("dishes", String(dishRecord.id));
 };
 
