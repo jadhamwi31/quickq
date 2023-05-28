@@ -44,19 +44,13 @@ const validateUpdateDish = (
 	res: Response,
 	next: NextFunction
 ) => {
-	const { name, description, price, ingredients } = req.body;
+	const { name, price } = req.body;
 	const dishName = req.params.name;
 	if (!name) {
 		return next(new BadRequestError("key : name is required"));
 	}
-	if (!description) {
-		return next(new BadRequestError("key : description is required"));
-	}
 	if (!price) {
 		return next(new BadRequestError("key : price is required"));
-	}
-	if (!ingredients || ingredients.length === 0) {
-		return next(new BadRequestError("key : ingredients is required"));
 	}
 	if (!dishName) {
 		return next(new BadRequestError("dish name parameter is missing"));
