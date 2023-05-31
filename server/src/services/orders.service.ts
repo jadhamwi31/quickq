@@ -44,7 +44,7 @@ const createNewOrder = async (newOrder: OrderDishesType, tableId: number) => {
 	order.status = "Pending";
 	order.total = 0;
 	order.orderDishes = [];
-	await ordersRepo.insert(order);
+	await ordersRepo.save(order);
 	for (const orderDish of newOrder) {
 		const dishRecord = await dishesRepo.findOneBy({ name: orderDish.name });
 		if (!dishRecord) {
@@ -56,7 +56,7 @@ const createNewOrder = async (newOrder: OrderDishesType, tableId: number) => {
 		newOrderDish.dish = dishRecord;
 		newOrderDish.quantity = orderDish.quantity;
 
-		await ordersDishesRepo.insert(newOrderDish);
+		await ordersDishesRepo.save(newOrderDish);
 
 		order.orderDishes.push(newOrderDish);
 	}

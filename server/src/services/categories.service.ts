@@ -11,7 +11,7 @@ const createNewCategory = async (name: string) => {
 	}
 	const category = new Category();
 	category.name = name;
-	await categoriesRepo.insert(category);
+	await categoriesRepo.save(category);
 };
 
 const deleteCategory = async (name: string) => {

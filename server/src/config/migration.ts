@@ -13,7 +13,7 @@ export const seedDatabase = async () => {
 		const usersRecords = await AppDataSource.getRepository(User).find();
 
 		if (usersRecords.length === 0) {
-			await AppDataSource.getRepository(User).insert(users);
+			await AppDataSource.getRepository(User).save(users);
 		}
 	} catch (e) {
 		console.log(e);

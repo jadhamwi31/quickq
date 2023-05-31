@@ -39,7 +39,7 @@ const createNewDish = async (dish: IDish) => {
 	dishRecord.description = dish.description;
 	dishRecord.dishIngredients = [];
 	dishRecord.category = categoryRecord;
-	await dishesRepo.insert(dishRecord);
+	await dishesRepo.save(dishRecord);
 	for (const ingredient of ingredients) {
 		const ingredientRecord = await ingredientsRepo.findOneBy({
 			name: ingredient.name,

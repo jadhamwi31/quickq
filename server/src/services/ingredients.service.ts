@@ -19,12 +19,12 @@ const createNewIngredient = async (
 	const ingredientRecord = new Ingredient();
 	ingredientRecord.name = ingredient.name;
 	ingredientRecord.unit = ingredient.unit;
-	await ingredientsRepo.insert(ingredientRecord);
+	await ingredientsRepo.save(ingredientRecord);
 	const inventoryItem = new InventoryItem();
 	inventoryItem.ingredient = ingredientRecord;
 	inventoryItem.available = 0;
 	inventoryItem.needed = 0;
-	await inventoryItemsRepo.insert(inventoryItem);
+	await inventoryItemsRepo.save(inventoryItem);
 };
 
 const updateIngredient = async (

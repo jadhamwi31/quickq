@@ -58,14 +58,14 @@ const createNewTable = async (id: number) => {
 		tableRecord.id = id;
 		tableRecord.status = "Available";
 
-		await tablesRepo.insert(tableRecord);
+		await tablesRepo.save(tableRecord);
 		tableCodeRecord.code = uuid();
 		tableCodeRecord.table = tableRecord;
 
-		await tablesCodesRepo.insert(tableCodeRecord);
+		await tablesCodesRepo.save(tableCodeRecord);
 		tableSession.table = tableRecord;
 
-		await tablesSessionsRepo.insert(tableSession);
+		await tablesSessionsRepo.save(tableSession);
 
 		return tableCodeRecord.code;
 	} catch (e) {
@@ -121,7 +121,7 @@ const openNewTableSession = async (tableId: number, clientId: string) => {
 	const payment = new Payment();
 	table.status = "Busy";
 	payment.clientId = clientId;
-	await paymentsRepo.insert(payment);
+	await paymentsRepo.save(payment);
 	await tablesRepo.save(table);
 
 	const tablesSessionsRepo = AppDataSource.getRepository(TableSession);
