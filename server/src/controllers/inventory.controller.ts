@@ -31,10 +31,10 @@ const getInventoryItems = async (
 	next: NextFunction
 ) => {
 	try {
-		const [items, count] = await InventoryService.getInventoryItems();
+		const items = await InventoryService.getInventoryItems();
 		return res
 			.status(StatusCodes.OK)
-			.send({ code: StatusCodes.OK, data: { count, items } });
+			.send({ code: StatusCodes.OK, data: { items } });
 	} catch (e) {
 		next(e);
 	}
