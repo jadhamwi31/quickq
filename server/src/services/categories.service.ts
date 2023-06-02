@@ -21,7 +21,7 @@ const deleteCategory = async (name: string) => {
 	if (!categoryExists) {
 		throw new NotFoundError(`category to delete : not found`);
 	}
-	await categoriesRepo.remove({ name });
+	await categoriesRepo.delete({ name });
 };
 
 const updateCategory = async (prevName: string, newName: string) => {

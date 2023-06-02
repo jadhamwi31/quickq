@@ -223,6 +223,7 @@ const updateOrderStatus = async (orderId: number, status: OrderStatusType) => {
 const getTodayOrders = async () => {
 	const areOrdersCached = await RedisService.isCached("orders");
 	if (areOrdersCached) {
+		RedisService.cacheLog("orders");
 		const _todayOrders = Object.values(
 			await RedisService.redis.hgetall("orders")
 		).map((order): IRedisTableOrder => JSON.parse(order));

@@ -33,6 +33,7 @@
 		"@types/express": "^4.17.17",
 		"@types/jsonwebtoken": "^9.0.1",
 		"@types/lodash": "^4.14.192",
+		"@types/react": "^18.2.8",
 		"@types/uuid": "^9.0.1",
 		"dotenv": "^16.0.3",
 		"nodemon": "^2.0.22",

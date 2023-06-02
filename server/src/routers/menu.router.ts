@@ -5,11 +5,18 @@ import { MenuController } from "../controllers/menu.controller";
 
 export const MenuRouter = Router();
 
-MenuRouter.put(
+MenuRouter.post(
 	"/",
 	authFor(["manager"]),
-	MenuValidators.validateMenu,
-	MenuController.createMenuHandler
+	MenuValidators.validateAddMenuCustomization,
+	MenuController.addMenuCustomizationHandler
+);
+
+MenuRouter.put(
+	"/:name",
+	authFor(["manager"]),
+	MenuValidators.validateUpdateMenuCustomization,
+	MenuController.updateMenuCustomizationHandler
 );
 
 MenuRouter.get("/", authFor(["manager"]), MenuController.getMenuHandler);

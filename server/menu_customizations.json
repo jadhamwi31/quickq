@@ -1,0 +1,42 @@
+[
+  {
+    "name": "Customization312",
+    "body": {
+      "color": "black",
+      "fontSize": "14px",
+      "backgroundColor": "white"
+    },
+    "item": {
+      "color": "blue",
+      "fontSize": "16px",
+      "backgroundColor": "lightgray"
+    },
+    "category": {
+      "fontWeight": "light"
+    },
+    "categories_order": [
+      "Western"
+    ],
+    "status": "in-active"
+  },
+  {
+    "name": "Customization3123",
+    "body": {
+      "color": "black",
+      "fontSize": "14px",
+      "backgroundColor": "white"
+    },
+    "item": {
+      "color": "blue",
+      "fontSize": "16px",
+      "backgroundColor": "lightgray"
+    },
+    "category": {
+      "fontWeight": "light"
+    },
+    "categories_order": [
+      "Western"
+    ],
+    "status": "active"
+  }
+]

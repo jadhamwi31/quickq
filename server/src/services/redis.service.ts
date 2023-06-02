@@ -17,7 +17,14 @@ export default class RedisService {
 		}
 	}
 
+	public static cacheLog(key: string, hash?: string) {
+		console.log("------------");
+		console.log("cached version");
+		console.log(`key : ${key}`);
+		if (hash) console.log(`hash : ${hash}`);
+	}
 	public static async getCachedVersion(key: string, hash?: string) {
+		this.cacheLog(key, hash);
 		if (hash) {
 			return await this.redis.hget(key, hash);
 		} else {

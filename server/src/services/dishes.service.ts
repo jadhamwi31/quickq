@@ -98,6 +98,7 @@ const getDishes = async () => {
 	const areDishesCached = RedisService.isCached("dishes");
 
 	if (areDishesCached) {
+		RedisService.cacheLog("dishes");
 		const dishes: RedisDishesType = Object.values(
 			await RedisService.redis.hgetall("dishes")
 		).map((dish) => JSON.parse(dish));

@@ -1,22 +1,17 @@
-import { MenuCategoriesOrderType } from "../types/menu.types";
+import React, { CSSProperties } from "react";
+import {
+	MenuCategoriesOrder,
+	MenuStyleStatus as MenuCustomizationStatus,
+} from "../types/menu.types";
 
-export interface IMenu {
-	header: {
-		styles: IMenuHeaderStyles;
-	};
-	body: {
-		categoriesOrder: MenuCategoriesOrderType;
-		styles: IMenuBodyStyles;
-	};
+export interface IMenuCustomization {
+	name: string;
+	body: Partial<CSSProperties>;
+	item: Partial<CSSProperties>;
+	category: Partial<CSSProperties>;
+	categories_order: MenuCategoriesOrder;
 }
 
-export interface IMenuHeaderStyles {
-	bgColor: string;
-	left: string;
-	right: string;
-}
-
-export interface IMenuBodyStyles {
-	color: string;
-	bgColor: string;
+export interface IMenuCustomizationReformed extends IMenuCustomization {
+	status: MenuCustomizationStatus;
 }

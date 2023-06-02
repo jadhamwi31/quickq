@@ -1,18 +1,37 @@
 import { NextFunction, Request, Response } from "express";
-import { IMenu } from "../ts/interfaces/menu.interfaces";
+import {
+	IMenuCustomization,
+	IMenuCustomizationReformed,
+} from "../ts/interfaces/menu.interfaces";
 import { MenuService } from "../services/menu.service";
 import { StatusCodes } from "http-status-codes";
 
-const createMenuHandler = async (
-	req: Request<{}, {}, IMenu>,
+const addMenuCustomizationHandler = async (
+	req: Request<{}, {}, IMenuCustomization>,
 	res: Response,
 	next: NextFunction
 ) => {
 	try {
-		await MenuService.createMenu(req.body);
+		await MenuService.addMenuCustomization(req.body);
 		return res
 			.status(StatusCodes.OK)
-			.send({ code: StatusCodes.OK, message: "menu created" });
+			.send({ code: StatusCodes.OK, message: "menu customization created" });
+	} catch (e) {
+		next(e);
+	}
+};
+
+const updateMenuCustomizationHandler = async (
+	req: Request<{ name: string }, {}, IMenuCustomizationReformed>,
+	res: Response,
+	next: NextFunction
+) => {
+	try {
+		const { name } = req.params;
+		await MenuService.updateMenuCustomization(name, req.body);
+		return res
+			.status(StatusCodes.OK)
+			.send({ code: StatusCodes.OK, message: "menu customization updated" });
 	} catch (e) {
 		next(e);
 	}
@@ -37,4 +56,8 @@ const getMenuHandler = async (
 	}
 };
 
-export const MenuController = { createMenuHandler, getMenuHandler };
+export const MenuController = {
+	addMenuCustomizationHandler,
+	getMenuHandler,
+	updateMenuCustomizationHandler,
+};

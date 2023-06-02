@@ -1,1 +1,3 @@
-export type MenuCategoriesOrderType = string[];
+export type MenuCategoriesOrder = string[];
+
+export type MenuStyleStatus = "active" | "in-active";
