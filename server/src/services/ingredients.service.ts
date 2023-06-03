@@ -40,7 +40,7 @@ const updateIngredient = async (
 		if (ingredient.unit) ingredientRecord.unit = ingredient.unit;
 		await ingredientsRepo.save(ingredientRecord);
 	} else {
-		throw new ConflictError("ingredient does not exist");
+		throw new NotFoundError("ingredient does not exist");
 	}
 };
 
