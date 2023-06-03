@@ -10,10 +10,9 @@ type DeepPartial<T> = T extends object
 	: T;
 
 const createMenuCustomizationSchema = (type: "optional" | "required") => {
+	const MenuCategoriesOrderSchema = z.array(z.string()).optional();
 	if (type === "optional") {
 		const CSSPropertiesSchema = z.record(z.any(), z.any()).optional();
-
-		const MenuCategoriesOrderSchema = z.array(z.string()).optional();
 
 		return z.object({
 			name: z.string().optional(),
@@ -25,8 +24,6 @@ const createMenuCustomizationSchema = (type: "optional" | "required") => {
 		});
 	} else {
 		const CSSPropertiesSchema = z.record(z.any(), z.any());
-
-		const MenuCategoriesOrderSchema = z.array(z.string());
 
 		return z.object({
 			name: z.string(),
