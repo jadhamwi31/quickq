@@ -1,3 +1,4 @@
+import { isUndefined } from "lodash";
 import { AppDataSource } from "../models";
 import { Category, CategoryOrder } from "../models/category.model";
 import { ConflictError, NotFoundError } from "../models/error.model";
@@ -67,19 +68,20 @@ const updateMenuCustomization = async (
 		throw new NotFoundError(`customization ${name} not found`);
 	}
 
+	const prevActive = menuCustomization.active;
+
 	if (menu.active)
 		await menuCustomizationsRepository
 			.createQueryBuilder()
 			.update(MenuCustomization)
 			.set({ active: false })
 			.execute();
-
-	menuCustomization.active = menu.active;
-	menuCustomization.name = menu.name;
+	if (!isUndefined(menu.active)) menuCustomization.active = menu.active;
+	if (menu.name) menuCustomization.name = menu.name;
 	menuCustomization.styles = JSON.stringify({
-		body: menu.body,
-		category: menu.category,
-		item: menu.item,
+		body: menu.body ?? JSON.parse(menuCustomization.styles).body,
+		category: menu.category ?? JSON.parse(menuCustomization.styles).category,
+		item: menu.item ?? JSON.parse(menuCustomization.styles).item,
 	});
 
 	await menuCustomizationsRepository.save(menuCustomization);
@@ -115,11 +117,33 @@ const updateMenuCustomization = async (
 		}
 		await categoriesOrderRepository.save(categoriesOrder);
 	}
-	if (menu.active) {
-		delete menu.active;
+
+	if (prevActive && !isUndefined(menu.active) && !menu.active) {
+		await RedisService.redis.del("menu:customizations:active");
+	} else if (menu.active) {
+		const {
+			body,
+			item,
+			category,
+		}: Pick<IMenuCustomization, "body" | "item" | "category"> = JSON.parse(
+			menuCustomization.styles
+		);
+
+		const redisMenuCustomization: IMenuCustomization = {
+			body,
+			item,
+			category,
+			name: menuCustomization.name,
+		};
+		if (menuCustomization.categories_order) {
+			redisMenuCustomization.categories_order =
+				menuCustomization.categories_order.map(
+					(categoryOrder) => categoryOrder.category.name
+				);
+		}
 		await RedisService.redis.set(
 			"menu:customizations:active",
-			JSON.stringify(menu)
+			JSON.stringify(redisMenuCustomization)
 		);
 	}
 };
@@ -161,31 +185,37 @@ const getMenu = async () => {
 			.where("menu_customization.active = :active", { active: true })
 			.leftJoinAndSelect("category_order.category", "category")
 			.orderBy("category_order.order", "ASC")
+			.select()
 			.getOne();
-		const {
-			body,
-			item,
-			category,
-		}: Pick<IMenuCustomization, "body" | "item" | "category"> = JSON.parse(
-			_activeMenuCustomization.styles
-		);
 
-		activeMenuCustomization = {
-			body,
-			item,
-			category,
-			name: _activeMenuCustomization.name,
-		};
-		if (_activeMenuCustomization.categories_order) {
-			activeMenuCustomization.categories_order =
-				_activeMenuCustomization.categories_order.map(
-					(categoryOrder) => categoryOrder.category.name
-				);
+		if (_activeMenuCustomization) {
+			const {
+				body,
+				item,
+				category,
+			}: Pick<IMenuCustomization, "body" | "item" | "category"> = JSON.parse(
+				_activeMenuCustomization.styles
+			);
+
+			activeMenuCustomization = {
+				body,
+				item,
+				category,
+				name: _activeMenuCustomization.name,
+			};
+			if (_activeMenuCustomization.categories_order) {
+				activeMenuCustomization.categories_order =
+					_activeMenuCustomization.categories_order.map(
+						(categoryOrder) => categoryOrder.category.name
+					);
+			}
+			await RedisService.redis.set(
+				"menu:customizations:active",
+				JSON.stringify(activeMenuCustomization)
+			);
+		} else {
+			activeMenuCustomization = null;
 		}
-		await RedisService.redis.set(
-			"menu:customizations:active",
-			JSON.stringify(activeMenuCustomization)
-		);
 	}
 	const dishes = await DishesService.getDishes();
 

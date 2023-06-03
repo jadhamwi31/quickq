@@ -23,6 +23,9 @@ export class Category {
 
 	@OneToMany(() => Dish, (dish) => dish.category)
 	dishes: Dish[];
+
+	@OneToMany(() => CategoryOrder, (categoryOrder) => categoryOrder.category)
+	categories_order: CategoryOrder[];
 }
 
 @Entity()
@@ -39,7 +42,7 @@ export class CategoryOrder {
 	@Column()
 	order: number;
 
-	@OneToOne(() => Category)
+	@ManyToOne(() => Category, (category) => category.categories_order)
 	@JoinColumn()
 	category: Category;
 }
