@@ -1,189 +1,208 @@
-import fs from "fs";
-import path from "path";
-import {
-	BadRequestError,
-	ConflictError,
-	InternalServerError,
-	NotFoundError,
-} from "../models/error.model";
+import { AppDataSource } from "../models";
+import { Category, CategoryOrder } from "../models/category.model";
+import { ConflictError, NotFoundError } from "../models/error.model";
+import { MenuCustomization } from "../models/menu_customization.model";
 import {
 	IMenuCustomization,
 	IMenuCustomizationReformed,
 } from "../ts/interfaces/menu.interfaces";
 import { RedisDishesType } from "../ts/types/dish.types";
-import { MenuStyleStatus as MenuCustomizationStatus } from "../ts/types/menu.types";
 import { DishesService } from "./dishes.service";
 import RedisService from "./redis.service";
 
-const menuCustomizationsPath = path.join(
-	__dirname,
-	"../../menu_customizations.json"
-);
-
 const addMenuCustomization = async (menu: IMenuCustomization) => {
-	const menuCustomizationsExist = fs.existsSync(menuCustomizationsPath);
-	if (!menuCustomizationsExist) {
-		fs.writeFileSync(menuCustomizationsPath, JSON.stringify([]));
-	}
+	const menuCustomizationsRepository =
+		AppDataSource.getRepository(MenuCustomization);
 
-	const menuCustomizations: IMenuCustomizationReformed[] = JSON.parse(
-		fs.readFileSync(menuCustomizationsPath, { encoding: "utf8", flag: "r" })
-	);
+	const customizationWithSameNameExists =
+		await menuCustomizationsRepository.findOneBy({ name: menu.name });
+	if (customizationWithSameNameExists) {
+		throw new ConflictError("customization with same name exists");
+	}
+	const menuCustomization = new MenuCustomization();
+	menuCustomization.active = false;
+	menuCustomization.name = menu.name;
+	menuCustomization.styles = JSON.stringify({
+		body: menu.body,
+		category: menu.category,
+		item: menu.item,
+	});
+	await menuCustomizationsRepository.save(menuCustomization);
 
-	const isThereActiveMenuCustomization = menuCustomizations.find(
-		(menu) => menu.status === "active"
-	);
-	const doesMenuCustomizationExist = menuCustomizations.find(
-		(currentMenu) => currentMenu.name === menu.name
-	);
-	if (doesMenuCustomizationExist) {
-		throw new ConflictError("menu customization with this name exist");
+	if (menu.categories_order) {
+		const categoriesOrderRepository =
+			AppDataSource.getRepository(CategoryOrder);
+		const categoriesRepository = AppDataSource.getRepository(Category);
+		const categoriesOrder: CategoryOrder[] = [];
+
+		for (const [index, currentCategory] of menu.categories_order.entries()) {
+			const category = await categoriesRepository.findOneBy({
+				name: currentCategory,
+			});
+			if (!category) {
+				await menuCustomizationsRepository.delete(menuCustomization);
+				throw new NotFoundError(`category ${currentCategory} was not found`);
+			}
+			const categoryOrder = new CategoryOrder();
+			categoryOrder.category = category;
+			categoryOrder.order = index;
+			categoryOrder.menuCustomization = menuCustomization;
+			categoriesOrder.push(categoryOrder);
+		}
+		await categoriesOrderRepository.save(categoriesOrder);
 	}
-	let newMenu: IMenuCustomizationReformed;
-	if (isThereActiveMenuCustomization) {
-		newMenu = { ...menu, status: "in-active" };
-	} else {
-		newMenu = { ...menu, status: "active" };
-	}
-	const newMenuCustomizations = [...menuCustomizations, newMenu];
-	fs.writeFileSync(
-		menuCustomizationsPath,
-		JSON.stringify(newMenuCustomizations, null, 2)
-	);
-	RedisService.redis.set(
-		"menu:customizations",
-		JSON.stringify(newMenuCustomizations)
-	);
 };
 
 const updateMenuCustomization = async (
 	name: string,
 	menu: IMenuCustomizationReformed
 ) => {
-	const menuCustomizationsExist = fs.existsSync(menuCustomizationsPath);
-	if (!menuCustomizationsExist) {
-		throw new BadRequestError("no menu customizations exist");
+	const menuCustomizationsRepository =
+		AppDataSource.getRepository(MenuCustomization);
+
+	const menuCustomization = await menuCustomizationsRepository.findOneBy({
+		name,
+	});
+	if (!menuCustomization) {
+		throw new NotFoundError(`customization ${name} not found`);
 	}
 
-	const menuCustomizations: IMenuCustomizationReformed[] = JSON.parse(
-		fs.readFileSync(menuCustomizationsPath, { encoding: "utf8", flag: "r" })
-	);
+	if (menu.active)
+		await menuCustomizationsRepository
+			.createQueryBuilder()
+			.update(MenuCustomization)
+			.set({ active: false })
+			.execute();
 
-	const targetMenuCustomizationIndex = menuCustomizations.findIndex(
-		(currentMenu) => currentMenu.name === name
-	);
+	menuCustomization.active = menu.active;
+	menuCustomization.name = menu.name;
+	menuCustomization.styles = JSON.stringify({
+		body: menu.body,
+		category: menu.category,
+		item: menu.item,
+	});
 
-	if (targetMenuCustomizationIndex < 0) {
-		throw new NotFoundError("menu customiziation with this name was not found");
+	await menuCustomizationsRepository.save(menuCustomization);
+
+	if (menu.categories_order) {
+		const categoriesOrderRepository =
+			AppDataSource.getRepository(CategoryOrder);
+		const categoriesRepository = AppDataSource.getRepository(Category);
+		const categoriesOrder: CategoryOrder[] = [];
+
+		for (const [index, currentCategory] of menu.categories_order.entries()) {
+			const category = await categoriesRepository.findOneBy({
+				name: currentCategory,
+			});
+			if (!category) {
+				await menuCustomizationsRepository.delete(menuCustomization);
+				throw new NotFoundError(`category ${currentCategory} was not found`);
+			}
+			const categoryOrder = await categoriesOrderRepository.findOne({
+				where: { category, menuCustomization },
+				relations: { category: true, menuCustomization: true },
+			});
+			if (categoryOrder) {
+				categoryOrder.order = index;
+				categoriesOrder.push(categoryOrder);
+			} else {
+				const newCategoryOrder = new CategoryOrder();
+				newCategoryOrder.order = index;
+				newCategoryOrder.menuCustomization = menuCustomization;
+				newCategoryOrder.category = category;
+				categoriesOrder.push(newCategoryOrder);
+			}
+		}
+		await categoriesOrderRepository.save(categoriesOrder);
 	}
-
-	const newTargetMenuCustomization = {
-		...menuCustomizations[targetMenuCustomizationIndex],
-		...menu,
-	};
-
-	if (menu.status) {
-		const prevActiveMenuCustomizationIndex = menuCustomizations.findIndex(
-			(currentMenu) => currentMenu.status === "active"
+	if (menu.active) {
+		delete menu.active;
+		await RedisService.redis.set(
+			"menu:customizations:active",
+			JSON.stringify(menu)
 		);
-		menuCustomizations[prevActiveMenuCustomizationIndex].status = "in-active";
 	}
-
-	menuCustomizations.splice(targetMenuCustomizationIndex, 1);
-
-	const newMenuCustomizations = [
-		...menuCustomizations,
-		newTargetMenuCustomization,
-	];
-
-	fs.writeFileSync(
-		menuCustomizationsPath,
-		JSON.stringify(newMenuCustomizations, null, 2)
-	);
-
-	RedisService.redis.set(
-		"menu:customizations",
-		JSON.stringify(newMenuCustomizations)
-	);
 };
 
 const deleteMenuCustomization = async (name: string) => {
-	const menuCustomizationsExist = fs.existsSync(menuCustomizationsPath);
-	if (!menuCustomizationsExist) {
-		throw new BadRequestError("no menu customizations exist");
+	const menuCustomizationsRepository =
+		AppDataSource.getRepository(MenuCustomization);
+	const menuCustomizationRecord = await menuCustomizationsRepository.findOneBy({
+		name,
+	});
+	if (!menuCustomizationRecord) {
+		throw new NotFoundError(`menu customization with name ${name} not found`);
 	}
 
-	const menuCustomizations: IMenuCustomizationReformed[] = JSON.parse(
-		fs.readFileSync(menuCustomizationsPath, { encoding: "utf8", flag: "r" })
-	);
-
-	const targetMenuCustomizationIndex = menuCustomizations.findIndex(
-		(currentMenu) => currentMenu.name === name
-	);
-
-	if (targetMenuCustomizationIndex < 0) {
-		throw new NotFoundError("menu customiziation with this name was not found");
+	if (menuCustomizationRecord.active) {
+		await RedisService.redis.del("menu:customizations:active");
 	}
-
-	menuCustomizations.splice(targetMenuCustomizationIndex, 1);
-
-	fs.writeFileSync(
-		menuCustomizationsPath,
-		JSON.stringify(menuCustomizations, null, 2)
-	);
-
-	RedisService.redis.set(
-		"menu:customizations",
-		JSON.stringify(menuCustomizations)
-	);
+	await menuCustomizationsRepository.delete(menuCustomizationRecord);
 };
 
 const getMenu = async () => {
-	try {
-		const areMenuCustomizationsCached = await RedisService.isCached(
-			"menu:customizations"
+	const isActiveMenuCustomizationsCached = await RedisService.isCached(
+		"menu:customizations:active"
+	);
+	let activeMenuCustomization: IMenuCustomization;
+	if (isActiveMenuCustomizationsCached) {
+		activeMenuCustomization = JSON.parse(
+			await RedisService.getCachedVersion("menu:customizations:active")
+		);
+	} else {
+		const _activeMenuCustomization = await AppDataSource.getRepository(
+			MenuCustomization
+		)
+			.createQueryBuilder("menu_customization")
+			.leftJoinAndSelect(
+				"menu_customization.categories_order",
+				"category_order"
+			)
+			.where("menu_customization.active = :active", { active: true })
+			.leftJoinAndSelect("category_order.category", "category")
+			.orderBy("category_order.order", "ASC")
+			.getOne();
+		const {
+			body,
+			item,
+			category,
+		}: Pick<IMenuCustomization, "body" | "item" | "category"> = JSON.parse(
+			_activeMenuCustomization.styles
 		);
 
-		let menuCustomizations: IMenuCustomizationReformed[];
-		if (areMenuCustomizationsCached) {
-			menuCustomizations = JSON.parse(
-				await RedisService.getCachedVersion("menu:customizations")
-			);
-		} else {
-			const menuCustomizationsFromFile = fs.readFileSync(
-				menuCustomizationsPath,
-				{ encoding: "utf8", flag: "r" }
-			);
-			await RedisService.redis.set(
-				"menu:customizations",
-				menuCustomizationsFromFile
-			);
-			menuCustomizations = JSON.parse(menuCustomizationsFromFile);
+		activeMenuCustomization = {
+			body,
+			item,
+			category,
+			name: _activeMenuCustomization.name,
+		};
+		if (_activeMenuCustomization.categories_order) {
+			activeMenuCustomization.categories_order =
+				_activeMenuCustomization.categories_order.map(
+					(categoryOrder) => categoryOrder.category.name
+				);
 		}
-
-		const activeMenu = menuCustomizations.find(
-			(menuCustomization) => menuCustomization.status === "active"
+		await RedisService.redis.set(
+			"menu:customizations:active",
+			JSON.stringify(activeMenuCustomization)
 		);
-
-		const dishes = await DishesService.getDishes();
-
-		const categories: { [category: string]: RedisDishesType } = {};
-
-		dishes.forEach((dish) => {
-			const dishCategory = dish.category;
-			delete dish.category;
-			if (categories[dishCategory]) {
-				categories[dishCategory].push(dish);
-			} else {
-				categories[dishCategory] = [];
-				categories[dishCategory].push(dish);
-			}
-		});
-
-		return { categories, menu: activeMenu };
-	} catch (e) {
-		throw new InternalServerError("server error: couldn't read menu");
 	}
+	const dishes = await DishesService.getDishes();
+
+	const categories: { [category: string]: RedisDishesType } = {};
+
+	dishes.forEach((dish) => {
+		const dishCategory = dish.category;
+		delete dish.category;
+		if (categories[dishCategory]) {
+			categories[dishCategory].push(dish);
+		} else {
+			categories[dishCategory] = [];
+			categories[dishCategory].push(dish);
+		}
+	});
+
+	return { categories, menu: activeMenuCustomization };
 };
 
 export const MenuService = {

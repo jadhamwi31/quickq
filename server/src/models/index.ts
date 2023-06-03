@@ -3,11 +3,12 @@ import { User } from "./user.model";
 import { Dish } from "./dish.model";
 import { Ingredient } from "./ingredient.model";
 import { DishIngredient, OrderDish } from "./shared.model";
-import { Category } from "./category.model";
+import { Category, CategoryOrder } from "./category.model";
 import { Table, TableCode, TableSession } from "./table.model";
 import { Order } from "./order.model";
 import { Payment } from "./payment.model";
 import { InventoryItem } from "./inventory_item.model";
+import { MenuCustomization } from "./menu_customization.model";
 
 export let AppDataSource: DataSource;
 
@@ -23,7 +24,6 @@ export const createAppDataSource = async () => {
 		database: DB_NAME,
 		synchronize: true,
 		logging: true,
-
 		entities: [
 			User,
 			Dish,
@@ -37,6 +37,8 @@ export const createAppDataSource = async () => {
 			TableCode,
 			InventoryItem,
 			TableSession,
+			MenuCustomization,
+			CategoryOrder,
 		],
 	});
 
