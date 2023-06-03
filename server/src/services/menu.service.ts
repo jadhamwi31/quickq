@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import {
 	BadRequestError,
+	ConflictError,
 	InternalServerError,
 	NotFoundError,
 } from "../models/error.model";
@@ -32,6 +33,12 @@ const addMenuCustomization = async (menu: IMenuCustomization) => {
 	const isThereActiveMenuCustomization = menuCustomizations.find(
 		(menu) => menu.status === "active"
 	);
+	const doesMenuCustomizationExist = menuCustomizations.find(
+		(currentMenu) => currentMenu.name === menu.name
+	);
+	if (doesMenuCustomizationExist) {
+		throw new ConflictError("menu customization with this name exist");
+	}
 	let newMenu: IMenuCustomizationReformed;
 	if (isThereActiveMenuCustomization) {
 		newMenu = { ...menu, status: "in-active" };

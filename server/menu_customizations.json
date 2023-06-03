@@ -1,42 +1,51 @@
 [
-  {
-    "name": "Customization312",
-    "body": {
-      "color": "black",
-      "fontSize": "14px",
-      "backgroundColor": "white"
-    },
-    "item": {
-      "color": "blue",
-      "fontSize": "16px",
-      "backgroundColor": "lightgray"
-    },
-    "category": {
-      "fontWeight": "light"
-    },
-    "categories_order": [
-      "Western"
-    ],
-    "status": "in-active"
-  },
-  {
-    "name": "Customization3123",
-    "body": {
-      "color": "black",
-      "fontSize": "14px",
-      "backgroundColor": "white"
-    },
-    "item": {
-      "color": "blue",
-      "fontSize": "16px",
-      "backgroundColor": "lightgray"
-    },
-    "category": {
-      "fontWeight": "light"
-    },
-    "categories_order": [
-      "Western"
-    ],
-    "status": "active"
-  }
+	{
+		"body": {},
+		"item": {},
+		"category": {},
+		"name": "jad",
+		"status": "active"
+	},
+	{
+		"body": {
+			"jadoo": 323
+		},
+		"item": {},
+		"category": {},
+		"name": "jad",
+		"status": "in-active"
+	},
+	{
+		"body": {
+			"jadoo": 323
+		},
+		"item": {},
+		"category": {},
+		"name": "ja3123d",
+		"status": "in-active"
+	},
+	{
+		"body": {
+			"BackgroundColor": "#fdsfsd",
+			"PrimaryColor": "#sDasd",
+			"SecondaryColor": "#AS"
+		},
+		"category": {
+			"FontFamily": "Arial",
+			"TextDecoration": "underline",
+			"Color": "#fff",
+			"BackgroundColor": "#fff",
+			"TextAlign": "center",
+			"fontWeight": "100"
+		},
+		"item": {
+			"FontFamily": "Arial",
+			"TextDecoration": "underline",
+			"Color": "#fff",
+			"BackgroundColor": "#fff",
+			"Align": "center",
+			"fontWeight": "100"
+		},
+		"name": "..."
+	}
 ]
