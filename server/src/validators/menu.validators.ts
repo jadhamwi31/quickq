@@ -73,7 +73,25 @@ const validateUpdateMenuCustomization = (
 	}
 };
 
+const validateDeleteMenuCustomization = (
+	req: Request<Partial<{ name: string }>>,
+	res: Response,
+	next: NextFunction
+) => {
+	try {
+		const { name } = req.params;
+
+		if (!name) {
+			return next(new BadRequestError("style name is required"));
+		}
+		return next();
+	} catch (e) {
+		return next(new BadRequestError("re-check menu properties"));
+	}
+};
+
 export const MenuValidators = {
 	validateAddMenuCustomization,
 	validateUpdateMenuCustomization,
+	validateDeleteMenuCustomization,
 };

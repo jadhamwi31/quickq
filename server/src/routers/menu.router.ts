@@ -19,4 +19,11 @@ MenuRouter.put(
 	MenuController.updateMenuCustomizationHandler
 );
 
+MenuRouter.delete(
+	"/:name",
+	authFor(["manager"]),
+	MenuValidators.validateDeleteMenuCustomization,
+	MenuController.deleteMenuCustomizationHandler
+);
+
 MenuRouter.get("/", authFor(["manager"]), MenuController.getMenuHandler);

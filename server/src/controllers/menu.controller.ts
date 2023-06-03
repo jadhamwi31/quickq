@@ -37,6 +37,22 @@ const updateMenuCustomizationHandler = async (
 	}
 };
 
+const deleteMenuCustomizationHandler = async (
+	req: Request<{ name: string }>,
+	res: Response,
+	next: NextFunction
+) => {
+	try {
+		const { name } = req.params;
+		await MenuService.deleteMenuCustomization(name);
+		return res
+			.status(StatusCodes.OK)
+			.send({ code: StatusCodes.OK, message: "menu customization deleted" });
+	} catch (e) {
+		next(e);
+	}
+};
+
 const getMenuHandler = async (
 	req: Request,
 	res: Response,
@@ -60,4 +76,5 @@ export const MenuController = {
 	addMenuCustomizationHandler,
 	getMenuHandler,
 	updateMenuCustomizationHandler,
+	deleteMenuCustomizationHandler,
 };

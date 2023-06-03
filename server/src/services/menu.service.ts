@@ -100,6 +100,37 @@ const updateMenuCustomization = async (
 	);
 };
 
+const deleteMenuCustomization = async (name: string) => {
+	const menuCustomizationsExist = fs.existsSync(menuCustomizationsPath);
+	if (!menuCustomizationsExist) {
+		throw new BadRequestError("no menu customizations exist");
+	}
+
+	const menuCustomizations: IMenuCustomizationReformed[] = JSON.parse(
+		fs.readFileSync(menuCustomizationsPath, { encoding: "utf8", flag: "r" })
+	);
+
+	const targetMenuCustomizationIndex = menuCustomizations.findIndex(
+		(currentMenu) => currentMenu.name === name
+	);
+
+	if (targetMenuCustomizationIndex < 0) {
+		throw new NotFoundError("menu customiziation with this name was not found");
+	}
+
+	menuCustomizations.splice(targetMenuCustomizationIndex, 1);
+
+	fs.writeFileSync(
+		menuCustomizationsPath,
+		JSON.stringify(menuCustomizations, null, 2)
+	);
+
+	RedisService.redis.set(
+		"menu:customizations",
+		JSON.stringify(menuCustomizations)
+	);
+};
+
 const getMenu = async () => {
 	try {
 		const areMenuCustomizationsCached = await RedisService.isCached(
@@ -151,5 +182,6 @@ const getMenu = async () => {
 export const MenuService = {
 	addMenuCustomization,
 	getMenu,
+	deleteMenuCustomization,
 	updateMenuCustomization,
 };
