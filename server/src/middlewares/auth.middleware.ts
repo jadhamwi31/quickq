@@ -11,6 +11,7 @@ import { TablesService } from "../services/tables.service";
 export const authFor = (roles: UserRoleType[]) => {
 	return async (req: Request<any>, res: Response<any>, next: NextFunction) => {
 		const { jwt: token }: { jwt: string } = req.cookies;
+
 		try {
 			const user = await JwtService.validate(token);
 

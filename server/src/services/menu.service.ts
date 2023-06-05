@@ -248,7 +248,7 @@ const getMenuCustomizations = async () => {
 		.getMany();
 
 	return menuCustomizations.map((customization) => ({
-		...menuCustomizations,
+		...customization,
 		styles: JSON.parse(customization.styles),
 	}));
 };
