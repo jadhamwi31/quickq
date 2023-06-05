@@ -74,6 +74,7 @@ const updateMenuCustomization = async (
 		await menuCustomizationsRepository
 			.createQueryBuilder()
 			.update(MenuCustomization)
+			.where({ active: true })
 			.set({ active: false })
 			.execute();
 	if (!isUndefined(menu.active)) menuCustomization.active = menu.active;
@@ -164,7 +165,7 @@ const deleteMenuCustomization = async (name: string) => {
 	await menuCustomizationsRepository.delete(menuCustomizationRecord);
 };
 
-const getMenu = async () => {
+const getActiveMenu = async () => {
 	const isActiveMenuCustomizationsCached = await RedisService.isCached(
 		"menu:customizations:active"
 	);
@@ -235,9 +236,24 @@ const getMenu = async () => {
 	return { categories, menu: activeMenuCustomization };
 };
 
+const getMenuCustomizations = async () => {
+	const menuCustomizations = await AppDataSource.getRepository(
+		MenuCustomization
+	)
+		.createQueryBuilder("menu_customization")
+		.leftJoinAndSelect("menu_customization.categories_order", "category_order")
+		.leftJoinAndSelect("category_order.category", "category")
+		.orderBy("category_order.order", "ASC")
+		.select()
+		.getOne();
+
+	return menuCustomizations;
+};
+
 export const MenuService = {
 	addMenuCustomization,
-	getMenu,
+	getActiveMenu,
 	deleteMenuCustomization,
 	updateMenuCustomization,
+	getMenuCustomizations,
 };

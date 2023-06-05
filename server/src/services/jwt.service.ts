@@ -14,7 +14,7 @@ const generate = (payload: Partial<IUserTokenPayload>) => {
 	return token;
 };
 
-const decode = async (token: string): Promise<IUserTokenPayload> => {
+const validate = async (token: string): Promise<IUserTokenPayload> => {
 	return new Promise((resolve, reject) => {
 		const PRIVATE_KEY = process.env.PRIVATE_KEY;
 
@@ -30,5 +30,5 @@ const decode = async (token: string): Promise<IUserTokenPayload> => {
 
 export const JwtService = {
 	generate,
-	decode,
+	validate,
 };

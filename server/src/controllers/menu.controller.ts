@@ -59,7 +59,7 @@ const getMenuHandler = async (
 	next: NextFunction
 ) => {
 	try {
-		const { menu, categories } = await MenuService.getMenu();
+		const { menu, categories } = await MenuService.getActiveMenu();
 		return res.status(StatusCodes.OK).send({
 			code: StatusCodes.OK,
 			data: {
@@ -72,9 +72,26 @@ const getMenuHandler = async (
 	}
 };
 
+const getAllMenuCustomizationsHandler = async (
+	req: Request,
+	res: Response,
+	next: NextFunction
+) => {
+	try {
+		const customizations = await MenuService.getMenuCustomizations();
+		return res.status(StatusCodes.OK).send({
+			code: StatusCodes.OK,
+			data: customizations,
+		});
+	} catch (e) {
+		next(e);
+	}
+};
+
 export const MenuController = {
 	addMenuCustomizationHandler,
 	getMenuHandler,
 	updateMenuCustomizationHandler,
 	deleteMenuCustomizationHandler,
+	getAllMenuCustomizationsHandler,
 };

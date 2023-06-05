@@ -6,24 +6,30 @@ import { MenuController } from "../controllers/menu.controller";
 export const MenuRouter = Router();
 
 MenuRouter.post(
-	"/",
+	"/customizations",
 	authFor(["manager"]),
 	MenuValidators.validateAddMenuCustomization,
 	MenuController.addMenuCustomizationHandler
 );
 
 MenuRouter.put(
-	"/:name",
+	"/customizations/:name",
 	authFor(["manager"]),
 	MenuValidators.validateUpdateMenuCustomization,
 	MenuController.updateMenuCustomizationHandler
 );
 
 MenuRouter.delete(
-	"/:name",
+	"/customizations/:name",
 	authFor(["manager"]),
 	MenuValidators.validateDeleteMenuCustomization,
 	MenuController.deleteMenuCustomizationHandler
 );
 
-MenuRouter.get("/", authFor(["manager"]), MenuController.getMenuHandler);
+MenuRouter.get("/active", authFor(["manager"]), MenuController.getMenuHandler);
+
+MenuRouter.get(
+	"/customizations",
+	authFor(["manager"]),
+	MenuController.getAllMenuCustomizationsHandler
+);
