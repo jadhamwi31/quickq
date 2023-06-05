@@ -245,12 +245,12 @@ const getMenuCustomizations = async () => {
 		.leftJoinAndSelect("category_order.category", "category")
 		.orderBy("category_order.order", "ASC")
 		.select()
-		.getOne();
+		.getMany();
 
-	return {
+	return menuCustomizations.map((customization) => ({
 		...menuCustomizations,
-		styles: JSON.parse(menuCustomizations.styles),
-	};
+		styles: JSON.parse(customization.styles),
+	}));
 };
 
 export const MenuService = {
