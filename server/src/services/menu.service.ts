@@ -247,7 +247,10 @@ const getMenuCustomizations = async () => {
 		.select()
 		.getOne();
 
-	return menuCustomizations;
+	return {
+		...menuCustomizations,
+		styles: JSON.parse(menuCustomizations.styles),
+	};
 };
 
 export const MenuService = {
