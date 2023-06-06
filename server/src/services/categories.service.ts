@@ -1,8 +1,10 @@
 import { AppDataSource } from "../models";
 import { Category } from "../models/category.model";
 import { ConflictError, NotFoundError } from "../models/error.model";
+import { blobStringToBlobObject } from "../utils/utils";
+import * as base64blob from "base64-blob";
 
-const createNewCategory = async (name: string) => {
+const createNewCategory = async (name: string, image: string) => {
 	const categoriesRepo = AppDataSource.getRepository(Category);
 
 	const categoryExists = await categoriesRepo.findOneBy({ name });
@@ -11,6 +13,10 @@ const createNewCategory = async (name: string) => {
 	}
 	const category = new Category();
 	category.name = name;
+	category.image = Buffer.from(
+		await base64blob.blobToBase64(blobStringToBlobObject(image)),
+		"base64"
+	);
 	await categoriesRepo.save(category);
 };
 
@@ -38,7 +44,10 @@ const updateCategory = async (prevName: string, newName: string) => {
 const getCategories = async () => {
 	const categoriesRepo = AppDataSource.getRepository(Category);
 
-	return (await categoriesRepo.find()).map((category) => category.name);
+	return (await categoriesRepo.find()).map((category) => ({
+		image: category.image.toString("base64"),
+		name: category.name,
+	}));
 };
 
 export const CategoriesService = {

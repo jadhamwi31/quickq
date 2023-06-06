@@ -4,13 +4,13 @@ import { CategoriesService } from "../services/categories.service";
 import { StatusCodes } from "http-status-codes";
 
 const createNewCategoryHandler = async (
-	req: Request<any, any, Pick<Category, "name">>,
+	req: Request<any, any, Pick<Category, "name"> & { image: string }>,
 	res: Response,
 	next: NextFunction
 ) => {
-	const { name } = req.body;
+	const { name, image } = req.body;
 	try {
-		await CategoriesService.createNewCategory(name);
+		await CategoriesService.createNewCategory(name, image);
 		return res
 			.status(StatusCodes.OK)
 			.send({ code: StatusCodes.OK, message: "category created" });

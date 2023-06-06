@@ -11,6 +11,7 @@ import {
 import { DishIngredient } from "./shared.model";
 import { Dish } from "./dish.model";
 import { MenuCustomization } from "./menu_customization.model";
+import * as base64blob from "base64-blob";
 
 @Entity()
 @Unique(["name"])
@@ -20,6 +21,12 @@ export class Category {
 
 	@Column()
 	name: string;
+
+	@Column({
+		type: "bytea",
+		nullable: false,
+	})
+	image: Buffer;
 
 	@OneToMany(() => Dish, (dish) => dish.category)
 	dishes: Dish[];
