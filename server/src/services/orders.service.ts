@@ -15,6 +15,7 @@ import {
 } from "../ts/types/order.types";
 import RedisService from "./redis.service";
 import { TablesService } from "./tables.service";
+import WebsocketService from "./websocket.service";
 
 const createNewOrder = async (newOrder: OrderDishesType, tableId: number) => {
 	const dishesRepo = AppDataSource.getRepository(Dish);
@@ -107,6 +108,11 @@ const updateOrder = async (
 	dishesToMutate: OrderDishesType,
 	dishesToRemove: OrderDishesType
 ) => {
+	const ordersRepo = AppDataSource.getRepository(Order);
+	const orderRecord = await ordersRepo.findOneBy({ id: orderId });
+	if (!orderRecord) {
+		throw new NotFoundError("order with this id doesn't exist");
+	}
 	const ordersDishesRepo = AppDataSource.getRepository(OrderDish);
 	const dishesRepo = AppDataSource.getRepository(Dish);
 	const orderDishesRecords = await ordersDishesRepo.find({
@@ -192,7 +198,13 @@ const updateOrderStatus = async (orderId: number, status: OrderStatusType) => {
 		where: { id: orderId },
 		relations: { table: true },
 	});
-	orderRecord.status = status;
+	if (!orderRecord) {
+		throw new NotFoundError("order with this id doesn't exist");
+	}
+	if (orderRecord.status !== status) {
+		orderRecord.status = status;
+		WebsocketService.getIo().emit("update_order_status", orderId, status);
+	}
 	await ordersRepo.save(orderRecord);
 
 	// Update Order Status In Cache

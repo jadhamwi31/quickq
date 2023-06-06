@@ -11,6 +11,7 @@ import { TableStatus } from "../ts/types/table.types";
 import RedisService from "./redis.service";
 import { OrdersService } from "./orders.service";
 import { UserRoleType } from "../ts/types/user.types";
+import WebsocketService from "./websocket.service";
 
 const getTableSessionClientId = async (tableId: number) => {
 	const isTableSessionCached = await RedisService.isCached(
@@ -82,7 +83,10 @@ const updateTable = async (id: number, status: TableStatus) => {
 	if (!tableRecord) {
 		throw new NotFoundError("table with this id doesn't exist");
 	}
-	tableRecord.status = status;
+	if (tableRecord.status !== status) {
+		tableRecord.status = status;
+		WebsocketService.getIo().emit("update_table_status", id, status);
+	}
 	await tablesRepo.save(tableRecord);
 };
 

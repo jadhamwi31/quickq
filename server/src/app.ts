@@ -17,6 +17,8 @@ import cookieParser from "cookie-parser";
 import { InventoryRouter } from "./routers/inventory.router";
 import { MenuRouter } from "./routers/menu.router";
 import { CacheRouter } from "./routers/cache.router";
+import { createServer } from "http";
+import WebsocketService from "./services/websocket.service";
 
 dotenv.config();
 
@@ -45,7 +47,12 @@ dotenv.config();
 
 	app.use(errorMiddleware);
 	const port = process.env.SERVER_PORT;
-	app.listen(port, () => {
+
+	const httpServer = createServer(app);
+
+	WebsocketService.init(httpServer);
+
+	httpServer.listen(port, () => {
 		console.log(`Listening on port ${port}`);
 	});
 })();
