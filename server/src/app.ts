@@ -19,6 +19,8 @@ import { MenuRouter } from "./routers/menu.router";
 import { CacheRouter } from "./routers/cache.router";
 import { createServer } from "http";
 import WebsocketService from "./services/websocket.service";
+import morgan from "morgan";
+import { UsersRouter } from "./routers/users.router";
 
 dotenv.config();
 
@@ -28,6 +30,7 @@ dotenv.config();
 	const app = express();
 
 	// middlewares
+	app.use(morgan("tiny"));
 	app.use(cors({ origin: "http://localhost:3000", credentials: true }));
 	app.use(json());
 	app.use(urlencoded({ extended: false }));
@@ -44,6 +47,7 @@ dotenv.config();
 	app.use("/inventory", InventoryRouter);
 	app.use("/menu", MenuRouter);
 	app.use("/cache", CacheRouter);
+	app.use("/users", UsersRouter);
 
 	app.use(errorMiddleware);
 	const port = process.env.SERVER_PORT;

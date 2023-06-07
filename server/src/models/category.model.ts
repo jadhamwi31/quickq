@@ -22,12 +22,6 @@ export class Category {
 	@Column()
 	name: string;
 
-	@Column({
-		type: "bytea",
-		nullable: false,
-	})
-	image: Buffer;
-
 	@OneToMany(() => Dish, (dish) => dish.category)
 	dishes: Dish[];
 

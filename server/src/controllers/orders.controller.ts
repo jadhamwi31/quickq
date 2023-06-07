@@ -45,7 +45,7 @@ const updateOrderHandler = async (
 		}
 		await OrdersService.updateOrder(id, dishesToMutate, dishesToRemove);
 		return res
-			.status(200)
+			.status(StatusCodes.OK)
 			.send({ message: "order updated successfully", code: StatusCodes.OK });
 	} catch (e) {
 		return next(e);
@@ -59,10 +59,17 @@ const updateOrderStatusHandler = async (
 ) => {
 	const { id } = req.params;
 	const { status } = req.body;
+	const { role } = req.user;
 	try {
+		if (
+			role === "client" &&
+			!OrdersService.orderBelongsToTable(id, req.user.tableId)
+		) {
+			throw new ForbiddenError("order should belong to your table");
+		}
 		await OrdersService.updateOrderStatus(id, status);
 		return res
-			.status(200)
+			.status(StatusCodes.OK)
 			.send({ message: "order updated successfully", code: StatusCodes.OK });
 	} catch (e) {
 		return next(e);
@@ -76,7 +83,7 @@ const getTodayOrdersHandler = async (
 ) => {
 	try {
 		const orders = await OrdersService.getTodayOrders();
-		return res.status(200).send({
+		return res.status(StatusCodes.OK).send({
 			code: StatusCodes.OK,
 			data: orders,
 		});
@@ -92,33 +99,9 @@ const getOrdersHistoryHandler = async (
 ) => {
 	try {
 		const orders = await OrdersService.getOrdersHistory();
-		return res.status(200).send({
+		return res.status(StatusCodes.OK).send({
 			code: StatusCodes.OK,
 			data: orders,
-		});
-	} catch (e) {
-		return next(e);
-	}
-};
-
-const cancelOrderHandler = async (
-	req: Request<Pick<Order, "id">>,
-	res: Response,
-	next: NextFunction
-) => {
-	const { id: orderId } = req.params;
-	const { role } = req.user;
-	try {
-		if (
-			role === "client" &&
-			!OrdersService.orderBelongsToTable(orderId, req.user.tableId)
-		) {
-			throw new ForbiddenError("order should belong to your table");
-		}
-		await OrdersService.cancelOrder(orderId);
-		return res.status(200).send({
-			code: StatusCodes.OK,
-			message: "order deleted successfully",
 		});
 	} catch (e) {
 		return next(e);
@@ -131,5 +114,4 @@ export const OrdersController = {
 	updateOrderStatusHandler,
 	getTodayOrdersHandler,
 	getOrdersHistoryHandler,
-	cancelOrderHandler,
 };

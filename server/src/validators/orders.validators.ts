@@ -5,7 +5,7 @@ import {
 	UpdateOrderStatusType,
 	UpdateOrderType,
 } from "../ts/types/order.types";
-import { BadRequestError } from "../models/error.model";
+import { BadRequestError, ForbiddenError } from "../models/error.model";
 import { Order } from "../models/order.model";
 
 const validateNewOrder = (
@@ -69,8 +69,12 @@ const validateUpdateOrderStatus = (
 ) => {
 	const { status } = req.body;
 	const { id } = req.params;
+	const { role } = req.user;
 	if (!status) {
-		return next(new BadRequestError("dishes are missing"));
+		return next(new BadRequestError("status are missing"));
+	}
+	if (role === "chef" && status === "Cancelled") {
+		return next(new ForbiddenError("you can't cancel order as chef"));
 	}
 	if (!id) {
 		return next(new BadRequestError("order id parameter is missing"));

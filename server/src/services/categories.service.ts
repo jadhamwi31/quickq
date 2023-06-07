@@ -13,10 +13,7 @@ const createNewCategory = async (name: string, image: string) => {
 	}
 	const category = new Category();
 	category.name = name;
-	category.image = Buffer.from(
-		await base64blob.blobToBase64(blobStringToBlobObject(image)),
-		"base64"
-	);
+
 	await categoriesRepo.save(category);
 };
 
@@ -45,7 +42,6 @@ const getCategories = async () => {
 	const categoriesRepo = AppDataSource.getRepository(Category);
 
 	return (await categoriesRepo.find()).map((category) => ({
-		image: category.image.toString("base64"),
 		name: category.name,
 	}));
 };

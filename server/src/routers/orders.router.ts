@@ -21,7 +21,7 @@ OrdersRouter.put(
 
 OrdersRouter.put(
 	"/:id",
-	authFor(["chef"]),
+	authFor(["chef", "manager", "cashier", "client"]),
 	OrdersValidators.validateUpdateOrderStatus,
 	OrdersController.updateOrderStatusHandler
 );
@@ -36,10 +36,4 @@ OrdersRouter.get(
 	"/",
 	authFor(["manager"]),
 	OrdersController.getOrdersHistoryHandler
-);
-
-OrdersRouter.delete(
-	"/:orderId",
-	authFor(["manager", "cashier", "client"]),
-	OrdersController.cancelOrderHandler
 );

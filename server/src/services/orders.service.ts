@@ -148,47 +148,23 @@ const updateOrder = async (
 		}
 
 	await ordersDishesRepo.save(orderDishesRecords);
+	const orders = await getTodayOrders();
+	const currentOrder = orders.find((order) => order.id == orderId);
+	currentOrder.dishes = orderDishesRecords.map(
+		(orderDish): RedisOrderDish => ({
+			id: orderDish.id,
+			quantity: orderDish.quantity,
+			name: orderDish.dish.name,
+			price: orderDish.dish.price,
+		})
+	);
 
-	const isOrderCached = await RedisService.isCached("orders", String(orderId));
-	if (isOrderCached) {
-		const redisCachedOrder: IRedisTableOrder = JSON.parse(
-			await RedisService.getCachedVersion("orders", String(orderId))
-		);
-
-		redisCachedOrder.dishes = orderDishesRecords.map(
-			(orderDish): RedisOrderDish => ({
-				id: orderDish.id,
-				quantity: orderDish.quantity,
-				name: orderDish.dish.name,
-				price: orderDish.dish.price,
-			})
-		);
-
-		// Update Order In Cache
-		await RedisService.redis.hset(
-			"orders",
-			orderId,
-			JSON.stringify(redisCachedOrder)
-		);
-	} else {
-		const orders = await getTodayOrders();
-		const currentOrder = orders.find((order) => order.id == orderId);
-		currentOrder.dishes = orderDishesRecords.map(
-			(orderDish): RedisOrderDish => ({
-				id: orderDish.id,
-				quantity: orderDish.quantity,
-				name: orderDish.dish.name,
-				price: orderDish.dish.price,
-			})
-		);
-
-		// Update Order In Cache
-		await RedisService.redis.hset(
-			"orders",
-			orderId,
-			JSON.stringify(currentOrder)
-		);
-	}
+	// Update Order In Cache
+	await RedisService.redis.hset(
+		"orders",
+		orderId,
+		JSON.stringify(currentOrder)
+	);
 };
 
 const updateOrderStatus = async (orderId: number, status: OrderStatusType) => {
@@ -306,8 +282,17 @@ const getOrdersHistory = async () => {
 const cancelOrder = async (orderId: number) => {
 	const ordersRepo = AppDataSource.getRepository(Order);
 	const orderRecord = await ordersRepo.findOneBy({ id: orderId });
-	await ordersRepo.remove(orderRecord);
-	await RedisService.redis.hdel("orders", String(orderId));
+	orderRecord.status = "Cancelled";
+	await ordersRepo.save(orderRecord);
+
+	const orders = await getTodayOrders();
+	const currentOrder = orders.find((order) => order.id == orderId);
+	currentOrder.status = "Cancelled";
+	await RedisService.redis.hset(
+		"orders",
+		orderId,
+		JSON.stringify(currentOrder)
+	);
 };
 
 export const OrdersService = {
