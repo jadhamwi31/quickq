@@ -1,8 +1,7 @@
 import { AppDataSource } from "../models";
 import { Category } from "../models/category.model";
 import { ConflictError, NotFoundError } from "../models/error.model";
-import { blobStringToBlobObject } from "../utils/utils";
-import * as base64blob from "base64-blob";
+import { deleteImage, saveImage } from "./upload.service";
 
 const createNewCategory = async (name: string, image: string) => {
 	const categoriesRepo = AppDataSource.getRepository(Category);
@@ -13,6 +12,7 @@ const createNewCategory = async (name: string, image: string) => {
 	}
 	const category = new Category();
 	category.name = name;
+	category.image = saveImage(image);
 
 	await categoriesRepo.save(category);
 };
@@ -20,21 +20,32 @@ const createNewCategory = async (name: string, image: string) => {
 const deleteCategory = async (name: string) => {
 	const categoriesRepo = AppDataSource.getRepository(Category);
 
-	const categoryExists = await categoriesRepo.findOneBy({ name });
-	if (!categoryExists) {
+	const categoryRecord = await categoriesRepo.findOneBy({ name });
+	if (!categoryRecord) {
 		throw new NotFoundError(`category to delete : not found`);
 	}
-	await categoriesRepo.delete({ name });
+	const { image } = categoryRecord;
+	deleteImage(image);
+	await categoriesRepo.delete(categoryRecord);
 };
 
-const updateCategory = async (prevName: string, newName: string) => {
+const updateCategory = async (
+	prevName: string,
+	newName: string,
+	image: string
+) => {
 	const categoriesRepo = AppDataSource.getRepository(Category);
 
 	const categoryRecord = await categoriesRepo.findOneBy({ name: prevName });
 	if (!categoryRecord) {
 		throw new NotFoundError(`category to update : not found`);
 	}
-	categoryRecord.name = newName;
+	if (newName) categoryRecord.name = newName;
+	if (image) {
+		const oldImageName = categoryRecord.image;
+		deleteImage(oldImageName);
+		categoryRecord.image = saveImage(image);
+	}
 	await categoriesRepo.save(categoryRecord);
 };
 
@@ -43,6 +54,7 @@ const getCategories = async () => {
 
 	return (await categoriesRepo.find()).map((category) => ({
 		name: category.name,
+		image: category.image,
 	}));
 };
 

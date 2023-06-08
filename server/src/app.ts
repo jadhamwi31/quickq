@@ -1,26 +1,27 @@
+import { json, urlencoded } from "body-parser";
+import cookieParser from "cookie-parser";
+import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
+import { createServer } from "http";
+import morgan from "morgan";
+import { errorMiddleware } from "./middlewares/error.middleware";
 import { createAppDataSource } from "./models";
 import { AuthRouter } from "./routers/auth.router";
-import cors from "cors";
-import { json, urlencoded } from "body-parser";
-import { errorMiddleware } from "./middlewares/error.middleware";
-import { IngredientsRouter } from "./routers/ingredients.router";
-import { DishesRouter } from "./routers/dishes.router";
+import { CacheRouter } from "./routers/cache.router";
 import { CategoriesRouter } from "./routers/categories.router";
-import { TablesRouter } from "./routers/tables.router";
-import { OrdersRouter } from "./routers/orders.router";
-import RedisService from "./services/redis.service";
-import { TablesService } from "./services/tables.service";
-import { PaymentRouter } from "./routers/payment.router";
-import cookieParser from "cookie-parser";
+import { DishesRouter } from "./routers/dishes.router";
+import { IngredientsRouter } from "./routers/ingredients.router";
 import { InventoryRouter } from "./routers/inventory.router";
 import { MenuRouter } from "./routers/menu.router";
-import { CacheRouter } from "./routers/cache.router";
-import { createServer } from "http";
-import WebsocketService from "./services/websocket.service";
-import morgan from "morgan";
+import { OrdersRouter } from "./routers/orders.router";
+import { PaymentRouter } from "./routers/payment.router";
+import { TablesRouter } from "./routers/tables.router";
 import { UsersRouter } from "./routers/users.router";
+import RedisService from "./services/redis.service";
+import WebsocketService from "./services/websocket.service";
+import { imagesDirectory, saveImage } from "./services/upload.service";
+import path from "path";
 
 dotenv.config();
 
@@ -36,6 +37,12 @@ dotenv.config();
 	app.use(urlencoded({ extended: false }));
 	app.use(cookieParser());
 
+	app.post("/upload", (req, res, next) => {
+		const { image } = req.body;
+		saveImage(image);
+		return res.status(200).send("ok");
+	});
+
 	// routers
 	app.use("/auth", AuthRouter);
 	app.use("/ingredients", IngredientsRouter);
@@ -48,7 +55,7 @@ dotenv.config();
 	app.use("/menu", MenuRouter);
 	app.use("/cache", CacheRouter);
 	app.use("/users", UsersRouter);
-
+	app.use("/images", express.static(imagesDirectory));
 	app.use(errorMiddleware);
 	const port = process.env.SERVER_PORT;
 

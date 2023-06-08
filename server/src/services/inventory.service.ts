@@ -1,6 +1,8 @@
 import { AppDataSource } from "../models";
 import { NotFoundError } from "../models/error.model";
 import { InventoryItem } from "../models/inventory_item.model";
+import { UserRoleType } from "../ts/types/user.types";
+import WebsocketService from "./websocket.service";
 
 const updateInventoryItem = async (
 	ingredientName: string,
@@ -16,6 +18,12 @@ const updateInventoryItem = async (
 	}
 	if (available) inventoryItemRecord.available = available;
 	if (needed) inventoryItemRecord.needed = needed;
+	WebsocketService.getIo()
+		.to(["cashier", "chef", "manager"] as UserRoleType[])
+		.emit("inventory_item_update", ingredientName, {
+			available,
+			needed,
+		});
 	await inventoryItemsRepo.save(inventoryItemRecord);
 };
 

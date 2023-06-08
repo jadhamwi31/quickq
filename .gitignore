@@ -2,3 +2,4 @@
 *.btmp
 *.dtmp
 node_modules
+images

@@ -39,7 +39,7 @@ TablesRouter.post(
 );
 TablesRouter.post(
 	"/session",
-	auth(["cashier", "manager"]),
+	auth(["client"]),
 	TablesController.openNewTableSessionHandler
 );
 

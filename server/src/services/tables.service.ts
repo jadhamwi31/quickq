@@ -23,6 +23,8 @@ const getTableSessionClientId = async (tableId: number) => {
 			"tables:sessions",
 			String(tableId)
 		);
+		console.log(clientId);
+
 		return clientId;
 	} else {
 		const tableSession = await AppDataSource.getRepository(
@@ -85,7 +87,9 @@ const updateTable = async (id: number, status: TableStatus) => {
 	}
 	if (tableRecord.status !== status) {
 		tableRecord.status = status;
-		WebsocketService.getIo().emit("update_table_status", id, status);
+		WebsocketService.getIo()
+			.to(["cashier", "manager"] as UserRoleType[])
+			.emit("update_table_status", id, status);
 	}
 	await tablesRepo.save(tableRecord);
 };
@@ -136,6 +140,9 @@ const openNewTableSession = async (tableId: number, clientId: string) => {
 	tableSessionRecord.clientId = clientId;
 	await tablesSessionsRepo.save(tableSessionRecord);
 	await RedisService.redis.hset("tables:sessions", String(tableId), clientId);
+	WebsocketService.getIo()
+		.to(["cashier", "manager"] as UserRoleType[])
+		.emit("update_table_status", tableId, "Busy");
 };
 
 const checkoutTable = async (tableId: number) => {

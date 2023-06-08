@@ -16,6 +16,7 @@ import {
 import RedisService from "./redis.service";
 import { TablesService } from "./tables.service";
 import WebsocketService from "./websocket.service";
+import { UserRoleType } from "../ts/types/user.types";
 
 const createNewOrder = async (newOrder: OrderDishesType, tableId: number) => {
 	const dishesRepo = AppDataSource.getRepository(Dish);
@@ -85,6 +86,10 @@ const createNewOrder = async (newOrder: OrderDishesType, tableId: number) => {
 		redisTableOrder.id,
 		JSON.stringify(redisTableOrder)
 	);
+
+	WebsocketService.getIo()
+		.to(["cashier", "manager", "chef"] as UserRoleType[])
+		.emit("new_order", redisTableOrder);
 };
 
 const orderBelongsToTable = async (orderId: number, tableId: number) => {
@@ -165,6 +170,10 @@ const updateOrder = async (
 		orderId,
 		JSON.stringify(currentOrder)
 	);
+
+	WebsocketService.getIo()
+		.to(["cashier", "chef", "client", "manager"] as UserRoleType[])
+		.emit("update_order_dishes", orderId, currentOrder.dishes);
 };
 
 const updateOrderStatus = async (orderId: number, status: OrderStatusType) => {
@@ -179,7 +188,12 @@ const updateOrderStatus = async (orderId: number, status: OrderStatusType) => {
 	}
 	if (orderRecord.status !== status) {
 		orderRecord.status = status;
-		WebsocketService.getIo().emit("update_order_status", orderId, status);
+		WebsocketService.getIo()
+			.to(["cashier", "manager", "chef"] as UserRoleType[])
+			.emit("update_order_status", orderId, status);
+		WebsocketService.getIo()
+			.to(String(orderRecord.table.id))
+			.emit("update_order_status", orderId, status);
 	}
 	await ordersRepo.save(orderRecord);
 
@@ -279,22 +293,6 @@ const getOrdersHistory = async () => {
 	return orders;
 };
 
-const cancelOrder = async (orderId: number) => {
-	const ordersRepo = AppDataSource.getRepository(Order);
-	const orderRecord = await ordersRepo.findOneBy({ id: orderId });
-	orderRecord.status = "Cancelled";
-	await ordersRepo.save(orderRecord);
-
-	const orders = await getTodayOrders();
-	const currentOrder = orders.find((order) => order.id == orderId);
-	currentOrder.status = "Cancelled";
-	await RedisService.redis.hset(
-		"orders",
-		orderId,
-		JSON.stringify(currentOrder)
-	);
-};
-
 export const OrdersService = {
 	createNewOrder,
 	orderBelongsToTable,
@@ -302,5 +300,4 @@ export const OrdersService = {
 	updateOrderStatus,
 	getTodayOrders,
 	getOrdersHistory,
-	cancelOrder,
 };

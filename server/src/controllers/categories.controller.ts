@@ -39,15 +39,15 @@ const updateCategoryHandler = async (
 	req: Request<
 		Partial<Pick<Category, "name">>,
 		any,
-		Partial<Pick<Category, "name">>
+		Partial<Pick<Category, "name" | "image">>
 	>,
 	res: Response,
 	next: NextFunction
 ) => {
-	const { name } = req.body;
+	const { name, image } = req.body;
 	const categoryName = req.params.name;
 	try {
-		await CategoriesService.updateCategory(categoryName, name);
+		await CategoriesService.updateCategory(categoryName, name, image);
 		return res
 			.status(StatusCodes.OK)
 			.send({ code: StatusCodes.OK, message: "category updated" });

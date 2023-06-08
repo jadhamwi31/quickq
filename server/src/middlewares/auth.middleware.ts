@@ -7,6 +7,15 @@ import RedisService from "../services/redis.service";
 import { AppDataSource } from "../models";
 import { TableSession } from "../models/table.model";
 import { TablesService } from "../services/tables.service";
+import { IUserTokenPayload } from "../ts/interfaces/user.interfaces";
+
+const authorizeClient = async (user: IUserTokenPayload) => {
+	const clientId = await TablesService.getTableSessionClientId(user.tableId);
+
+	if (clientId != user.clientId) {
+		throw new ForbiddenError("you're not on this table");
+	}
+};
 
 export const authFor = (roles: UserRoleType[]) => {
 	return async (req: Request<any>, res: Response<any>, next: NextFunction) => {
@@ -17,11 +26,8 @@ export const authFor = (roles: UserRoleType[]) => {
 
 			if (_.find(roles, (current) => current === user.role)) {
 				if (user.role === "client") {
-					const clientId = await TablesService.getTableSessionClientId(
-						user.tableId
-					);
-					if (clientId != req.user.clientId) {
-						throw new ForbiddenError("you're not on this table");
+					if (req.originalUrl !== "/tables/session") {
+						authorizeClient(user);
 					}
 				}
 				req.user = user;

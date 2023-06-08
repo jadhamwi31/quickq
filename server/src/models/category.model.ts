@@ -27,6 +27,9 @@ export class Category {
 
 	@OneToMany(() => CategoryOrder, (categoryOrder) => categoryOrder.category)
 	categories_order: CategoryOrder[];
+
+	@Column({ nullable: true })
+	image: string;
 }
 
 @Entity()

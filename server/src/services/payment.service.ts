@@ -9,6 +9,8 @@ import { TablesService } from "./tables.service";
 import moment from "moment";
 import { Table, TableSession } from "../models/table.model";
 import { IRedisPayment } from "../ts/interfaces/payment.interfaces";
+import WebsocketService from "./websocket.service";
+import { UserRoleType } from "../ts/types/user.types";
 
 const newPayment = async (tableId: number, amountPaid: number) => {
 	const { total } = await TablesService.checkoutTable(tableId);
@@ -81,6 +83,10 @@ const newPayment = async (tableId: number, amountPaid: number) => {
 		"payins",
 		prevPayins + payment.amount
 	);
+
+	WebsocketService.getIo()
+		.to(["cashier", "manager"] as UserRoleType[])
+		.emit("increment_payins", payment.amount);
 
 	// Update Table Status
 	const tableRecord = await tablesRepo.findOneBy({ id: tableId });

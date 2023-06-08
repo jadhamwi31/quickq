@@ -30,18 +30,18 @@ const validateUpdateCategory = (
 	req: Request<
 		Partial<Pick<Category, "name">>,
 		any,
-		Partial<Pick<Category, "name">>
+		Partial<Pick<Category, "name" | "image">>
 	>,
 	res: Response,
 	next: NextFunction
 ) => {
 	const categoryName = req.params.name;
-	const { name } = req.body;
+	const { name, image } = req.body;
 	if (!name) {
 		return next(new BadRequestError("key : [name] is required"));
 	}
-	if (!categoryName) {
-		return next(new BadRequestError("name parameter is required"));
+	if (!categoryName && !image) {
+		return next(new BadRequestError("new category name or image is required"));
 	}
 	return next();
 };
