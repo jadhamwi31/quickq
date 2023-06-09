@@ -51,13 +51,14 @@ export default class WebsocketService {
 			} else {
 				socket.join(socket.user.role);
 			}
+
 			socket.on("disconnect", () => {
 				this.numberOfClients--;
 				console.log(this.numberOfClients);
 			});
 			socket.on("checkout_finished", (tableId) => {
 				socket
-					.to(["cashier", "manager"] as UserRoleType[])
+					.to(["cashier"] as UserRoleType[])
 					.emit("checkout_request", tableId);
 			});
 		});

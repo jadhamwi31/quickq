@@ -1,4 +1,3 @@
-import { Order } from "../../models/order.model";
 import { OrderStatusType, RedisOrderDish } from "../types/order.types";
 import { TableStatus } from "../types/table.types";
 import { IRedisTableOrder } from "./order.interfaces";
