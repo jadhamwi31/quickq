@@ -71,11 +71,19 @@ const validateUpdateOrderStatus = (
 	const { id } = req.params;
 	const { role } = req.user;
 	if (!status) {
-		return next(new BadRequestError("status are missing"));
+		return next(new BadRequestError("status is missing"));
 	}
-	if (role === "chef" && status === "Cancelled") {
-		return next(new ForbiddenError("you can't cancel order as chef"));
-	}
+	if (
+		!(
+			status === "Cancelled" ||
+			status === "In Cook" ||
+			status === "Pending" ||
+			status === "Ready"
+		)
+	)
+		if (role === "chef" && status === "Cancelled") {
+			return next(new ForbiddenError("you can't cancel order as chef"));
+		}
 	if (!id) {
 		return next(new BadRequestError("order id parameter is missing"));
 	}

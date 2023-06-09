@@ -20,7 +20,7 @@ OrdersRouter.put(
 );
 
 OrdersRouter.put(
-	"/:id",
+	"/:id/status",
 	authFor(["chef", "manager", "cashier", "client"]),
 	OrdersValidators.validateUpdateOrderStatus,
 	OrdersController.updateOrderStatusHandler
