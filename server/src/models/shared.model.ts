@@ -13,7 +13,9 @@ export class DishIngredient {
 	})
 	dish: Dish;
 
-	@ManyToOne(() => Ingredient, (ingredient) => ingredient.dishIngredients)
+	@ManyToOne(() => Ingredient, (ingredient) => ingredient.dishIngredients, {
+		onDelete: "CASCADE",
+	})
 	ingredient: Ingredient;
 
 	@Column({ type: "real" })

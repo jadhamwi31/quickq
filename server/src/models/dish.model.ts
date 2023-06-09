@@ -25,6 +25,9 @@ export class Dish {
 	@Column()
 	description: string;
 
+	@Column({ nullable: true })
+	image: string;
+
 	@OneToMany(() => DishIngredient, (dishIngredient) => dishIngredient.dish)
 	dishIngredients: DishIngredient[];
 

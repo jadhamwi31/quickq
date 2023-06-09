@@ -88,9 +88,9 @@ const updateMenuCustomization = async (
 	await menuCustomizationsRepository.save(menuCustomization);
 
 	if (menu.categories_order) {
+		const categoriesRepository = AppDataSource.getRepository(Category);
 		const categoriesOrderRepository =
 			AppDataSource.getRepository(CategoryOrder);
-		const categoriesRepository = AppDataSource.getRepository(Category);
 		const categoriesOrder: CategoryOrder[] = [];
 
 		for (const [index, currentCategory] of menu.categories_order.entries()) {
@@ -116,6 +116,7 @@ const updateMenuCustomization = async (
 				categoriesOrder.push(newCategoryOrder);
 			}
 		}
+		await categoriesOrderRepository.delete({ menuCustomization });
 		await categoriesOrderRepository.save(categoriesOrder);
 	}
 

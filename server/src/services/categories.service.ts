@@ -3,7 +3,7 @@ import { Category } from "../models/category.model";
 import { ConflictError, NotFoundError } from "../models/error.model";
 import { deleteImage, saveImage } from "./upload.service";
 
-const createNewCategory = async (name: string, image: string) => {
+const createNewCategory = async (name: string, image?: string) => {
 	const categoriesRepo = AppDataSource.getRepository(Category);
 
 	const categoryExists = await categoriesRepo.findOneBy({ name });
@@ -12,7 +12,7 @@ const createNewCategory = async (name: string, image: string) => {
 	}
 	const category = new Category();
 	category.name = name;
-	category.image = saveImage(image);
+	if (image) category.image = saveImage(image);
 
 	await categoriesRepo.save(category);
 };
@@ -25,7 +25,7 @@ const deleteCategory = async (name: string) => {
 		throw new NotFoundError(`category to delete : not found`);
 	}
 	const { image } = categoryRecord;
-	deleteImage(image);
+	if (image) deleteImage(image);
 	await categoriesRepo.delete(categoryRecord);
 };
 
@@ -42,8 +42,7 @@ const updateCategory = async (
 	}
 	if (newName) categoryRecord.name = newName;
 	if (image) {
-		const oldImageName = categoryRecord.image;
-		deleteImage(oldImageName);
+		deleteImage(categoryRecord.image);
 		categoryRecord.image = saveImage(image);
 	}
 	await categoriesRepo.save(categoryRecord);

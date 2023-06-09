@@ -1,19 +1,14 @@
 import { Server as HttpServer } from "http";
-import { Server } from "socket.io";
-import {
-	IUserCredentials,
-	IUserTokenPayload,
-} from "../ts/interfaces/user.interfaces";
+import { Server, Socket } from "socket.io";
+import { IUserTokenPayload } from "../ts/interfaces/user.interfaces";
 import {
 	IClientToServerEvents,
 	IServerToClientEvents,
 	InterServerEvents,
 } from "../ts/interfaces/websocket.interfaces";
-import { JwtService } from "./jwt.service";
-import { Socket } from "socket.io";
 import { UserRoleType } from "../ts/types/user.types";
+import { JwtService } from "./jwt.service";
 import { TablesService } from "./tables.service";
-import { UnauthorizedError } from "../models/error.model";
 
 declare module "socket.io" {
 	interface Socket {

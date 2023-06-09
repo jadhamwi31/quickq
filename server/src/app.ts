@@ -22,6 +22,8 @@ import RedisService from "./services/redis.service";
 import WebsocketService from "./services/websocket.service";
 import { imagesDirectory, saveImage } from "./services/upload.service";
 import path from "path";
+import { authFor } from "./middlewares/auth.middleware";
+import { BrandRouter } from "./routers/brand.router";
 
 dotenv.config();
 
@@ -55,6 +57,7 @@ dotenv.config();
 	app.use("/menu", MenuRouter);
 	app.use("/cache", CacheRouter);
 	app.use("/users", UsersRouter);
+	app.use("/brand", authFor(["manager"]), BrandRouter);
 	app.use("/images", express.static(imagesDirectory));
 	app.use(errorMiddleware);
 	const port = process.env.SERVER_PORT;

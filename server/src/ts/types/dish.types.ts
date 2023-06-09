@@ -13,6 +13,7 @@ export type RedisDishType = {
 	name: string;
 	description: string;
 	price: number;
+	image: string;
 	ingredients: {
 		name: string;
 		amount: number;

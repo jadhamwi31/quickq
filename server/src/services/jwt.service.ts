@@ -1,10 +1,6 @@
-import { UnauthorizedError } from "../models/error.model";
-import { User } from "../models/user.model";
 import jwt from "jsonwebtoken";
-import {
-	IUserCredentials,
-	IUserTokenPayload,
-} from "../ts/interfaces/user.interfaces";
+import { UnauthorizedError } from "../models/error.model";
+import { IUserTokenPayload } from "../ts/interfaces/user.interfaces";
 
 const generate = (payload: Partial<IUserTokenPayload>) => {
 	const PRIVATE_KEY = process.env.PRIVATE_KEY;

@@ -8,20 +8,25 @@ import {
 } from "../models/error.model";
 import { Ingredient } from "../models/ingredient.model";
 import { DishIngredient } from "../models/shared.model";
-import { IDish } from "../ts/interfaces/dish.interfaces";
+import { IDish, IDishIngredient } from "../ts/interfaces/dish.interfaces";
 import {
 	GetDishesQueryResultType,
+	RedisDishType,
 	RedisDishesType,
 } from "../ts/types/dish.types";
 import { Category } from "../models/category.model";
 import RedisService from "./redis.service";
+import { deleteImage, saveImage } from "./upload.service";
 
 const createNewDish = async (dish: IDish) => {
 	const ingredientsRepo = AppDataSource.getRepository(Ingredient);
 	const dishesRepo = AppDataSource.getRepository(Dish);
 	const categoriesRepo = AppDataSource.getRepository(Category);
 	const dishesIngredientsRepo = AppDataSource.getRepository(DishIngredient);
-	const dishExists = await dishesRepo.findOneBy({ name: dish.name });
+	const dishExists = await dishesRepo.findOne({
+		where: { name: dish.name },
+		relations: { category: true, dishIngredients: true },
+	});
 	if (dishExists) {
 		throw new ConflictError(`dish ${dish.name} does exist`);
 	}
@@ -39,6 +44,9 @@ const createNewDish = async (dish: IDish) => {
 	dishRecord.description = dish.description;
 	dishRecord.dishIngredients = [];
 	dishRecord.category = categoryRecord;
+	if (dish.image) {
+		dishRecord.image = saveImage(dish.image);
+	}
 	await dishesRepo.save(dishRecord);
 	for (const ingredient of ingredients) {
 		const ingredientRecord = await ingredientsRepo.findOneBy({
@@ -70,6 +78,7 @@ const createNewDish = async (dish: IDish) => {
 			unit: ingredient.ingredient.unit,
 		})),
 		category: dishRecord.category.name,
+		image: dishRecord.image,
 	};
 	await RedisService.redis.hset(
 		"dishes",
@@ -84,6 +93,9 @@ export const deleteDish = async (name: string) => {
 	const dishRecord = await dishesRepo.findOneBy({ name });
 	if (!dishRecord) {
 		throw new NotFoundError("dish not found");
+	}
+	if (dishRecord.image) {
+		deleteImage(dishRecord.image);
 	}
 	await dishesRepo.remove(dishRecord);
 	const dishesIngredients = await dishesIngredientsRepo.find({
@@ -114,6 +126,7 @@ const getDishes = async () => {
 				"dish.name",
 				"dish.description",
 				"dish.price",
+				"dish.image",
 				"dish_ingredient.amount",
 				"ingredient.name",
 				"ingredient.unit",
@@ -134,6 +147,7 @@ const getDishes = async () => {
 					unit: ingredient.ingredient.unit,
 				})),
 				category: dish.category?.name,
+				image: dish.image,
 			};
 			dishes.push(dishObject);
 			redisDishesToSet[dish.id] = JSON.stringify(dishObject);
@@ -144,26 +158,69 @@ const getDishes = async () => {
 	}
 };
 
-const updateDish = async (dishName: string, dish: IDish) => {
+const updateDish = async (dishName: string, dish: Partial<IDish>) => {
 	const dishesRepo = AppDataSource.getRepository(Dish);
 
-	const dishRecord = await dishesRepo.findOneBy({ name: dishName });
+	const dishRecord = await dishesRepo.findOne({
+		relations: { dishIngredients: true, category: true },
+		where: { name: dishName },
+	});
 	if (!dishRecord) {
 		throw new NotFoundError("dish to update : not found");
 	}
+	if (dish.name) dishRecord.name = dish.name;
+	if (dish.price) dishRecord.price = dish.price;
+	if (dish.description) dishRecord.description = dish.description;
+	if (dish.image) {
+		deleteImage(dishRecord.image);
+		dishRecord.image = saveImage(dish.image);
+	}
+	if (dish.ingredients) {
+		await AppDataSource.getRepository(DishIngredient).delete({
+			dish: { id: dishRecord.id },
+		});
+		const dishIngredientsRepo = AppDataSource.getRepository(DishIngredient);
+		const ingredientsRepo = AppDataSource.getRepository(Ingredient);
+		const dishIngredientsToSave: DishIngredient[] = [];
+		for (const ingredient of dish.ingredients) {
+			const ingredientRecord = await ingredientsRepo.findOneBy({
+				name: ingredient.name,
+			});
+			if (!ingredientRecord) {
+				throw new NotFoundError(`ingredient ${ingredient.name} was not found`);
+			}
+			const dishIngredient = new DishIngredient();
+			dishIngredient.dish = dishRecord;
+			dishIngredient.amount = ingredient.amount;
+			dishIngredient.ingredient = ingredientRecord;
+			dishIngredientsToSave.push(dishIngredient);
+		}
+		dishIngredientsRepo.save(dishIngredientsToSave);
+	}
 
-	dishRecord.name = dish.name;
-	dishRecord.price = dish.price;
+	if (dish.category) {
+		const categoryRecord = await AppDataSource.getRepository(
+			Category
+		).findOneBy({ name: dish.category });
+		if (!categoryRecord) {
+			throw new NotFoundError(`category ${dish.category} not found`);
+		}
+		dishRecord.category = categoryRecord;
+	}
+
 	await dishesRepo.save(dishRecord);
 
-	const prevRedisDish = JSON.parse(
-		await RedisService.redis.hget("dishes", String(dishRecord.id))
-	);
-
-	const redisDish = {
-		...prevRedisDish,
+	const redisDish: RedisDishType = {
 		name: dishRecord.name,
 		price: dishRecord.price,
+		image: dishRecord.image,
+		description: dishRecord.description,
+		ingredients: dishRecord.dishIngredients.map((ingredient) => ({
+			name: ingredient.ingredient.name,
+			amount: ingredient.amount,
+			unit: ingredient.ingredient.unit,
+		})),
+		category: dishRecord.category.name,
 	};
 	await RedisService.redis.hset(
 		"dishes",

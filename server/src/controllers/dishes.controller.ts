@@ -49,7 +49,7 @@ const getDishesHandler = async (
 };
 
 const updateDishHandler = async (
-	req: Request<Pick<IDish, "name">, any, IDish>,
+	req: Request<Pick<IDish, "name">, any, Partial<IDish>>,
 	res: Response,
 	next: NextFunction
 ) => {
