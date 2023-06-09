@@ -20,14 +20,14 @@ const loginHandler = async (
 			return res
 				.status(StatusCodes.OK)
 				.cookie("jwt", jwt, { httpOnly: true })
-				.send({ code: StatusCodes.OK, message: "logged in" });
+				.send({ code: StatusCodes.OK, message: "logged in", token: jwt });
 		}
 		if (table_code) {
 			const jwt = await AuthService.loginByTableCode(table_code);
 			return res
 				.status(StatusCodes.OK)
 				.cookie("jwt", jwt, { httpOnly: true })
-				.send({ code: StatusCodes.OK, message: "logged in" });
+				.send({ code: StatusCodes.OK, message: "logged in", token: jwt });
 		}
 	} catch (e) {
 		next(e);
