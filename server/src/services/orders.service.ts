@@ -86,10 +86,6 @@ const createNewOrder = async (newOrder: OrderDishesType, tableId: number) => {
 		redisTableOrder.id,
 		JSON.stringify(redisTableOrder)
 	);
-
-	WebsocketService.getIo()
-		.to(["cashier", "manager", "chef"] as UserRoleType[])
-		.emit("new_order", redisTableOrder);
 };
 
 const orderBelongsToTable = async (orderId: number, tableId: number) => {
@@ -110,8 +106,8 @@ const orderBelongsToTable = async (orderId: number, tableId: number) => {
 
 const updateOrder = async (
 	orderId: number,
-	dishesToMutate: OrderDishesType,
-	dishesToRemove: OrderDishesType
+	dishesToMutate: OrderDishesType<"name" | "quantity">,
+	dishesToRemove: OrderDishesType<"name">
 ) => {
 	const ordersRepo = AppDataSource.getRepository(Order);
 	const orderRecord = await ordersRepo.findOneBy({ id: orderId });
@@ -155,6 +151,10 @@ const updateOrder = async (
 	await ordersDishesRepo.save(orderDishesRecords);
 	const orders = await getTodayOrders();
 	const currentOrder = orders.find((order) => order.id == orderId);
+	if (dishesToMutate || dishesToRemove)
+		WebsocketService.getSocket()
+			.to(["chef", "manager", String(orderRecord.table.id), "cashier"])
+			.emit("update_order", orderId, { dishesToMutate, dishesToRemove });
 	currentOrder.dishes = orderDishesRecords.map(
 		(orderDish): RedisOrderDish => ({
 			id: orderDish.id,
@@ -170,10 +170,6 @@ const updateOrder = async (
 		orderId,
 		JSON.stringify(currentOrder)
 	);
-
-	WebsocketService.getIo()
-		.to(["cashier", "chef", "client", "manager"] as UserRoleType[])
-		.emit("update_order_dishes", orderId, currentOrder.dishes);
 };
 
 const updateOrderStatus = async (orderId: number, status: OrderStatusType) => {
@@ -186,15 +182,11 @@ const updateOrderStatus = async (orderId: number, status: OrderStatusType) => {
 	if (!orderRecord) {
 		throw new NotFoundError("order with this id doesn't exist");
 	}
-	if (orderRecord.status !== status) {
-		orderRecord.status = status;
-		WebsocketService.getIo()
-			.to(["cashier", "manager", "chef"] as UserRoleType[])
-			.emit("update_order_status", orderId, status);
-		WebsocketService.getIo()
-			.to(String(orderRecord.table.id))
-			.emit("update_order_status", orderId, status);
-	}
+
+	orderRecord.status = status;
+	WebsocketService.getSocket()
+		.broadcast.to([String(orderRecord.table.id), "manager", "cashier", "chef"])
+		.emit("update_order_status", orderRecord.id, status);
 	await ordersRepo.save(orderRecord);
 
 	// Update Order Status In Cache

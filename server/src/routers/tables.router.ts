@@ -45,7 +45,7 @@ TablesRouter.post(
 
 TablesRouter.get(
 	"/:id/receipt",
-	auth(["cashier", "manager"]),
+	auth(["cashier", "manager", "chef"]),
 	TablesController.checkoutTableHandler
 );
 

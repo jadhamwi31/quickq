@@ -9,6 +9,7 @@ import {
 import { UserRoleType } from "../ts/types/user.types";
 import { JwtService } from "./jwt.service";
 import { TablesService } from "./tables.service";
+import requestContext from "express-http-context";
 
 declare module "socket.io" {
 	interface Socket {
@@ -22,8 +23,7 @@ export default class WebsocketService {
 		IServerToClientEvents,
 		InterServerEvents
 	>;
-
-	private static numberOfClients: number = 0;
+	private static map = new Map<string | number, string>();
 	public static init(httpServer: HttpServer) {
 		this._io = new Server(httpServer);
 
@@ -45,26 +45,24 @@ export default class WebsocketService {
 			}
 		});
 		this._io.on("connection", (socket) => {
-			this.numberOfClients++;
 			if (socket.user.role === "client") {
 				socket.join(String(socket.user.tableId));
+				this.map.set(String(socket.user.tableId), socket.id);
 			} else {
 				socket.join(socket.user.role);
+				this.map.set(String(socket.user.username), socket.id);
 			}
 
-			socket.on("disconnect", () => {
-				this.numberOfClients--;
-				console.log(this.numberOfClients);
-			});
-			socket.on("checkout_finished", (tableId) => {
+			socket.on("request_checkout", () => {
 				socket
-					.to(["cashier"] as UserRoleType[])
-					.emit("checkout_request", tableId);
+					.to("checkout:requests")
+					.emit("checkout_request", socket.user.tableId);
 			});
 		});
 	}
-
-	public static getIo() {
-		return this._io;
+	public static getSocket() {
+		const key = requestContext.get("username") ?? requestContext.get("tableId");
+		const socketId = this.map.get(key);
+		return this._io.sockets.sockets.get(socketId);
 	}
 }

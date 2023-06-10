@@ -8,6 +8,7 @@ import { AppDataSource } from "../models";
 import { TableSession } from "../models/table.model";
 import { TablesService } from "../services/tables.service";
 import { IUserTokenPayload } from "../ts/interfaces/user.interfaces";
+import requestContext from "express-http-context";
 
 const authorizeClient = async (user: IUserTokenPayload) => {
 	const clientId = await TablesService.getTableSessionClientId(user.tableId);
@@ -29,6 +30,9 @@ export const authFor = (roles: UserRoleType[]) => {
 					if (req.originalUrl !== "/tables/session") {
 						authorizeClient(user);
 					}
+					requestContext.set("tableId", user.tableId);
+				} else {
+					requestContext.set("username", user.username);
 				}
 				req.user = user;
 

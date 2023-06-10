@@ -1,16 +1,14 @@
-import { Between, Equal, LessThan } from "typeorm";
+import moment from "moment";
+import { Between } from "typeorm";
 import { AppDataSource } from "../models";
 import { BadRequestError, ForbiddenError } from "../models/error.model";
 import { Payment } from "../models/payment.model";
+import { Table, TableSession } from "../models/table.model";
 import { IRedisTableOrder } from "../ts/interfaces/order.interfaces";
-import { IRedisTableValue } from "../ts/interfaces/tables.interfaces";
+import { IRedisPayment } from "../ts/interfaces/payment.interfaces";
 import RedisService from "./redis.service";
 import { TablesService } from "./tables.service";
-import moment from "moment";
-import { Table, TableSession } from "../models/table.model";
-import { IRedisPayment } from "../ts/interfaces/payment.interfaces";
 import WebsocketService from "./websocket.service";
-import { UserRoleType } from "../ts/types/user.types";
 
 const newPayment = async (tableId: number, amountPaid: number) => {
 	const { total } = await TablesService.checkoutTable(tableId);
@@ -84,14 +82,16 @@ const newPayment = async (tableId: number, amountPaid: number) => {
 		prevPayins + payment.amount
 	);
 
-	WebsocketService.getIo()
-		.to(["cashier", "manager"] as UserRoleType[])
-		.emit("increment_payins", payment.amount);
-
 	// Update Table Status
 	const tableRecord = await tablesRepo.findOneBy({ id: tableId });
 	tableRecord.status = "Available";
 	await tablesRepo.save(tableRecord);
+	WebsocketService.getSocket()
+		.to(["manager", "chef", "cashier"])
+		.emit("update_table_status", tableRecord.id, "Available");
+	WebsocketService.getSocket()
+		.to(["manager", "chef", "cashier"])
+		.emit("increment_payins", amountPaid);
 };
 
 const getPaymentsHistory = async () => {

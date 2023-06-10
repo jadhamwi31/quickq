@@ -1,22 +1,26 @@
-import { OrderStatusType, RedisOrderDish } from "../types/order.types";
+import { OrderDishesType, OrderStatusType } from "../types/order.types";
 import { TableStatus } from "../types/table.types";
-import { IRedisTableOrder } from "./order.interfaces";
 
 export interface IServerToClientEvents {
-	update_table_status: (tableId: number, tableStatus: TableStatus) => void;
-	update_order_status: (orderId: number, orderStatus: OrderStatusType) => void;
-	update_order_dishes: (orderId: number, newDishes: RedisOrderDish[]) => void;
-	new_order: (order: IRedisTableOrder) => void;
-	increment_payins: (by: number) => void;
-	inventory_item_update: (
-		item: string,
-		update: { available?: number; needed?: number }
-	) => void;
 	checkout_request: (tableId: number) => void;
+	update_table_status: (tableId: number, status: TableStatus) => void;
+	update_order_status: (orderId: number, status: OrderStatusType) => void;
+	update_order: (
+		orderId: number,
+		update: {
+			dishesToMutate?: OrderDishesType<"name" | "quantity">;
+			dishesToRemove?: OrderDishesType<"name">;
+		}
+	) => void;
+	update_inventory_item: (
+		ingredientName: string,
+		update: Partial<{ available: number; needed: number }>
+	) => void;
+	increment_payins: (amount: number) => void;
 }
 
 export interface IClientToServerEvents {
-	checkout_finished: (tableId: number) => void;
+	request_checkout: () => void;
 }
 
 export interface InterServerEvents {}

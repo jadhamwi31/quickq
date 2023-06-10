@@ -12,6 +12,7 @@ import RedisService from "./redis.service";
 import { OrdersService } from "./orders.service";
 import { UserRoleType } from "../ts/types/user.types";
 import WebsocketService from "./websocket.service";
+import requestContext from "express-http-context";
 
 const getTableSessionClientId = async (tableId: number) => {
 	const isTableSessionCached = await RedisService.isCached(
@@ -87,10 +88,11 @@ const updateTable = async (id: number, status: TableStatus) => {
 	}
 	if (tableRecord.status !== status) {
 		tableRecord.status = status;
-		WebsocketService.getIo()
-			.to(["cashier", "manager"] as UserRoleType[])
-			.emit("update_table_status", id, status);
+		WebsocketService.getSocket()
+			.broadcast.to(["manager", "cashier", "chef", String(tableRecord.id)])
+			.emit("update_table_status", tableRecord.id, status);
 	}
+
 	await tablesRepo.save(tableRecord);
 };
 
@@ -140,8 +142,8 @@ const openNewTableSession = async (tableId: number, clientId: string) => {
 	tableSessionRecord.clientId = clientId;
 	await tablesSessionsRepo.save(tableSessionRecord);
 	await RedisService.redis.hset("tables:sessions", String(tableId), clientId);
-	WebsocketService.getIo()
-		.to(["cashier", "manager"] as UserRoleType[])
+	WebsocketService.getSocket()
+		.broadcast.to(["manager", "cashier", "chef", String(tableId)])
 		.emit("update_table_status", tableId, "Busy");
 };
 

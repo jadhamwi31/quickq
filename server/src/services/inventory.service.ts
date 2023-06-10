@@ -18,13 +18,14 @@ const updateInventoryItem = async (
 	}
 	if (available) inventoryItemRecord.available = available;
 	if (needed) inventoryItemRecord.needed = needed;
-	WebsocketService.getIo()
-		.to(["cashier", "chef", "manager"] as UserRoleType[])
-		.emit("inventory_item_update", ingredientName, {
+
+	await inventoryItemsRepo.save(inventoryItemRecord);
+	WebsocketService.getSocket()
+		.to(["manager", "chef", "cashier"])
+		.emit("update_inventory_item", inventoryItemRecord.ingredient.name, {
 			available,
 			needed,
 		});
-	await inventoryItemsRepo.save(inventoryItemRecord);
 };
 
 const getInventoryItems = async () => {

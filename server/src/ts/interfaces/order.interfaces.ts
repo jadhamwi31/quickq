@@ -6,6 +6,11 @@ export interface IOrderDish {
 	price: number;
 }
 
+export type OrderDishType<T extends keyof IOrderDish = keyof IOrderDish> = Pick<
+	IOrderDish,
+	T
+>;
+
 export interface IRedisTableOrder {
 	id: number;
 	dishes: RedisOrderDish[];

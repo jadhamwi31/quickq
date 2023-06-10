@@ -1,9 +1,14 @@
 import { Dish } from "../../models/dish.model";
-import { IOrderDish, IRedisTableOrder } from "../interfaces/order.interfaces";
+import {
+	IOrderDish,
+	IRedisTableOrder,
+	OrderDishType,
+} from "../interfaces/order.interfaces";
 
 export type OrderStatusType = "Pending" | "In Cook" | "Ready" | "Cancelled";
 
-export type OrderDishesType = IOrderDish[];
+export type OrderDishesType<T extends keyof IOrderDish = keyof IOrderDish> =
+	OrderDishType<T>[];
 
 export type NewOrderType = { dishes: OrderDishesType; tableId: number };
 export type UpdateOrderType = {

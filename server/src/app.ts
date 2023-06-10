@@ -5,9 +5,11 @@ import dotenv from "dotenv";
 import express from "express";
 import { createServer } from "http";
 import morgan from "morgan";
+import { authFor } from "./middlewares/auth.middleware";
 import { errorMiddleware } from "./middlewares/error.middleware";
 import { createAppDataSource } from "./models";
 import { AuthRouter } from "./routers/auth.router";
+import { BrandRouter } from "./routers/brand.router";
 import { CacheRouter } from "./routers/cache.router";
 import { CategoriesRouter } from "./routers/categories.router";
 import { DishesRouter } from "./routers/dishes.router";
@@ -19,11 +21,9 @@ import { PaymentRouter } from "./routers/payment.router";
 import { TablesRouter } from "./routers/tables.router";
 import { UsersRouter } from "./routers/users.router";
 import RedisService from "./services/redis.service";
+import { imagesDirectory } from "./services/upload.service";
 import WebsocketService from "./services/websocket.service";
-import { imagesDirectory, saveImage } from "./services/upload.service";
-import path from "path";
-import { authFor } from "./middlewares/auth.middleware";
-import { BrandRouter } from "./routers/brand.router";
+import requestContext from "express-http-context";
 
 dotenv.config();
 
@@ -33,17 +33,12 @@ dotenv.config();
 	const app = express();
 
 	// middlewares
+	app.use(requestContext.middleware);
 	app.use(morgan("tiny"));
 	app.use(cors({ origin: "http://localhost:3000", credentials: true }));
 	app.use(json());
 	app.use(urlencoded({ extended: false }));
 	app.use(cookieParser());
-
-	app.post("/upload", (req, res, next) => {
-		const { image } = req.body;
-		saveImage(image);
-		return res.status(200).send("ok");
-	});
 
 	// routers
 	app.use("/auth", AuthRouter);
