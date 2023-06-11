@@ -34,6 +34,7 @@ export const authFor = (roles: UserRoleType[]) => {
 				} else {
 					requestContext.set("username", user.username);
 				}
+				requestContext.set("role", user.role);
 				req.user = user;
 
 				return next();

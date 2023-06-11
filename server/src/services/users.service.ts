@@ -1,7 +1,13 @@
 import { AppDataSource } from "../models";
-import { ConflictError, NotFoundError } from "../models/error.model";
+import {
+	ConflictError,
+	ForbiddenError,
+	NotFoundError,
+	UnauthorizedError,
+} from "../models/error.model";
 import { User } from "../models/user.model";
 import { UserRoleType } from "../ts/types/user.types";
+import requestContext from "express-http-context";
 
 const createNewUser = async (user: User) => {
 	const usersRepo = AppDataSource.getRepository(User);
@@ -39,10 +45,17 @@ const updateUser = async (
 		username,
 		password,
 		role,
-	}: Partial<Pick<User, "username" | "password" | "role">>
+		oldPassword,
+	}: Partial<
+		Pick<User, "username" | "password" | "role"> & {
+			oldPassword: string;
+		}
+	>
 ) => {
 	const usersRepo = AppDataSource.getRepository(User);
 	const userRecord = await usersRepo.findOneBy({ username: _username });
+
+	const userRequestedRole = requestContext.get("role");
 
 	if (!userRecord) {
 		throw new NotFoundError("user with this username was not found");
@@ -52,7 +65,15 @@ const updateUser = async (
 		userRecord.username = username;
 	}
 	if (password) {
-		userRecord.password = password;
+		if (userRequestedRole !== "manager") {
+			if (oldPassword === userRecord.password) {
+				userRecord.password = password;
+			} else {
+				throw new ForbiddenError("incorrect old password");
+			}
+		} else {
+			userRecord.password = password;
+		}
 	}
 	if (role) {
 		userRecord.role = role;

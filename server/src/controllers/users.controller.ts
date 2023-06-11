@@ -53,7 +53,9 @@ const updateUserHandler = async (
 	req: Request<
 		{ username: string },
 		{},
-		Pick<User, "username" | "password" | "role">
+		Partial<
+			Pick<User, "username" | "password" | "role"> & { oldPassword: string }
+		>
 	>,
 	res: Response,
 	next: NextFunction

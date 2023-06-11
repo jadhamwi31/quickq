@@ -46,7 +46,9 @@ const validateUpdateUser = (
 	req: Request<
 		Partial<{ username: string }>,
 		{},
-		Partial<Pick<User, "username" | "password" | "role">>
+		Partial<
+			Pick<User, "username" | "password" | "role"> & { oldPassword: string }
+		>
 	>,
 	res: Response,
 	next: NextFunction
