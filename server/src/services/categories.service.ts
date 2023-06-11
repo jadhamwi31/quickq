@@ -26,7 +26,7 @@ const deleteCategory = async (name: string) => {
 	}
 	const { image } = categoryRecord;
 	if (image) deleteImage(image);
-	await categoriesRepo.delete(categoryRecord);
+	await categoriesRepo.remove(categoryRecord);
 };
 
 const updateCategory = async (

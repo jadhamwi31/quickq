@@ -53,7 +53,7 @@ const deleteIngredient = async (name: string) => {
 		throw new NotFoundError("ingredient not found");
 	}
 
-	await ingredientsRepo.delete({ name });
+	await ingredientsRepo.remove(ingredientRecord);
 };
 
 const getIngredients = async () => {

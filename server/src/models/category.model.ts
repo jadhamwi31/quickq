@@ -39,14 +39,19 @@ export class CategoryOrder {
 
 	@ManyToOne(
 		() => MenuCustomization,
-		(menuCustomization) => menuCustomization.categories_order
+		(menuCustomization) => menuCustomization.categories_order,
+		{
+			onDelete: "CASCADE",
+		}
 	)
 	menuCustomization: MenuCustomization;
 
 	@Column()
 	order: number;
 
-	@ManyToOne(() => Category, (category) => category.categories_order)
+	@ManyToOne(() => Category, (category) => category.categories_order, {
+		onDelete: "CASCADE",
+	})
 	@JoinColumn()
 	category: Category;
 }

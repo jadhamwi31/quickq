@@ -26,7 +26,7 @@ const deleteUser = async (username: string) => {
 	if (!userRecord) {
 		throw new NotFoundError("user doesn't exist");
 	}
-	await usersRepo.delete(userRecord);
+	await usersRepo.remove(userRecord);
 };
 
 const getUsers = async () => {

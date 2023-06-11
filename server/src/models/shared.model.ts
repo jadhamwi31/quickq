@@ -30,7 +30,9 @@ export class OrderDish {
 	@ManyToOne(() => Order, (order) => order.orderDishes, { onDelete: "CASCADE" })
 	order: Order;
 
-	@ManyToOne(() => Dish, (dish) => dish.orderDishes)
+	@ManyToOne(() => Dish, (dish) => dish.orderDishes, {
+		onDelete: "CASCADE",
+	})
 	dish: Dish;
 
 	@Column()

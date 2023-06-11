@@ -29,12 +29,14 @@ export class Order {
 	@Column()
 	total: number;
 
-	@ManyToOne(() => Table, (table) => table.orders, { onDelete: "CASCADE" })
+	@ManyToOne(() => Table, (table) => table.orders, { onDelete: "RESTRICT" })
 	table: Table;
 
 	@OneToMany(() => OrderDish, (orderDish) => orderDish.order)
 	orderDishes: OrderDish[];
 
-	@ManyToOne(() => Payment, (payment) => payment.orders)
+	@ManyToOne(() => Payment, (payment) => payment.orders, {
+		onDelete: "SET NULL",
+	})
 	payment: Payment;
 }
