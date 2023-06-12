@@ -88,9 +88,13 @@ const updateTable = async (id: number, status: TableStatus) => {
 	}
 	if (tableRecord.status !== status) {
 		tableRecord.status = status;
-		WebsocketService.getSocket()
-			.broadcast.to(["manager", "cashier", "chef", String(tableRecord.id)])
-			.emit("update_table_status", tableRecord.id, status);
+
+		WebsocketService.publishEvent(
+			["manager", "cashier", "chef", String(tableRecord.id)],
+			"update_table_status",
+			tableRecord.id,
+			status
+		);
 	}
 
 	await tablesRepo.save(tableRecord);
@@ -142,9 +146,12 @@ const openNewTableSession = async (tableId: number, clientId: string) => {
 	tableSessionRecord.clientId = clientId;
 	await tablesSessionsRepo.save(tableSessionRecord);
 	await RedisService.redis.hset("tables:sessions", String(tableId), clientId);
-	WebsocketService.getSocket()
-		.broadcast.to(["manager", "cashier", "chef", String(tableId)])
-		.emit("update_table_status", tableId, "Busy");
+	WebsocketService.publishEvent(
+		["manager", "cashier", "chef", String(tableId)],
+		"update_table_status",
+		tableId,
+		"Busy"
+	);
 };
 
 const checkoutTable = async (tableId: number) => {

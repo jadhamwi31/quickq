@@ -53,18 +53,22 @@ const validateUpdateUser = (
 	res: Response,
 	next: NextFunction
 ) => {
-	const { username, password, role } = req.body;
+	const { username, password, role, oldPassword } = req.body;
 	const { username: _username } = req.params;
 	const user = req.user;
 	if (!username && !password) {
 		return next(new BadRequestError("username and password are missing"));
 	}
+
 	if (user.role !== "manager") {
-		if (user.username !== _username) {
-			return next(new ForbiddenError("you can't update another user"));
+		if (_username) {
+			return next(new ForbiddenError("you can't update you're username"));
 		}
 		if (role) {
 			return next(new ForbiddenError("you can't change roles"));
+		}
+		if (password && !oldPassword) {
+			return next(new BadRequestError("you have to provide old password"));
 		}
 	}
 	return next();

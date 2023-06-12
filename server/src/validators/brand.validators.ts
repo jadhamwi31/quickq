@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import { Brand } from "../models/brand.model";
 import { BadRequestError } from "../models/error.model";
 
-const validateCreateBrand = (
+const validateSetBrand = (
 	req: Request<{}, {}, Partial<Brand>>,
 	res: Response,
 	next: NextFunction
@@ -15,16 +15,6 @@ const validateCreateBrand = (
 	return next();
 };
 
-const validateBrandUpdate = (
-	req: Request<{}, {}, Partial<Brand>>,
-	res: Response,
-	next: NextFunction
-) => {
-	const { name, slogan, logo } = req.body;
-	if (!name && !slogan && !logo) {
-		return next(new BadRequestError("brand update parameters missing"));
-	}
-	return next();
+export const BrandValidators = {
+	validateSetBrand,
 };
-
-export const BrandValidators = { validateCreateBrand, validateBrandUpdate };

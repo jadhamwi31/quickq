@@ -81,9 +81,11 @@ const validateUpdateOrderStatus = (
 			status === "Ready"
 		)
 	)
-		if (role === "chef" && status === "Cancelled") {
-			return next(new ForbiddenError("you can't cancel order as chef"));
-		}
+		return next(new BadRequestError("invalid order status"));
+
+	if (role === "client" && status !== "Cancelled") {
+		return next(new BadRequestError("you can only cancel orders as client"));
+	}
 	if (!id) {
 		return next(new BadRequestError("order id parameter is missing"));
 	}

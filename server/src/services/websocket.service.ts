@@ -29,7 +29,7 @@ export default class WebsocketService {
 
 		this._io.use(async (socket, next) => {
 			try {
-				const token = socket.handshake.auth.token;
+				const token = socket.handshake.headers.token as string;
 				const user: IUserTokenPayload = await JwtService.validate(token);
 				if (user.role === "client") {
 					const tableClientId = await TablesService.getTableSessionClientId(
@@ -40,6 +40,8 @@ export default class WebsocketService {
 					}
 				}
 				socket.user = user;
+
+				next();
 			} catch (e: any) {
 				next(new Error("unauthorized"));
 			}
@@ -52,17 +54,31 @@ export default class WebsocketService {
 				socket.join(socket.user.role);
 				this.map.set(String(socket.user.username), socket.id);
 			}
+			socket.emit("authorized", `you're authorized as ${socket.user.role}`);
 
 			socket.on("request_checkout", () => {
-				socket
-					.to("checkout:requests")
-					.emit("checkout_request", socket.user.tableId);
+				socket.to(["cashier"]).emit("checkout_request", socket.user.tableId);
 			});
 		});
 	}
-	public static getSocket() {
+
+	public static publishEvent(
+		rooms: string[],
+		ev: keyof IServerToClientEvents,
+		...params: Parameters<IServerToClientEvents[typeof ev]>
+	) {
+		const httpRequestClientSocket = this.getHttpRequestClientSocket();
+
+		return this._io
+			.to(rooms)
+			.except(httpRequestClientSocket.id)
+			.emit(ev, ...params);
+	}
+	private static getHttpRequestClientSocket() {
 		const key = requestContext.get("username") ?? requestContext.get("tableId");
+
 		const socketId = this.map.get(key);
+
 		return this._io.sockets.sockets.get(socketId);
 	}
 }

@@ -20,12 +20,15 @@ const updateInventoryItem = async (
 	if (needed) inventoryItemRecord.needed = needed;
 
 	await inventoryItemsRepo.save(inventoryItemRecord);
-	WebsocketService.getSocket()
-		.to(["manager", "chef", "cashier"])
-		.emit("update_inventory_item", inventoryItemRecord.ingredient.name, {
+	WebsocketService.publishEvent(
+		["manager", "chef", "cashier"],
+		"update_inventory_item",
+		inventoryItemRecord.ingredient.name,
+		{
 			available,
 			needed,
-		});
+		}
+	);
 };
 
 const getInventoryItems = async () => {

@@ -6,6 +6,7 @@ import { BadRequestError, NotFoundError } from "../models/error.model";
 import { Order } from "../models/order.model";
 import { Payment } from "../models/payment.model";
 import { OrderDish } from "../models/shared.model";
+import requestContext from "express-http-context";
 import { Table } from "../models/table.model";
 import { IRedisTableOrder } from "../ts/interfaces/order.interfaces";
 import {
@@ -152,9 +153,13 @@ const updateOrder = async (
 	const orders = await getTodayOrders();
 	const currentOrder = orders.find((order) => order.id == orderId);
 	if (dishesToMutate || dishesToRemove)
-		WebsocketService.getSocket()
-			.to(["chef", "manager", String(orderRecord.table.id), "cashier"])
-			.emit("update_order", orderId, { dishesToMutate, dishesToRemove });
+		WebsocketService.publishEvent(
+			["chef", "manager", String(orderRecord.table.id), "cashier"],
+			"update_order",
+			orderId,
+			{ dishesToMutate, dishesToRemove }
+		);
+
 	currentOrder.dishes = orderDishesRecords.map(
 		(orderDish): RedisOrderDish => ({
 			id: orderDish.id,
@@ -183,10 +188,16 @@ const updateOrderStatus = async (orderId: number, status: OrderStatusType) => {
 		throw new NotFoundError("order with this id doesn't exist");
 	}
 
+	if (orderRecord.status !== "Pending" && status === "Cancelled") {
+		throw new BadRequestError("you can cancel only a pending order");
+	}
 	orderRecord.status = status;
-	WebsocketService.getSocket()
-		.broadcast.to([String(orderRecord.table.id), "manager", "cashier", "chef"])
-		.emit("update_order_status", orderRecord.id, status);
+	WebsocketService.publishEvent(
+		[String(orderRecord.table.id), "manager", "cashier", "chef"],
+		"update_order_status",
+		orderRecord.id,
+		status
+	);
 	await ordersRepo.save(orderRecord);
 
 	// Update Order Status In Cache

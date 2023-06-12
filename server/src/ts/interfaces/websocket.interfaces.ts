@@ -17,6 +17,7 @@ export interface IServerToClientEvents {
 		update: Partial<{ available: number; needed: number }>
 	) => void;
 	increment_payins: (amount: number) => void;
+	authorized: (msg: string) => void;
 }
 
 export interface IClientToServerEvents {

@@ -8,6 +8,7 @@ import { DishIngredient } from "../models/shared.model";
 import { IDish } from "../ts/interfaces/dish.interfaces";
 import { RedisDishType, RedisDishesType } from "../ts/types/dish.types";
 import RedisService from "./redis.service";
+import { deleteImage } from "./upload.service";
 
 const createNewDish = async (dish: IDish) => {
 	const ingredientsRepo = AppDataSource.getRepository(Ingredient);
@@ -35,6 +36,9 @@ const createNewDish = async (dish: IDish) => {
 	dishRecord.description = dish.description;
 	dishRecord.dishIngredients = [];
 	dishRecord.category = categoryRecord;
+	if (dish.image) {
+		dishRecord.image = dish.image;
+	}
 
 	await dishesRepo.save(dishRecord);
 	for (const ingredient of ingredients) {
@@ -85,6 +89,9 @@ export const deleteDish = async (name: string) => {
 	}
 
 	const dishId = dishRecord.id;
+	if (dishRecord.image) {
+		deleteImage(dishRecord.image);
+	}
 	await dishesRepo.remove(dishRecord);
 	const dishesIngredients = await dishesIngredientsRepo.find({
 		where: { dish: dishRecord },
@@ -157,6 +164,14 @@ const updateDish = async (dishName: string, dish: Partial<IDish>) => {
 	if (!dishRecord) {
 		throw new NotFoundError("dish to update : not found");
 	}
+
+	if (dish.image) {
+		if (dishRecord.image) {
+			deleteImage(dishRecord.image);
+		}
+		dishRecord.image = dish.image;
+	}
+
 	if (dish.name) dishRecord.name = dish.name;
 	if (dish.price) dishRecord.price = dish.price;
 	if (dish.description) dishRecord.description = dish.description;

@@ -86,12 +86,17 @@ const newPayment = async (tableId: number, amountPaid: number) => {
 	const tableRecord = await tablesRepo.findOneBy({ id: tableId });
 	tableRecord.status = "Available";
 	await tablesRepo.save(tableRecord);
-	WebsocketService.getSocket()
-		.to(["manager", "chef", "cashier"])
-		.emit("update_table_status", tableRecord.id, "Available");
-	WebsocketService.getSocket()
-		.to(["manager", "chef", "cashier"])
-		.emit("increment_payins", amountPaid);
+	WebsocketService.publishEvent(
+		["manager", "chef", "cashier"],
+		"update_table_status",
+		tableRecord.id,
+		"Available"
+	);
+	WebsocketService.publishEvent(
+		["manager", "chef", "cashier"],
+		"increment_payins",
+		amountPaid
+	);
 };
 
 const getPaymentsHistory = async () => {
