@@ -9,6 +9,7 @@ import { Order } from "./order.model";
 import { Payment } from "./payment.model";
 import { InventoryItem } from "./inventory_item.model";
 import { MenuCustomization } from "./menu_customization.model";
+import { Brand } from "./brand.model";
 
 export let AppDataSource: DataSource;
 
@@ -39,6 +40,7 @@ export const createAppDataSource = async () => {
 			TableSession,
 			MenuCustomization,
 			CategoryOrder,
+			Brand,
 		],
 	});
 

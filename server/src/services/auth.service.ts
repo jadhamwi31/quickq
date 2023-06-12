@@ -55,7 +55,7 @@ const loginByTableCode = async (code: string) => {
 
 	await RedisService.redis.hset(
 		`tables:sessions`,
-		tableCodeRecord.table.id,
+		String(tableCodeRecord.table.id),
 		clientId
 	);
 

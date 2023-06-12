@@ -83,7 +83,7 @@ const createNewOrder = async (newOrder: OrderDishesType, tableId: number) => {
 	// Update Orders In Cache
 	await RedisService.redis.hset(
 		"orders",
-		redisTableOrder.id,
+		String(redisTableOrder.id),
 		JSON.stringify(redisTableOrder)
 	);
 };
@@ -167,7 +167,7 @@ const updateOrder = async (
 	// Update Order In Cache
 	await RedisService.redis.hset(
 		"orders",
-		orderId,
+		String(orderId),
 		JSON.stringify(currentOrder)
 	);
 };
@@ -199,7 +199,7 @@ const updateOrderStatus = async (orderId: number, status: OrderStatusType) => {
 
 		await RedisService.redis.hset(
 			"orders",
-			orderId,
+			String(orderId),
 			JSON.stringify(newRedisOrder)
 		);
 	} else {
@@ -208,7 +208,7 @@ const updateOrderStatus = async (orderId: number, status: OrderStatusType) => {
 		currentOrder.status = status;
 		await RedisService.redis.hset(
 			"orders",
-			orderId,
+			String(orderId),
 			JSON.stringify(currentOrder)
 		);
 	}

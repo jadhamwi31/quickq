@@ -82,7 +82,7 @@ const createNewDish = async (dish: IDish) => {
 	};
 	await RedisService.redis.hset(
 		"dishes",
-		dishRecord.id,
+		String(dishRecord.id),
 		JSON.stringify(redisDish)
 	);
 };
@@ -224,7 +224,7 @@ const updateDish = async (dishName: string, dish: Partial<IDish>) => {
 	};
 	await RedisService.redis.hset(
 		"dishes",
-		dishRecord.id,
+		String(dishRecord.id),
 		JSON.stringify(redisDish)
 	);
 };
