@@ -78,7 +78,7 @@ const updateUser = async (
 	if (role) {
 		userRecord.role = role;
 	}
-	await usersRepo.save(userRecord);
+	await usersRepo.update({ username: _username }, userRecord);
 };
 
 export const UsersService = {
