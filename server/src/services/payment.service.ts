@@ -9,6 +9,7 @@ import { IRedisPayment } from "../ts/interfaces/payment.interfaces";
 import RedisService from "./redis.service";
 import { TablesService } from "./tables.service";
 import WebsocketService from "./websocket.service";
+import { OrdersService } from "./orders.service";
 
 const newPayment = async (tableId: number, amountPaid: number) => {
 	const { total } = await TablesService.checkoutTable(tableId);
@@ -44,13 +45,12 @@ const newPayment = async (tableId: number, amountPaid: number) => {
 	tablesSessionsRepo.save(tableSessionRecord);
 	// Clear Table Session From Cache
 	await RedisService.redis.hdel("tables:sessions", String(tableId));
-	// Table Orers
-	const redisTablesOrders: { [orderId: string]: string } =
-		await RedisService.redis.hgetall("orders");
+
+	// Table Orders
+	const redisTablesOrders = await OrdersService.getTodayOrders();
 
 	// Clear Table Orders From Cache
-	for (const _order of Object.values(redisTablesOrders)) {
-		const order: IRedisTableOrder = JSON.parse(_order);
+	for (const order of redisTablesOrders) {
 		if (order.tableId == tableId) {
 			await RedisService.redis.hdel("orders", String(order.id));
 		}

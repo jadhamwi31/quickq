@@ -37,7 +37,8 @@ dotenv.config();
 	app.use(morgan("tiny"));
 	app.use(cors({ origin: "http://localhost:3000", credentials: true }));
 	app.use(json());
-	app.use(urlencoded({ extended: false }));
+
+	app.use(urlencoded({ extended: true }));
 	app.use(cookieParser());
 
 	// routers

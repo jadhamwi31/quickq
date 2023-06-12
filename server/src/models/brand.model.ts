@@ -1,8 +1,8 @@
-import { Column, Entity } from "typeorm";
+import { Column, Entity, PrimaryColumn } from "typeorm";
 
 @Entity()
 export class Brand {
-	@Column()
+	@PrimaryColumn()
 	name: string;
 
 	@Column({ nullable: true })

@@ -1,19 +1,16 @@
-import fs from "fs";
+import multer from "multer";
 import path from "path";
-import { v4 as uuid } from "uuid";
+import fs from "fs";
+import { InternalServerError } from "../models/error.model";
 
 export const imagesDirectory = path.join(__dirname, "../../images/");
 
-export const saveImage = (base64Image: string) => {
-	if (!fs.existsSync(imagesDirectory)) {
-		fs.mkdirSync(imagesDirectory);
-	}
-	const imageBuffer = Buffer.from(base64Image, "base64");
-	const imageName = uuid();
-	fs.writeFileSync(path.join(imagesDirectory, `${imageName}.png`), imageBuffer);
-	return imageName;
-};
+export const upload = multer({ dest: imagesDirectory });
 
 export const deleteImage = (imageName: string) => {
-	fs.unlinkSync(path.join(imagesDirectory, `${imageName}.png`));
+	try {
+		fs.unlinkSync(path.join(imagesDirectory, imageName));
+	} catch (e) {
+		throw new InternalServerError("couldn't delete old image");
+	}
 };

@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { Ingredient } from "../models/ingredient.model";
 import { BadRequestError } from "../models/error.model";
+import { isString } from "lodash";
 
 const validateCreateIngredient = async (
 	req: Request<any, any, Partial<Pick<Ingredient, "name" | "unit">>>,
@@ -11,7 +12,7 @@ const validateCreateIngredient = async (
 	if (!name) {
 		return next(new BadRequestError("name is required"));
 	}
-	if (!unit) {
+	if (!unit || !isString(unit)) {
 		return next(new BadRequestError("unit is required"));
 	}
 	return next();

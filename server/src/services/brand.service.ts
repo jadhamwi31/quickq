@@ -1,7 +1,6 @@
 import { AppDataSource } from "../models";
 import { Brand } from "../models/brand.model";
 import { BadRequestError, NotFoundError } from "../models/error.model";
-import { deleteImage, saveImage } from "./upload.service";
 
 const createNewBrand = async (brand: Brand) => {
 	const brandRepository = AppDataSource.getRepository(Brand);
@@ -12,9 +11,7 @@ const createNewBrand = async (brand: Brand) => {
 	}
 
 	const newBrand = new Brand();
-	if (brand.logo) {
-		newBrand.logo = saveImage(brand.logo);
-	}
+
 	if (brand.slogan) {
 		newBrand.slogan = brand.slogan;
 	}
@@ -33,10 +30,6 @@ const updateBrand = async (brand: Partial<Brand>) => {
 		brandRecord.name = brand.name;
 	}
 
-	if (brand.logo) {
-		deleteImage(brandRecord.logo);
-		brandRecord.logo = saveImage(brand.logo);
-	}
 	if (brand.slogan) {
 		brandRecord.slogan = brand.slogan;
 	}
@@ -50,7 +43,7 @@ const deleteBrand = async () => {
 	if (!brandRecord) {
 		throw new NotFoundError("brand not found");
 	}
-	if (brandRecord.logo) deleteImage(brandRecord.logo);
+
 	await brandRepository.delete(brandRecord);
 };
 

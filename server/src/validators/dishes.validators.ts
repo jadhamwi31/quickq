@@ -24,6 +24,11 @@ const validateCreateNewDish = (
 	if (!ingredients || ingredients.length === 0) {
 		return next(new BadRequestError("ingredients are required"));
 	}
+	if (
+		!ingredients.every((ingredient) => ingredient.amount && ingredient.name)
+	) {
+		return next(new BadRequestError("invalid ingredients"));
+	}
 	return next();
 };
 

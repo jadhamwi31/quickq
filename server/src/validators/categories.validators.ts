@@ -3,7 +3,7 @@ import { Category } from "../models/category.model";
 import { BadRequestError } from "../models/error.model";
 
 const validateCreateNewCategory = (
-	req: Request<any, any, Partial<Pick<Category, "name">>>,
+	req: Request<any, any, Partial<Pick<Category, "name" | "image">>>,
 	res: Response,
 	next: NextFunction
 ) => {
@@ -11,6 +11,7 @@ const validateCreateNewCategory = (
 	if (!name) {
 		return next(new BadRequestError("name is required"));
 	}
+
 	return next();
 };
 
