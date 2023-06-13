@@ -24,6 +24,7 @@ DishesRouter.delete(
 DishesRouter.put(
 	"/:name",
 	authFor(["manager"]),
+	...uploadMiddlewares("image"),
 	DishesValidator.validateUpdateDish,
 	DishesController.updateDishHandler
 );

@@ -68,11 +68,11 @@ export default class WebsocketService {
 		...params: Parameters<IServerToClientEvents[typeof ev]>
 	) {
 		const httpRequestClientSocket = this.getHttpRequestClientSocket();
-
-		return this._io
-			.to(rooms)
-			.except(httpRequestClientSocket.id)
-			.emit(ev, ...params);
+		if (httpRequestClientSocket)
+			this._io
+				.to(rooms)
+				.except(httpRequestClientSocket.id)
+				.emit(ev, ...params);
 	}
 	private static getHttpRequestClientSocket() {
 		const key = requestContext.get("username") ?? requestContext.get("tableId");

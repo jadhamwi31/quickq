@@ -7,7 +7,7 @@ export const CategoriesRouter = Router();
 
 CategoriesRouter.post(
 	"/",
-	// authFor(["manager"]),
+	authFor(["manager"]),
 	...uploadMiddlewares("image"),
 	CategoriesValidators.validateCreateNewCategory,
 	CategoriesController.createNewCategoryHandler

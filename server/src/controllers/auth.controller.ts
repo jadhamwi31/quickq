@@ -4,6 +4,7 @@ import { StatusCodes } from "http-status-codes";
 import { User } from "../models/user.model";
 import { IAccessCode } from "../ts/interfaces/client.interfaces";
 import { IUserCredentials } from "../ts/interfaces/user.interfaces";
+import { OK } from "zod";
 
 const loginHandler = async (
 	req: Request<any, any, Partial<IUserCredentials>>,
@@ -19,14 +20,14 @@ const loginHandler = async (
 			);
 			return res
 				.status(StatusCodes.OK)
-				.cookie("jwt", jwt, { httpOnly: true })
+				.cookie("jwt", jwt, { httpOnly: false })
 				.send({ code: StatusCodes.OK, message: "logged in", token: jwt });
 		}
 		if (table_code) {
 			const jwt = await AuthService.loginByTableCode(table_code);
 			return res
 				.status(StatusCodes.OK)
-				.cookie("jwt", jwt, { httpOnly: true })
+				.cookie("jwt", jwt, { httpOnly: false })
 				.send({ code: StatusCodes.OK, message: "logged in", token: jwt });
 		}
 	} catch (e) {
@@ -34,6 +35,18 @@ const loginHandler = async (
 	}
 };
 
+const logoutHandler = async (
+	req: Request<any, any, Partial<IUserCredentials>>,
+	res: Response,
+	next: NextFunction
+) => {
+	return res
+		.status(StatusCodes.OK)
+		.clearCookie("jwt")
+		.send({ code: StatusCodes.OK, message: "logged out" });
+};
+
 export const UserController = {
 	loginHandler,
+	logoutHandler,
 };
