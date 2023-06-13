@@ -15,20 +15,20 @@ const root = ReactDOM.createRoot(
 
 root.render(
 	<React.StrictMode>
-		<AuthContextProvider>
-			<OrderContextProvider>
-				<ActiveMenuContextProvider>
-					<MenuStylesContextProvider>
-						<TabelContextProvider>
-							<CategoriesContextProvider>
-								<SocketIoContextProvider>
+		<SocketIoContextProvider>
+			<AuthContextProvider>
+				<OrderContextProvider>
+					<ActiveMenuContextProvider>
+						<MenuStylesContextProvider>
+							<TabelContextProvider>
+								<CategoriesContextProvider>
 									<App />
-								</SocketIoContextProvider>
-							</CategoriesContextProvider>
-						</TabelContextProvider>
-					</MenuStylesContextProvider>
-				</ActiveMenuContextProvider>
-			</OrderContextProvider>
-		</AuthContextProvider>
+								</CategoriesContextProvider>
+							</TabelContextProvider>
+						</MenuStylesContextProvider>
+					</ActiveMenuContextProvider>
+				</OrderContextProvider>
+			</AuthContextProvider>
+		</SocketIoContextProvider>
 	</React.StrictMode>
 );

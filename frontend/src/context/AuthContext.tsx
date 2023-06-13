@@ -1,6 +1,8 @@
 import Cookies from "js-cookie";
 import jwtDecode from "jwt-decode";
-import { createContext, useState, useContext } from "react";
+import { createContext, useState, useContext, useEffect } from "react";
+import { useSocketIoContext } from "./SocketIoContext";
+import { useNavigate } from "react-router-dom";
 
 interface IAuthContext {
 	authenticated: boolean;
@@ -16,6 +18,8 @@ interface Props {
 }
 
 export const AuthContextProvider = ({ children }: Props) => {
+	const { connectSocket, disconnectSocket } = useSocketIoContext();
+
 	const [auth, setAuth] = useState<
 		Pick<IAuthContext, "authenticated" | "role">
 	>(() => {
@@ -29,13 +33,13 @@ export const AuthContextProvider = ({ children }: Props) => {
 	});
 	const loggedIn = () => {
 		const token = Cookies.get("jwt");
-
 		const { role }: { role: string } = jwtDecode(token!);
 		setAuth({ authenticated: true, role });
 	};
 
 	const loggedOut = () => {
 		setAuth({ authenticated: false, role: null });
+		disconnectSocket();
 	};
 
 	return (

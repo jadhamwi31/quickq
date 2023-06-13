@@ -1,6 +1,7 @@
 import { Socket, io } from "socket.io-client";
 import { createContext, useState, useContext } from "react";
 import Cookies from "js-cookie";
+import { useAuthContext } from "./AuthContext";
 
 export type TableStatus = "Busy" | "Available";
 export interface IOrderDish {
@@ -18,7 +19,6 @@ export type OrderDishesType<T extends keyof IOrderDish = keyof IOrderDish> =
 	OrderDishType<T>[];
 
 export interface IServerToClientEvents {
-	checkout_request: (tableId: number) => void;
 	update_table_status: (tableId: number, status: TableStatus) => void;
 	update_order_status: (orderId: number, status: OrderStatusType) => void;
 	update_order: (
@@ -34,10 +34,11 @@ export interface IServerToClientEvents {
 	) => void;
 	increment_payins: (amount: number) => void;
 	authorized: (msg: string) => void;
+	notification: (title: string, content: string) => void;
 }
 
 export interface IClientToServerEvents {
-	request_checkout: () => void;
+	request_checkout: (tableId: number) => void;
 }
 
 // export const socket: Socket<IServerToClientEvents, IClientToServerEvents> = io({
@@ -49,6 +50,7 @@ export interface IClientToServerEvents {
 interface ISocketIoContext {
 	socket: Socket<IServerToClientEvents, IClientToServerEvents> | null;
 	connectSocket: () => void;
+	disconnectSocket: () => void;
 }
 
 const SocketIoContext = createContext<ISocketIoContext>({} as ISocketIoContext);
@@ -67,13 +69,22 @@ export const SocketIoContextProvider = ({ children }: Props) => {
 					token: jwt,
 				},
 			});
+
 			socket.on("authorized", () => {
 				setSocket(socket);
 			});
 		}
 	};
+
+	const disconnectSocket = () => {
+		if (socket) {
+			socket.close();
+		}
+	};
 	return (
-		<SocketIoContext.Provider value={{ socket, connectSocket }}>
+		<SocketIoContext.Provider
+			value={{ socket, connectSocket, disconnectSocket }}
+		>
 			{children}
 		</SocketIoContext.Provider>
 	);

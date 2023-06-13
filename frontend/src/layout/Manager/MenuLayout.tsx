@@ -1,13 +1,9 @@
-import { NavLink } from "react-router-dom";
-import { Outlet } from "react-router-dom";
-import { useEffect } from "react";
+import { NavLink, Outlet } from "react-router-dom";
 import { useSocketIoContext } from "../../context/SocketIoContext";
 
 export default function MenuLayout() {
 	const { socket } = useSocketIoContext();
-	useEffect(() => {
-		console.log(socket);
-	}, [socket]);
+
 	return (
 		<div className="MenuLayout">
 			<div className="GeneralContent container-fluid">

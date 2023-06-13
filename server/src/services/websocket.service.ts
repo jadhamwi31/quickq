@@ -56,8 +56,14 @@ export default class WebsocketService {
 			}
 			socket.emit("authorized", `you're authorized as ${socket.user.role}`);
 
-			socket.on("request_checkout", () => {
-				socket.to(["cashier"]).emit("checkout_request", socket.user.tableId);
+			socket.on("request_checkout", (tableId) => {
+				socket
+					.to(["cashier"])
+					.emit(
+						"notification",
+						"Table Checkout Request",
+						`Table Number : ${tableId}`
+					);
 			});
 		});
 	}
