@@ -63,7 +63,8 @@ const updateUserHandler = async (
 	try {
 		const user = req.body;
 		const { username } = req.params;
-		await UsersService.updateUser(username, user);
+		const usernameToUpdate = username ?? req.user.username;
+		await UsersService.updateUser(usernameToUpdate, user);
 		return res
 			.status(StatusCodes.OK)
 			.send({ code: StatusCodes.OK, message: "user updated successfully" });

@@ -1,6 +1,10 @@
 import { NextFunction, Request, Response } from "express";
 import { User } from "../models/user.model";
-import { BadRequestError, ForbiddenError } from "../models/error.model";
+import {
+	BadRequestError,
+	ForbiddenError,
+	UnauthorizedError,
+} from "../models/error.model";
 import { UserRoleType } from "../ts/types/user.types";
 
 const validateCreateNewUser = (
@@ -56,13 +60,13 @@ const validateUpdateUser = (
 	const { username, password, role, oldPassword } = req.body;
 	const { username: _username } = req.params;
 	const user = req.user;
-	if (!username && !password) {
-		return next(new BadRequestError("username and password are missing"));
-	}
 
 	if (user.role !== "manager") {
 		if (_username) {
-			return next(new ForbiddenError("you can't update you're username"));
+			return next(new ForbiddenError("you can't pass username as parameter"));
+		}
+		if (username) {
+			return next(new ForbiddenError("you can't update username"));
 		}
 		if (role) {
 			return next(new ForbiddenError("you can't change roles"));

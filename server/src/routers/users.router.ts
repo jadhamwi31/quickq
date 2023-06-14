@@ -22,7 +22,7 @@ UsersRouter.delete(
 UsersRouter.get("/", authFor(["manager"]), UsersController.getUsersHandler);
 
 UsersRouter.put(
-	"/:username",
+	"/?:username",
 	authFor(["manager", "cashier", "chef"]),
 	UsersValidators.validateUpdateUser,
 	UsersController.updateUserHandler
