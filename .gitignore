@@ -3,3 +3,4 @@
 *.dtmp
 node_modules
 images
+.idea/

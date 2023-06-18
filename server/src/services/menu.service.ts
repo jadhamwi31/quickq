@@ -10,6 +10,7 @@ import {
 import { RedisDishesType } from "../ts/types/dish.types";
 import { DishesService } from "./dishes.service";
 import RedisService from "./redis.service";
+import Redis from "ioredis";
 
 const addMenuCustomization = async (menu: IMenuCustomization) => {
 	const menuCustomizationsRepository =
@@ -172,6 +173,7 @@ const getActiveMenu = async () => {
 	);
 	let activeMenuCustomization: IMenuCustomization;
 	if (isActiveMenuCustomizationsCached) {
+		RedisService.cacheLog("menu:customizations:active")
 		activeMenuCustomization = JSON.parse(
 			await RedisService.getCachedVersion("menu:customizations:active")
 		);

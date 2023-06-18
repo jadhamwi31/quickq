@@ -19,16 +19,42 @@ const updateInventoryItem = async (
 	if (available) inventoryItemRecord.available = available;
 	if (needed) inventoryItemRecord.needed = needed;
 
+	const updateInventoryItemEventPayload = (function(){
+		if(available && needed){return {available,needed}}
+		if(available) return {available}
+		if(needed) return {needed}
+	})();
 	await inventoryItemsRepo.save(inventoryItemRecord);
 	WebsocketService.publishEvent(
 		["manager", "chef", "cashier"],
 		"update_inventory_item",
 		inventoryItemRecord.ingredient.name,
-		{
-			available,
-			needed,
-		}
+		updateInventoryItemEventPayload
 	);
+	if(updateInventoryItemEventPayload.available && updateInventoryItemEventPayload.needed){
+			WebsocketService.publishEvent(
+				["manager", "cashier", "chef"],
+				"notification",
+				`Inventory Item Update | Item : ${inventoryItemRecord.ingredient.name}`,
+				`Available : ${inventoryItemRecord.available} | Needed : ${inventoryItemRecord.needed}`
+			);
+	}
+	else if(updateInventoryItemEventPayload.available){
+
+	WebsocketService.publishEvent(
+		["manager", "cashier", "chef"],
+		"notification",
+		`Inventory Item Available Amount Update | Item : ${inventoryItemRecord.ingredient.name}`,
+		`Available : ${inventoryItemRecord.available}`
+	);
+	}else{
+		WebsocketService.publishEvent(
+			["manager", "cashier", "chef"],
+			"notification",
+			`Inventory Item Needed Amount Update | Item : ${inventoryItemRecord.ingredient.name}`,
+			`Needed : ${inventoryItemRecord.needed}`
+		);
+	}
 };
 
 const getInventoryItems = async () => {

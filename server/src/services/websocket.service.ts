@@ -65,6 +65,9 @@ export default class WebsocketService {
 						`Table Number : ${tableId}`
 					);
 			});
+			socket.on("request_help",(tableId) => {
+				socket.to(["cashier"]).emit("notification","Table Help Call",`Table Number : ${tableId}`)
+			})
 		});
 	}
 
@@ -75,9 +78,8 @@ export default class WebsocketService {
 	) {
 		const httpRequestClientSocket = this.getHttpRequestClientSocket();
 		if (httpRequestClientSocket)
-			this._io
+			httpRequestClientSocket
 				.to(rooms)
-				.except(httpRequestClientSocket.id)
 				.emit(ev, ...params);
 	}
 	private static getHttpRequestClientSocket() {

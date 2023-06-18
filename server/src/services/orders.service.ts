@@ -203,6 +203,7 @@ const updateOrderStatus = async (orderId: number, status: OrderStatusType) => {
 	// Update Order Status In Cache
 	const isOrderCached = await RedisService.isCached("orders", String(orderId));
 	if (isOrderCached) {
+		RedisService.cacheLog("orders", String(orderId))
 		const newRedisOrder: IRedisTableOrder = JSON.parse(
 			await RedisService.redis.hget("orders", String(orderId))
 		);

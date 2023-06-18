@@ -87,6 +87,12 @@ const newPayment = async (tableId: number, amountPaid: number) => {
 	tableRecord.status = "Available";
 	await tablesRepo.save(tableRecord);
 	WebsocketService.publishEvent(
+		["manager", "cashier", "chef"],
+		"notification",
+		`Table Status Update | Table Number : ${tableId}`,
+		`Available`
+	);
+	WebsocketService.publishEvent(
 		["manager", "chef", "cashier"],
 		"update_table_status",
 		tableRecord.id,
@@ -110,6 +116,7 @@ const getPaymentsHistory = async () => {
 const getTodayPayments = async () => {
 	const arePaymentsCached = await RedisService.isCached("payments");
 	if (arePaymentsCached) {
+		RedisService.cacheLog("payments")
 		const transactions = JSON.parse(
 			await RedisService.getCachedVersion("payments", "transactions")
 		);

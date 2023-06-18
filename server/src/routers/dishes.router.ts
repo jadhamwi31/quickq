@@ -8,7 +8,7 @@ export const DishesRouter = Router();
 
 DishesRouter.post(
 	"/",
-	authFor(["manager"]),
+	// authFor(["manager"]),
 	...uploadMiddlewares("image"),
 	DishesValidator.validateCreateNewDish,
 	DishesController.createNewDishHandler
@@ -31,6 +31,5 @@ DishesRouter.put(
 
 DishesRouter.get(
 	"/",
-	authFor(["manager", "cashier"]),
 	DishesController.getDishesHandler
 );

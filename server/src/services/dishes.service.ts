@@ -103,7 +103,7 @@ export const deleteDish = async (name: string) => {
 };
 
 const getDishes = async () => {
-	const areDishesCached = RedisService.isCached("dishes");
+	const areDishesCached = await RedisService.isCached("dishes");
 
 	if (areDishesCached) {
 		RedisService.cacheLog("dishes");

@@ -74,6 +74,10 @@ const validateUpdateUser = (
 		if (password && !oldPassword) {
 			return next(new BadRequestError("you have to provide old password"));
 		}
+	} else {
+		if (!_username && role) {
+			return next(new BadRequestError("you can't change your role as manager"));
+		}
 	}
 	return next();
 };

@@ -95,6 +95,12 @@ const updateTable = async (id: number, status: TableStatus) => {
 			tableRecord.id,
 			status
 		);
+		WebsocketService.publishEvent(
+			["manager", "cashier", "chef"],
+			"notification",
+			`Table Status Update | Table Number : ${tableRecord.id}`,
+			status
+		);
 	}
 
 	await tablesRepo.save(tableRecord);

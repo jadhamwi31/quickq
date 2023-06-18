@@ -22,6 +22,7 @@ export interface IServerToClientEvents {
 
 export interface IClientToServerEvents {
 	request_checkout: (tableId: number) => void;
+	request_help:(tableId:number) => void;
 }
 
 export interface InterServerEvents {}
