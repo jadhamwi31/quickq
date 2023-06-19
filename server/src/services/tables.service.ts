@@ -149,6 +149,7 @@ const openNewTableSession = async (tableId: number, clientId: string) => {
 		relations: { table: true },
 		where: { table: { id: tableId } },
 	});
+	if(tableSessionRecord.clientId !== null) throw new BadRequestError("session is already opened on this table")
 	tableSessionRecord.clientId = clientId;
 	await tablesSessionsRepo.save(tableSessionRecord);
 	await RedisService.redis.hset("tables:sessions", String(tableId), clientId);

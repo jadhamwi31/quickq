@@ -14,7 +14,7 @@ const updateInventoryItemValidator = (
 	const { available, needed } = req.body;
 	const { ingredientName } = req.params;
 	if (!available && !needed) {
-		next(new BadRequestError("available or needed is needed"));
+		next(new BadRequestError("available or needed is required"));
 	}
 	if (!ingredientName) {
 		next(new BadRequestError("ingredient name is required"));
