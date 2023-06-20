@@ -19,8 +19,10 @@ const authorizeClient = async (user: IUserTokenPayload) => {
 	}
 };
 
+
 export const authFor = (roles: UserRoleType[]) => {
 	return async (req: Request<any>, res: Response<any>, next: NextFunction) => {
+		
 		try {
 			const authorizationHeader = req.headers["authorization"];
 			if(typeof authorizationHeader === "undefined"){
