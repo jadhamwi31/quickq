@@ -9,6 +9,7 @@ import { TableSession } from "../models/table.model";
 import { TablesService } from "../services/tables.service";
 import { IUserTokenPayload } from "../ts/interfaces/user.interfaces";
 import requestContext from "express-http-context";
+import authorization from "auth-header"
 
 const authorizeClient = async (user: IUserTokenPayload) => {
 	const clientId = await TablesService.getTableSessionClientId(user.tableId);
@@ -20,9 +21,12 @@ const authorizeClient = async (user: IUserTokenPayload) => {
 
 export const authFor = (roles: UserRoleType[]) => {
 	return async (req: Request<any>, res: Response<any>, next: NextFunction) => {
-		const { jwt: token }: { jwt: string } = req.cookies;
-
 		try {
+			const authorizationHeader = req.headers["authorization"];
+			if(typeof authorizationHeader === "undefined"){
+				throw new UnauthorizedError("unauthorized : authorization header not found")
+			}
+			const token = authorizationHeader.split(" ")[1];
 			const user = await JwtService.validate(token);
 
 			if (_.find(roles, (current) => current === user.role)) {
