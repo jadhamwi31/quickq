@@ -1,5 +1,5 @@
 import {
-	Column,
+	Column, DeleteDateColumn,
 	Entity,
 	JoinColumn,
 	ManyToOne,
@@ -17,6 +17,7 @@ export class Table {
 	id: number;
 	@Column()
 	status: TableStatus;
+
 
 	@OneToMany(() => Order, (order) => order.table)
 	orders: Order[];
@@ -40,7 +41,7 @@ export class TableSession {
 	@PrimaryGeneratedColumn()
 	id: number;
 
-	@OneToOne(() => Table)
+	@OneToOne(() => Table,{onDelete:"CASCADE"})
 	@JoinColumn()
 	table: Table;
 

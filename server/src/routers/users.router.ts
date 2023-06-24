@@ -13,7 +13,7 @@ UsersRouter.post(
 );
 
 UsersRouter.delete(
-	"/:username",
+	"/",
 	authFor(["manager"]),
 	UsersValidators.validateDeleteUser,
 	UsersController.deleteUserHandler

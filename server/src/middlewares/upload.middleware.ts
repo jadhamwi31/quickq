@@ -24,6 +24,8 @@ export const uploadMiddlewares = (imageKey: string) => [
 			} catch (e) {
 				throw new InternalServerError("server error");
 			}
+		}else{
+			req.body[imageKey] = undefined
 		}
 		return next();
 	},

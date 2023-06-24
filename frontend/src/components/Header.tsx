@@ -34,9 +34,9 @@ function Header() {
 
     const {socket} = useSocketIoContext();
     useEffect(() => {
-
+        notificationSoundRef.current.load()
         const handleNotification = (title: any, content: any) => {
-            console.log(title, content)
+
             setNotList(prevNotList => {
                 const newId = uuidv4();
                 const idExists = prevNotList.some(item => item.id === newId);
@@ -46,7 +46,11 @@ function Header() {
                 return prevNotList;
             });
 
-            notificationSoundRef.current.play();
+            const replayAudio = () => {
+                notificationSoundRef.current.currentTime = 0;
+                notificationSoundRef.current.play();
+            };
+            replayAudio();
             setNotificationAlarm(prevNotificationAlarm => prevNotificationAlarm + 1);
         };
 
@@ -120,7 +124,7 @@ function Header() {
                     padding: "15px"
                 }}>
                     {notList.map((n: any, index) =>
-                        (<Fragment key={n.title + n.content}>
+                        (<Fragment key={n.id}>
                                 <p>{n.title}</p>
                                 <p>{n.content}</p>
                                 <hr/>

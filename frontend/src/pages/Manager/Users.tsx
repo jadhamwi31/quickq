@@ -126,13 +126,14 @@ function Users() {
 
     const deleteUser = async (username: string) => {
         try {
-            const response = await fetch(`/Users/${username}`, {
+            const response = await fetch(`/Users`, {
                 method: 'DELETE',
                 credentials: 'include',
                 headers: {
                     'Content-Type': 'application/json',
                     Authorization: `Bearer ${Cookies.get('jwt')}`,
                 },
+                body:JSON.stringify({username})
             });
 
             const json = await response.json();

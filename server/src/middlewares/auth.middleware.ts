@@ -21,7 +21,7 @@ const authorizeClient = async (user: IUserTokenPayload) => {
 
 
 export const authFor = (roles: UserRoleType[]) => {
-	return async (req: Request<any>, res: Response<any>, next: NextFunction) => {
+	return async (req: Request<any,any,any,any>, res: Response<any>, next: NextFunction) => {
 		
 		try {
 			const authorizationHeader = req.headers["authorization"];

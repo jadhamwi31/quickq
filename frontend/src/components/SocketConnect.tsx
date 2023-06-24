@@ -10,6 +10,7 @@ const SocketConnect = (props: Props) => {
 		if (!socket) {
 			connectSocket();
 		}
+
 	}, []);
 	return <>{socket ? <Outlet /> : <div>Loading...</div>}</>;
 };

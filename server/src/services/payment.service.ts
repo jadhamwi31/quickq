@@ -79,7 +79,7 @@ const newPayment = async (tableId: number, amountPaid: number) => {
 	await RedisService.redis.hset(
 		"payments",
 		"payins",
-		prevPayins + payment.amount
+		Number(prevPayins) + payment.amount
 	);
 
 	// Update Table Status

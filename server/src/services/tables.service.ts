@@ -13,6 +13,8 @@ import { OrdersService } from "./orders.service";
 import { UserRoleType } from "../ts/types/user.types";
 import WebsocketService from "./websocket.service";
 import requestContext from "express-http-context";
+import {Order} from "../models/order.model";
+import {EntityManager, getManager} from "typeorm";
 
 const getTableSessionClientId = async (tableId: number) => {
 	const isTableSessionCached = await RedisService.isCached(
@@ -113,10 +115,11 @@ const deleteTable = async (id: number) => {
 	if (!tableRecord) {
 		throw new NotFoundError("table with this id doesn't exist");
 	}
+
 	await tablesRepo.remove(tableRecord);
 };
 
-const getTables = async (role: UserRoleType) => {
+const getTables = async (role: UserRoleType) =>  {
 	const tablesCodesRepo = AppDataSource.getRepository(TableCode);
 
 	const tablesCodes = await tablesCodesRepo.find({
@@ -153,6 +156,7 @@ const openNewTableSession = async (tableId: number, clientId: string) => {
 	tableSessionRecord.clientId = clientId;
 	await tablesSessionsRepo.save(tableSessionRecord);
 	await RedisService.redis.hset("tables:sessions", String(tableId), clientId);
+
 	WebsocketService.publishEvent(
 		["manager", "cashier", "chef", String(tableId)],
 		"update_table_status",

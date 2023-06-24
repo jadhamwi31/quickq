@@ -11,6 +11,6 @@ export const deleteImage = (imageName: string) => {
 	try {
 		fs.unlinkSync(path.join(imagesDirectory, imageName));
 	} catch (e) {
-		throw new InternalServerError("couldn't delete old image");
+		console.log(e)
 	}
 };

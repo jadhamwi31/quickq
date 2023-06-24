@@ -24,7 +24,7 @@ const validateCreateNewUser = (
 		return next(new BadRequestError("role is missing"));
 	}
 
-	if (["chef", "cashier"].indexOf(role) < 0) {
+	if (["chef", "cashier","manager"].indexOf(role) < 0) {
 		return next(new BadRequestError("invalid role"));
 	}
 	return next();

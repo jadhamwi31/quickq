@@ -1,5 +1,5 @@
 import { Socket, io } from "socket.io-client";
-import { createContext, useState, useContext } from "react";
+import {createContext, useState, useContext, useRef, useEffect} from "react";
 import Cookies from "js-cookie";
 import { useAuthContext } from "./AuthContext";
 
@@ -61,19 +61,27 @@ interface Props {
 
 export const SocketIoContextProvider = ({ children }: Props) => {
 	const [socket, setSocket] = useState<ISocketIoContext["socket"]>(null);
+	const isConnected = useRef(false)
 	const connectSocket = () => {
 		const jwt = Cookies.get("jwt");
-		if (jwt) {
+		if (jwt && isConnected.current === false) {
+			isConnected.current = true
 			const socket: Socket<IServerToClientEvents, IClientToServerEvents> = io({
 				extraHeaders: {
 					token: jwt,
 				},
 			});
 
+
 			socket.on("authorized", () => {
 				console.log("authorized")
 				setSocket(socket);
 			});
+
+			socket.on("disconnect",() => {
+				setTimeout(connectSocket,5000)
+			})
+
 		}
 	};
 
@@ -82,6 +90,12 @@ export const SocketIoContextProvider = ({ children }: Props) => {
 			socket.close();
 		}
 	};
+
+	useEffect(() => {
+		window.onbeforeunload = () => {
+			disconnectSocket();
+		}
+	},[])
 	return (
 		<SocketIoContext.Provider
 			value={{ socket, connectSocket, disconnectSocket }}

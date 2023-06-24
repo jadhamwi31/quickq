@@ -1,92 +1,108 @@
-import { Server as HttpServer } from "http";
-import { Server, Socket } from "socket.io";
-import { IUserTokenPayload } from "../ts/interfaces/user.interfaces";
+import {Server as HttpServer} from "http";
+import {Server, Socket} from "socket.io";
+import {IUserTokenPayload} from "../ts/interfaces/user.interfaces";
 import {
-	IClientToServerEvents,
-	IServerToClientEvents,
-	InterServerEvents,
+    IClientToServerEvents,
+    IServerToClientEvents,
+    InterServerEvents,
 } from "../ts/interfaces/websocket.interfaces";
-import { UserRoleType } from "../ts/types/user.types";
-import { JwtService } from "./jwt.service";
-import { TablesService } from "./tables.service";
+import {UserRoleType} from "../ts/types/user.types";
+import {JwtService} from "./jwt.service";
+import {TablesService} from "./tables.service";
 import requestContext from "express-http-context";
 
 declare module "socket.io" {
-	interface Socket {
-		user: IUserTokenPayload;
-	}
+    interface Socket {
+        user: IUserTokenPayload;
+    }
 }
 
 export default class WebsocketService {
-	private static _io: Server<
-		IClientToServerEvents,
-		IServerToClientEvents,
-		InterServerEvents
-	>;
-	private static map = new Map<string | number, string>();
-	public static init(httpServer: HttpServer) {
-		this._io = new Server(httpServer);
+    private static _io: Server<
+        IClientToServerEvents,
+        IServerToClientEvents,
+        InterServerEvents
+    >;
+    private static map = new Map<string | number, string>();
+    private static numberOfClients = 0;
 
-		this._io.use(async (socket, next) => {
-			try {
-				const token = socket.handshake.headers.token as string;
-				const user: IUserTokenPayload = await JwtService.validate(token);
-				if (user.role === "client") {
-					const tableClientId = await TablesService.getTableSessionClientId(
-						user.tableId
-					);
-					if (tableClientId !== user.clientId) {
-						throw new Error();
-					}
-				}
-				socket.user = user;
+    public static init(httpServer: HttpServer) {
+        this._io = new Server(httpServer);
 
-				next();
-			} catch (e: any) {
-				next(new Error("unauthorized"));
-			}
-		});
-		this._io.on("connection", (socket) => {
-			if (socket.user.role === "client") {
-				socket.join(String(socket.user.tableId));
-				this.map.set(String(socket.user.tableId), socket.id);
-			} else {
-				socket.join(socket.user.role);
-				this.map.set(String(socket.user.username), socket.id);
-			}
-			socket.emit("authorized", `you're authorized as ${socket.user.role}`);
+        this._io.use(async (socket, next) => {
+            try {
+                const token = socket.handshake.headers.token as string;
+                const user: IUserTokenPayload = await JwtService.validate(token);
+                if (user.role === "client") {
+                    const tableClientId = await TablesService.getTableSessionClientId(
+                        user.tableId
+                    );
+                    if (tableClientId !== user.clientId) {
+                        throw new Error();
+                    }
+                }
+                socket.user = user;
 
-			socket.on("request_checkout", (tableId) => {
-				socket
-					.to(["cashier"])
-					.emit(
-						"notification",
-						"Table Checkout Request",
-						`Table Number : ${tableId}`
-					);
-			});
-			socket.on("request_help",(tableId) => {
-				socket.to(["cashier"]).emit("notification","Table Help Call",`Table Number : ${tableId}`)
-			})
-		});
-	}
+                next();
+            } catch (e: any) {
+                next(new Error("unauthorized"));
+            }
+        });
+        this._io.on("connection", (socket) => {
 
-	public static publishEvent(
-		rooms: string[],
-		ev: keyof IServerToClientEvents,
-		...params: Parameters<IServerToClientEvents[typeof ev]>
-	) {
-		const httpRequestClientSocket = this.getHttpRequestClientSocket();
-		if (httpRequestClientSocket)
-			httpRequestClientSocket
-				.to(rooms)
-				.emit(ev, ...params);
-	}
-	private static getHttpRequestClientSocket() {
-		const key = requestContext.get("username") ?? requestContext.get("tableId");
+            if (socket.user.role === "client") {
+                socket.join(String(socket.user.tableId));
+                this.map.set(String(socket.user.tableId), socket.id);
+            } else {
+                socket.join(socket.user.role);
+                this.map.set(String(socket.user.username), socket.id);
+            }
+            socket.emit("authorized", `you're authorized as ${socket.user.role}`);
 
-		const socketId = this.map.get(key);
+            socket.on("request_checkout", (tableId) => {
+                socket
+                    .to(["cashier"])
+                    .emit(
+                        "notification",
+                        "Table Checkout Request",
+                        `Table Number : ${tableId}`
+                    );
+            });
+            socket.on("request_help", (tableId) => {
+                socket.to(["cashier"]).emit("notification", "Table Help Call", `Table Number : ${tableId}`)
+            })
+            socket.on("disconnect", () => {
+                console.log("disconnected")
+                if (socket.user.tableId) {
 
-		return this._io.sockets.sockets.get(socketId);
-	}
+                    this.map.delete(socket.user.tableId)
+                } else {
+
+                    this.map.delete(socket.user.username)
+                }
+            })
+        });
+    }
+
+    public static publishEvent(
+        rooms: string[],
+        ev: keyof IServerToClientEvents,
+        ...params: Parameters<IServerToClientEvents[typeof ev]>
+    ) {
+
+        const httpRequestClientSocket = this.getHttpRequestClientSocket();
+
+
+        if (httpRequestClientSocket)
+            httpRequestClientSocket.to(rooms).emit(ev, ...params)
+
+    }
+
+    private static getHttpRequestClientSocket() {
+        const key = requestContext.get("username") ?? requestContext.get("tableId");
+        console.log(key)
+        const socketId = this.map.get(key);
+
+        return this._io.sockets.sockets.get(socketId);
+    }
 }

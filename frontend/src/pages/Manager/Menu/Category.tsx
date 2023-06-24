@@ -59,8 +59,15 @@ export default function Category() {
                 progress: undefined,
                 theme: 'light',
             });
-
-            dispatch({ type: 'CREATE', payload: { name: name, image: picture!.name } });
+            const response = await fetch('/categories/', {
+                method: 'GET',
+                credentials: 'include',
+                headers: {
+                    Authorization: `Bearer ${Cookies.get('jwt')}`,
+                },
+            }).then((res) => res.json())
+            console.log(response)
+            dispatch({ type: 'SET', payload: response });
         }
     };
 
