@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
 import Cookies from "js-cookie";
 import OrderDishes from "../../components/OrderDishes";
+import { useSocketIoContext } from "../../context/SocketIoContext";
 interface Order {
-	id: string;
+	id: number;
 	tableId: string;
 	date: string;
 	status: string;
@@ -12,10 +13,13 @@ interface Order {
 
 export default function Orders() {
 	const [orders, setOrders] = useState<Order[]>([]);
+	const { socket } = useSocketIoContext();
+
 
 	useEffect(() => {
 		document.title = "Manager | Orders";
 	}, []);
+
 
 	useEffect(() => {
 		const getTodayOrders = async () => {
@@ -33,20 +37,7 @@ export default function Orders() {
 
 		getTodayOrders();
 	}, []);
-	useEffect(() => {
-		// if (orders.length > 0) {
-		//     socket.on('update_order_status', (id, status) => {
-		//         const newTables = [...orders];
-		//         const index = orders.findIndex((table: any) => table.id == id)
-		//         newTables[index].status = status
-		//         console.log(newTables)
-		//         setOrders(newTables)
-		//     })
-		//     return () => {
-		//         socket.off('update_order_status')
-		//     }
-		// }
-	}, [orders]);
+
 
 	const renderGroupedOrders = () => {
 		const groupedOrders: { [tableId: string]: Order[] } = {};
@@ -65,7 +56,7 @@ export default function Orders() {
 				<React.Fragment key={tableId}>
 					<tr className="table-info" style={{ textAlign: "center" }}>
 						<td colSpan={6}>
-							<h5>{groupHeader}</h5>
+							<h5 key={groupHeader}>{groupHeader}</h5>
 						</td>
 					</tr>
 					{groupRows.map((o) => (
@@ -75,13 +66,13 @@ export default function Orders() {
 								o.status === "Pending"
 									? "table-danger"
 									: o.status === "In Cook"
-									? "table-warning"
-									: o.status === "Ready"
-									? "table-success"
-									: ""
+										? "table-warning"
+										: o.status === "Ready"
+											? "table-success"
+											: ""
 							}
 						>
-							<td>{o.id}</td>
+							<td key={o.id}>{o.id}</td>
 							<td>{o.tableId}</td>
 							<td>
 								{(() => {
@@ -106,7 +97,24 @@ export default function Orders() {
 			);
 		});
 	};
+	useEffect(() => {
+		const handler = (orderId:any, status : any) => {
+			setOrders((prevOrders) => {
+				const updatedOrders = prevOrders.map((order) => {
+					if (order.id === orderId) {
+						return { ...order, status };
+					}
+					return order;
+				});
 
+				return updatedOrders;
+			});
+		}
+		socket!.on("update_order_status",handler );
+		return () => {
+			socket!.off("update_order_status",handler)
+		}
+	},[]);
 	return (
 		<div className="GeneralContent">
 			<div className="scroll">

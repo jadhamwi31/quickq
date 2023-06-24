@@ -212,6 +212,7 @@ function Users() {
 
                             <option value="cashier">Cashier</option>
                             <option value="chef">Chef</option>
+                            <option value="manager">Manager</option>
                         </select><br />
                         <button className='btn btn-secondary' onClick={() => {
                             addUser()
@@ -281,6 +282,7 @@ function Users() {
 
                                 <option value="cashier">Cashier</option>
                                 <option value="chef">Chef</option>
+                                <option value="manager">Manager</option>
                             </select><br />
 
                         </div>

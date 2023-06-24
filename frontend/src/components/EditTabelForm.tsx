@@ -126,18 +126,7 @@ export default function EditTabelForm(props: ChildComponentProps) {
                     </Modal.Footer>
                 </form>
             </Modal>
-            <ToastContainer
-                position="bottom-right"
-                autoClose={1000}
-                hideProgressBar
-                newestOnTop={false}
-                closeOnClick
-                rtl={false}
-                pauseOnFocusLoss
-                draggable
-                pauseOnHover={false}
-                theme="light"
-            />
+
         </div>
     );
 }

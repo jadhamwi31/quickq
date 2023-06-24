@@ -46,7 +46,13 @@ export default function ManagerLayout() {
 					<NavLink to="Resturant">
 						<span className="lnr lnr-construction"></span>Resutrant
 					</NavLink>
-					<Button
+					<Button style={{
+						marginTop: "31vh",
+						marginLeft: "30px"
+
+
+					}}
+						variant="secondary"
 						onClick={async () => {
 							await fetch("/auth/logout", {
 								headers: {
@@ -57,7 +63,7 @@ export default function ManagerLayout() {
 							loggedOut();
 						}}
 					>
-						<span className="lnr lnr-construction"></span>Logout
+						<span className="lnr lnr-exit"></span>Logout
 					</Button>
 				</div>
 			</div>

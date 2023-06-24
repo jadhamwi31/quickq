@@ -47,7 +47,7 @@ export default function OrderDishes(props: any) {
                         </tbody>
 
                         {props.dishes.map((o: any) => (
-                            <tr>
+                            <tr key={o.name}>
                                 <td>{o.name}</td>
                                 <td>{o.quantity}</td>
                                 <td>{o.price}</td>

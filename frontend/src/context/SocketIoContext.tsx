@@ -71,6 +71,7 @@ export const SocketIoContextProvider = ({ children }: Props) => {
 			});
 
 			socket.on("authorized", () => {
+				console.log("authorized")
 				setSocket(socket);
 			});
 		}

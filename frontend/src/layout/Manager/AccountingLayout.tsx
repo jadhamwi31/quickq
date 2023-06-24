@@ -1,17 +1,17 @@
 import { NavLink, Outlet } from "react-router-dom";
 import { useSocketIoContext } from "../../context/SocketIoContext";
 
-export default function MenuLayout() {
+export default function AccountingLayout() {
 
 
 	return (
 		<div className="MenuLayout">
 			<div className="GeneralContent container-fluid">
 				<div className="MenuNav">
-					<NavLink to="Category">Category</NavLink>
-					<NavLink to="Dish">Dish</NavLink>
-					<NavLink to="Ingredients">Ingredients</NavLink>
-					<NavLink to="Customize">Customize</NavLink>
+					<NavLink to="today">Today</NavLink>
+					<NavLink to="History">History</NavLink>
+					<NavLink to="AI">AI</NavLink>
+
 				</div>
 				<Outlet />
 			</div>

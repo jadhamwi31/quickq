@@ -45,6 +45,13 @@ import ActiveTabel from "./pages/Manager/Menu/ActiveTabel";
 import Ingredients from "./pages/Manager/Menu/Ingredients";
 import Resturant from "./pages/Manager/Resturant";
 import Users from "./pages/Manager/Users";
+import ChefAccount from "./pages/Chef/ChefAccount";
+import CashierOrders from "./pages/Cashier/CashierOrders";
+import PaysIn from "./pages/Cashier/PaysIn";
+import AccountingLayout from "./layout/Manager/AccountingLayout";
+import Today from "./pages/Manager/Accounting/Today";
+import PaymentHistory from "./pages/Manager/Accounting/PaymentHistory";
+import AI from "./pages/Manager/Accounting/AI";
 
 function App() {
 	const { authenticated, role } = useAuthContext();
@@ -99,7 +106,20 @@ function App() {
 										<Route index path="Category" element={<Category />} />
 										<Route path="Customize" element={<Customize />} />
 									</Route>
-									<Route path="Accounting" element={<Accounting />} />
+
+
+									<Route path="Accounting" element={<AccountingLayout />}>
+										<Route
+											index
+											element={<Navigate to="Today" replace={true} />}
+										/>
+										<Route path="Today" element={<Today />} />
+										<Route path="History" element={<PaymentHistory />} />
+										<Route path="Ai" element={<AI />} />
+
+
+
+									</Route>
 									<Route path="Inventory" element={<Inventory />} />
 									<Route path="Orders" element={<Orders />} />
 									<Route path="Users" element={<Users />} />
@@ -116,8 +136,9 @@ function App() {
 										)
 									}
 								>
-									<Route index element={<CurrentOrders />} />
+									<Route index element={<CashierOrders />} />
 									<Route path="AddOrder" element={<AddOrder />} />
+									<Route path="Payin" element={<PaysIn />} />
 									<Route path="Account" element={<CashierAccount />} />
 								</Route>
 
@@ -132,9 +153,9 @@ function App() {
 									}
 								>
 									<Route index element={<ChefOrders />} />
-									<Route path="Inventory" element={<ChefInventory />} />
+									<Route path="Inventory" element={<Inventory />} />
 									<Route path="Tables" element={<ChefInventory />} />
-									<Route path="Account" element={<ChefLayout />} />
+									<Route path="Account" element={<ChefAccount />} />
 								</Route>
 							</Route>
 						</Route>

@@ -268,7 +268,8 @@ function AddOrder(): JSX.Element {
                                         cursor: "pointer",
                                         width: "200px",
                                         height: "100px",
-                                        backgroundColor: "red",
+                                        backgroundImage: `url(http://localhost:80/images/${d.image})`,
+                                        backgroundSize: "cover",
                                         borderRadius: "20px",
                                         textAlign: "center",
                                         paddingTop: "35px"

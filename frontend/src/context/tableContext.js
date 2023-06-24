@@ -5,7 +5,7 @@ export const TabelContext = createContext();
 export const TabelsReducer = (state, action) => {
     switch (action.type) {
         case 'SET':
-            console.log(action.payload);
+
             return {
                 Tabels: action.payload,
             };

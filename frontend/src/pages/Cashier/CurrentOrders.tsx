@@ -34,20 +34,6 @@ export default function CurrentOrders() {
 
 		getTodayOrders();
 	}, []);
-	useEffect(() => {
-		// if (orders.length > 0) {
-		//     socket.on('update_order_status', (id, status) => {
-		//         const newTables = [...orders];
-		//         const index = orders.findIndex((table: any) => table.id == id)
-		//         newTables[index].status = status
-		//         console.log(newTables)
-		//         setOrders(newTables)
-		//     })
-		//     return () => {
-		//         socket.off('update_order_status')
-		//     }
-		// }
-	}, [orders]);
 
 	const renderGroupedOrders = () => {
 		const groupedOrders: { [tableId: string]: Order[] } = {};
@@ -76,10 +62,10 @@ export default function CurrentOrders() {
 								o.status === "Pending"
 									? "table-danger"
 									: o.status === "In Cook"
-									? "table-warning"
-									: o.status === "Ready"
-									? "table-success"
-									: ""
+										? "table-warning"
+										: o.status === "Ready"
+											? "table-success"
+											: ""
 							}
 						>
 							<td>{o.id}</td>

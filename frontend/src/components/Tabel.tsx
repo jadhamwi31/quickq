@@ -114,18 +114,6 @@ export default function Tabel(props: ChildComponentProps) {
                 color: props.status === "Available" ? "#23BF50" : "#F04D2F"
             }}>{props.status}</span></p>
 
-            <ToastContainer
-                position="bottom-right"
-                autoClose={1000}
-                hideProgressBar
-                newestOnTop={false}
-                closeOnClick
-                rtl={false}
-                pauseOnFocusLoss
-                draggable
-                pauseOnHover={false}
-                theme="light"
-            />
         </div >
     )
 }

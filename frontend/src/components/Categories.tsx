@@ -218,7 +218,7 @@ function Categories() {
                                                     alignItems: 'center',
                                                 }}
                                             >
-                                                <div style={{ paddingTop: '7px' }}><img src={`http://localhost:80/images/${c.image}`} style={{
+                                                <div style={{ paddingTop: '7px' }}><img src={c.image ? `http://localhost:80/images/${c.image}` : ''} style={{
                                                     borderRadius: "15px",
                                                     width: "50px",
                                                     height: "50px",
