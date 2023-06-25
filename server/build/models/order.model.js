@@ -33,7 +33,7 @@ __decorate([
     __metadata("design:type", Number)
 ], Order.prototype, "total", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => table_model_1.Table, (table) => table.orders),
+    (0, typeorm_1.ManyToOne)(() => table_model_1.Table, (table) => table.orders, { onDelete: "CASCADE" }),
     __metadata("design:type", table_model_1.Table)
 ], Order.prototype, "table", void 0);
 __decorate([
@@ -41,7 +41,9 @@ __decorate([
     __metadata("design:type", Array)
 ], Order.prototype, "orderDishes", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => payment_model_1.Payment, (payment) => payment.orders),
+    (0, typeorm_1.ManyToOne)(() => payment_model_1.Payment, (payment) => payment.orders, {
+        onDelete: "SET NULL",
+    }),
     __metadata("design:type", payment_model_1.Payment)
 ], Order.prototype, "payment", void 0);
 Order = __decorate([

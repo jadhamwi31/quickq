@@ -33,7 +33,7 @@ OrdersRouter.get(
 );
 
 OrdersRouter.get(
-	"/",
+	"/history",
 	authFor(["manager"]),
 	OrdersController.getOrdersHistoryHandler
 );

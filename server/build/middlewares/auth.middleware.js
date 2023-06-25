@@ -31,26 +31,43 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.authFor = void 0;
 const jwt_service_1 = require("../services/jwt.service");
 const error_model_1 = require("../models/error.model");
 const _ = __importStar(require("lodash"));
+const tables_service_1 = require("../services/tables.service");
+const express_http_context_1 = __importDefault(require("express-http-context"));
+const authorizeClient = (user) => __awaiter(void 0, void 0, void 0, function* () {
+    const clientId = yield tables_service_1.TablesService.getTableSessionClientId(user.tableId);
+    if (clientId != user.clientId) {
+        throw new error_model_1.ForbiddenError("you're not on this table");
+    }
+});
 const authFor = (roles) => {
     return (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-        const authHeader = req.headers["authorization"];
-        const token = authHeader && authHeader.split(" ")[1];
-        if (token == null)
-            return next(new error_model_1.UnauthorizedError("invalid token"));
         try {
-            const user = yield jwt_service_1.JwtService.decode(token);
+            const authorizationHeader = req.headers["authorization"];
+            if (typeof authorizationHeader === "undefined") {
+                throw new error_model_1.UnauthorizedError("unauthorized : authorization header not found");
+            }
+            const token = authorizationHeader.split(" ")[1];
+            const user = yield jwt_service_1.JwtService.validate(token);
             if (_.find(roles, (current) => current === user.role)) {
                 if (user.role === "client") {
-                    req.user = { tableId: user.tableId, role: "client" };
+                    if (req.originalUrl !== "/tables/session") {
+                        authorizeClient(user);
+                    }
+                    express_http_context_1.default.set("tableId", user.tableId);
                 }
                 else {
-                    req.user = user;
+                    express_http_context_1.default.set("username", user.username);
                 }
+                express_http_context_1.default.set("role", user.role);
+                req.user = user;
                 return next();
             }
             else {

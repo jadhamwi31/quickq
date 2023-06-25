@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.NotFoundError = exports.ConflictError = exports.ForbiddenError = exports.UnauthorizedError = exports.BadRequestError = exports.CustomError = void 0;
+exports.InternalServerError = exports.NotFoundError = exports.ConflictError = exports.ForbiddenError = exports.UnauthorizedError = exports.BadRequestError = exports.CustomError = void 0;
 const http_status_codes_1 = __importDefault(require("http-status-codes"));
 class CustomError extends Error {
     constructor(message, status, name) {
@@ -43,3 +43,9 @@ class NotFoundError extends CustomError {
     }
 }
 exports.NotFoundError = NotFoundError;
+class InternalServerError extends CustomError {
+    constructor(message) {
+        super(message, http_status_codes_1.default.INTERNAL_SERVER_ERROR, "Internal Server Error");
+    }
+}
+exports.InternalServerError = InternalServerError;

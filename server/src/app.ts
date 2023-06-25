@@ -24,6 +24,7 @@ import RedisService from "./services/redis.service";
 import { imagesDirectory } from "./services/upload.service";
 import WebsocketService from "./services/websocket.service";
 import requestContext from "express-http-context";
+import {AiRouter} from "./routers/ai.router";
 
 dotenv.config();
 
@@ -55,6 +56,7 @@ dotenv.config();
 	app.use("/users", UsersRouter);
 	app.use("/brand", authFor(["manager"]), BrandRouter);
 	app.use("/images", express.static(imagesDirectory));
+	app.use("/ai",AiRouter);
 	app.use(errorMiddleware);
 	const port = process.env.SERVER_PORT;
 
@@ -62,7 +64,7 @@ dotenv.config();
 
 	WebsocketService.init(httpServer);
 
-	httpServer.listen(port, () => {
+	httpServer.listen(80, () => {
 		console.log(`Listening on port ${port}`);
 	});
 })();

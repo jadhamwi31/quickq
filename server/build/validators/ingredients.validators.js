@@ -11,12 +11,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.IngredientsValidators = void 0;
 const error_model_1 = require("../models/error.model");
+const lodash_1 = require("lodash");
 const validateCreateIngredient = (req, _, next) => __awaiter(void 0, void 0, void 0, function* () {
     const { name, unit } = req.body;
     if (!name) {
         return next(new error_model_1.BadRequestError("name is required"));
     }
-    if (!unit) {
+    if (!unit || !(0, lodash_1.isString)(unit)) {
         return next(new error_model_1.BadRequestError("unit is required"));
     }
     return next();
@@ -31,11 +32,8 @@ const validateDeleteIngredient = (req, _, next) => __awaiter(void 0, void 0, voi
 const validateUpdateIngredient = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const { name, unit } = req.body;
     const ingredientName = req.params.name;
-    if (!name) {
-        return next(new error_model_1.BadRequestError("key : [name] is required in body"));
-    }
-    if (!unit) {
-        return next(new error_model_1.BadRequestError("key : [unit] is required in body"));
+    if (!name && !unit) {
+        return next(new error_model_1.BadRequestError("provide updates (name or unit) in body"));
     }
     if (!ingredientName) {
         return next(new error_model_1.BadRequestError("name parameter is missing"));

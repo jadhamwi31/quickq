@@ -9,6 +9,8 @@ import { IDish } from "../ts/interfaces/dish.interfaces";
 import { RedisDishType, RedisDishesType } from "../ts/types/dish.types";
 import RedisService from "./redis.service";
 import { deleteImage } from "./upload.service";
+import {Payment} from "../models/payment.model";
+import moment from "moment";
 
 const createNewDish = async (dish: IDish) => {
 	const ingredientsRepo = AppDataSource.getRepository(Ingredient);
@@ -32,7 +34,7 @@ const createNewDish = async (dish: IDish) => {
 	}
 	const dishesIngredientsToSave: DishIngredient[] = [];
 	dishRecord.name = dish.name;
-	dishRecord.price = dish.price;
+	dishRecord.price = Number(dish.price);
 	dishRecord.description = dish.description;
 	dishRecord.dishIngredients = [];
 	dishRecord.category = categoryRecord;
@@ -148,7 +150,7 @@ const getDishes = async () => {
 			dishes.push(dishObject);
 			redisDishesToSet[dish.id] = JSON.stringify(dishObject);
 		}
-
+		console.log(redisDishesToSet)
 		await RedisService.redis.hmset("dishes", redisDishesToSet);
 		return dishes;
 	}
@@ -231,9 +233,12 @@ const updateDish = async (dishName: string, dish: Partial<IDish>) => {
 	);
 };
 
+
+
 export const DishesService = {
 	createNewDish,
 	deleteDish,
 	getDishes,
 	updateDish,
+
 };

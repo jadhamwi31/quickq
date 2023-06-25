@@ -47,17 +47,19 @@ const createNewOrder = async (newOrder: OrderDishesType, tableId: number) => {
     order.status = "Pending";
     order.total = 0;
     order.orderDishes = [];
+
     await ordersRepo.save(order);
     for (const orderDish of newOrder) {
         const dishRecord = await dishesRepo.findOneBy({name: orderDish.name});
         if (!dishRecord) {
             throw new NotFoundError(`${orderDish.name}: not found`);
         }
-        order.total += dishRecord.price * orderDish.quantity;
+        order.total += Number(dishRecord.price) * orderDish.quantity;
         const newOrderDish = new OrderDish();
         newOrderDish.order = order;
         newOrderDish.dish = dishRecord;
         newOrderDish.quantity = orderDish.quantity;
+        newOrderDish.price = dishRecord.price;
 
         await ordersDishesRepo.save(newOrderDish);
 
@@ -249,7 +251,9 @@ const getTodayOrders = async () => {
         const dayEnd = moment().endOf("day").toDate();
         const _orders = await AppDataSource.createQueryBuilder()
             .from(Order, "order")
-            .addSelect(["order.id", "order.status"])
+            .addSelect(["order.id", "order.status","order.date"])
+            .leftJoin("order.table","table")
+            .addSelect(["table.id"])
             .leftJoin("order.orderDishes", "order_dish")
             .addSelect(["order_dish.quantity"])
             .leftJoin("order_dish.dish", "dish")

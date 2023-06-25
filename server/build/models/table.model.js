@@ -9,7 +9,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.TableCode = exports.Table = void 0;
+exports.TableSession = exports.TableCode = exports.Table = void 0;
 const typeorm_1 = require("typeorm");
 const order_model_1 = require("./order.model");
 let Table = class Table {
@@ -49,3 +49,22 @@ TableCode = __decorate([
     (0, typeorm_1.Entity)()
 ], TableCode);
 exports.TableCode = TableCode;
+let TableSession = class TableSession {
+};
+__decorate([
+    (0, typeorm_1.PrimaryGeneratedColumn)(),
+    __metadata("design:type", Number)
+], TableSession.prototype, "id", void 0);
+__decorate([
+    (0, typeorm_1.OneToOne)(() => Table, { onDelete: "CASCADE" }),
+    (0, typeorm_1.JoinColumn)(),
+    __metadata("design:type", Table)
+], TableSession.prototype, "table", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", String)
+], TableSession.prototype, "clientId", void 0);
+TableSession = __decorate([
+    (0, typeorm_1.Entity)()
+], TableSession);
+exports.TableSession = TableSession;

@@ -13,9 +13,9 @@ exports.CategoriesController = void 0;
 const categories_service_1 = require("../services/categories.service");
 const http_status_codes_1 = require("http-status-codes");
 const createNewCategoryHandler = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    const { name } = req.body;
+    const { name, image } = req.body;
     try {
-        yield categories_service_1.CategoriesService.createNewCategory(name);
+        yield categories_service_1.CategoriesService.createNewCategory(name, image);
         return res
             .status(http_status_codes_1.StatusCodes.OK)
             .send({ code: http_status_codes_1.StatusCodes.OK, message: "category created" });
@@ -37,10 +37,10 @@ const deleteCategoryHandler = (req, res, next) => __awaiter(void 0, void 0, void
     }
 });
 const updateCategoryHandler = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    const { name } = req.body;
+    const { name, image } = req.body;
     const categoryName = req.params.name;
     try {
-        yield categories_service_1.CategoriesService.updateCategory(categoryName, name);
+        yield categories_service_1.CategoriesService.updateCategory(categoryName, name, image);
         return res
             .status(http_status_codes_1.StatusCodes.OK)
             .send({ code: http_status_codes_1.StatusCodes.OK, message: "category updated" });

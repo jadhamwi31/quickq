@@ -13,27 +13,34 @@ exports.UserController = void 0;
 const auth_service_1 = require("../services/auth.service");
 const http_status_codes_1 = require("http-status-codes");
 const loginHandler = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    const { username, password, table_code: table_code } = req.body;
+    const { username, password, table_code } = req.body;
     try {
         if (username && password) {
             const jwt = yield auth_service_1.AuthService.loginByUsernameAndPassword(username, password);
             return res
                 .status(http_status_codes_1.StatusCodes.OK)
-                .cookie("jwt", jwt)
-                .send({ code: http_status_codes_1.StatusCodes.OK, message: "logged in" });
+                .cookie("jwt", jwt, { httpOnly: false })
+                .send({ code: http_status_codes_1.StatusCodes.OK, message: "logged in", token: jwt });
         }
         if (table_code) {
             const jwt = yield auth_service_1.AuthService.loginByTableCode(table_code);
             return res
                 .status(http_status_codes_1.StatusCodes.OK)
-                .cookie("jwt", jwt)
-                .send({ code: http_status_codes_1.StatusCodes.OK, message: "logged in" });
+                .cookie("jwt", jwt, { httpOnly: false })
+                .send({ code: http_status_codes_1.StatusCodes.OK, message: "logged in", token: jwt });
         }
     }
     catch (e) {
         next(e);
     }
 });
+const logoutHandler = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    return res
+        .status(http_status_codes_1.StatusCodes.OK)
+        .clearCookie("jwt")
+        .send({ code: http_status_codes_1.StatusCodes.OK, message: "logged out" });
+});
 exports.UserController = {
     loginHandler,
+    logoutHandler,
 };

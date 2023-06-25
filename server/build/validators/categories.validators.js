@@ -18,12 +18,12 @@ const validateDeleteCategory = (req, res, next) => {
 };
 const validateUpdateCategory = (req, res, next) => {
     const categoryName = req.params.name;
-    const { name } = req.body;
+    const { name, image } = req.body;
     if (!name) {
         return next(new error_model_1.BadRequestError("key : [name] is required"));
     }
-    if (!categoryName) {
-        return next(new error_model_1.BadRequestError("name parameter is required"));
+    if (!categoryName && !image) {
+        return next(new error_model_1.BadRequestError("new category name or image is required"));
     }
     return next();
 };

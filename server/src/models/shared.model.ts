@@ -1,4 +1,4 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import {Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn} from "typeorm";
 import { Dish } from "./dish.model";
 import { Ingredient } from "./ingredient.model";
 import { Order } from "./order.model";
@@ -35,6 +35,12 @@ export class OrderDish {
 	})
 	dish: Dish;
 
+	@CreateDateColumn()
+	date: Date;
+
 	@Column()
 	quantity: number;
+
+	@Column({default:20})
+	price:number;
 }

@@ -21,4 +21,51 @@ const validateNewOrder = (req, res, next) => {
     }
     return next();
 };
-exports.OrdersValidators = { validateNewOrder };
+const validateUpdateOrder = (req, res, next) => {
+    const { dishesToMutate, dishesToRemove } = req.body;
+    const { id } = req.params;
+    if (!dishesToMutate && !dishesToRemove) {
+        return next(new error_model_1.BadRequestError("invalid order update request"));
+    }
+    if (dishesToMutate)
+        dishesToMutate.forEach((dish) => {
+            if (!dish.name) {
+                return next(new error_model_1.BadRequestError("dish to mutate : name is missing"));
+            }
+        });
+    if (dishesToRemove)
+        dishesToRemove.forEach((dish) => {
+            if (!dish.name) {
+                return next(new error_model_1.BadRequestError("dish to remove : name is missing"));
+            }
+        });
+    if (!id) {
+        return next(new error_model_1.BadRequestError("order id parameter is missing"));
+    }
+    return next();
+};
+const validateUpdateOrderStatus = (req, res, next) => {
+    const { status } = req.body;
+    const { id } = req.params;
+    const { role } = req.user;
+    if (!status) {
+        return next(new error_model_1.BadRequestError("status is missing"));
+    }
+    if (!(status === "Cancelled" ||
+        status === "In Cook" ||
+        status === "Pending" ||
+        status === "Ready"))
+        return next(new error_model_1.BadRequestError("invalid order status"));
+    if (role === "client" && status !== "Cancelled") {
+        return next(new error_model_1.BadRequestError("you can only cancel orders as client"));
+    }
+    if (!id) {
+        return next(new error_model_1.BadRequestError("order id parameter is missing"));
+    }
+    return next();
+};
+exports.OrdersValidators = {
+    validateNewOrder,
+    validateUpdateOrder,
+    validateUpdateOrderStatus,
+};

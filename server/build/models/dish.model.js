@@ -32,6 +32,10 @@ __decorate([
     __metadata("design:type", String)
 ], Dish.prototype, "description", void 0);
 __decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", String)
+], Dish.prototype, "image", void 0);
+__decorate([
     (0, typeorm_1.OneToMany)(() => shared_model_1.DishIngredient, (dishIngredient) => dishIngredient.dish),
     __metadata("design:type", Array)
 ], Dish.prototype, "dishIngredients", void 0);

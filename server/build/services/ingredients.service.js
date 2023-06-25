@@ -13,15 +13,25 @@ exports.IngredientsService = void 0;
 const models_1 = require("../models");
 const error_model_1 = require("../models/error.model");
 const ingredient_model_1 = require("../models/ingredient.model");
+const inventory_item_model_1 = require("../models/inventory_item.model");
 const createNewIngredient = (ingredient) => __awaiter(void 0, void 0, void 0, function* () {
     const ingredientsRepo = models_1.AppDataSource.getRepository(ingredient_model_1.Ingredient);
+    const inventoryItemsRepo = models_1.AppDataSource.getRepository(inventory_item_model_1.InventoryItem);
     const ingredientExists = yield ingredientsRepo.findOneBy({
         name: ingredient.name,
     });
     if (ingredientExists) {
         throw new error_model_1.ConflictError("ingredient does exist");
     }
-    yield ingredientsRepo.insert(ingredient);
+    const ingredientRecord = new ingredient_model_1.Ingredient();
+    ingredientRecord.name = ingredient.name;
+    ingredientRecord.unit = ingredient.unit;
+    yield ingredientsRepo.save(ingredientRecord);
+    const inventoryItem = new inventory_item_model_1.InventoryItem();
+    inventoryItem.ingredient = ingredientRecord;
+    inventoryItem.available = 0;
+    inventoryItem.needed = 0;
+    yield inventoryItemsRepo.save(inventoryItem);
 });
 const updateIngredient = (name, ingredient) => __awaiter(void 0, void 0, void 0, function* () {
     const ingredientsRepo = models_1.AppDataSource.getRepository(ingredient_model_1.Ingredient);
@@ -29,23 +39,25 @@ const updateIngredient = (name, ingredient) => __awaiter(void 0, void 0, void 0,
         name,
     });
     if (ingredientRecord) {
-        ingredientRecord.name = ingredient.name;
-        ingredientRecord.unit = ingredient.unit;
+        if (ingredient.name)
+            ingredientRecord.name = ingredient.name;
+        if (ingredient.unit)
+            ingredientRecord.unit = ingredient.unit;
         yield ingredientsRepo.save(ingredientRecord);
     }
     else {
-        throw new error_model_1.ConflictError("ingredient does not exist");
+        throw new error_model_1.NotFoundError("ingredient does not exist");
     }
 });
 const deleteIngredient = (name) => __awaiter(void 0, void 0, void 0, function* () {
     const ingredientsRepo = models_1.AppDataSource.getRepository(ingredient_model_1.Ingredient);
-    const ingredientExists = yield ingredientsRepo.findOneBy({
+    const ingredientRecord = yield ingredientsRepo.findOneBy({
         name,
     });
-    if (!ingredientExists) {
+    if (!ingredientRecord) {
         throw new error_model_1.NotFoundError("ingredient not found");
     }
-    yield ingredientsRepo.delete({ name });
+    yield ingredientsRepo.remove(ingredientRecord);
 });
 const getIngredients = () => __awaiter(void 0, void 0, void 0, function* () {
     const ingredientsRepo = models_1.AppDataSource.getRepository(ingredient_model_1.Ingredient);

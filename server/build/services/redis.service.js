@@ -21,5 +21,41 @@ class RedisService {
             this.redis = new ioredis_1.default(port, host);
         });
     }
+    static isCached(key, hash) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (hash) {
+                return Boolean(yield this.redis.hexists(key, hash));
+            }
+            else {
+                return Boolean(yield this.redis.exists(key));
+            }
+        });
+    }
+    static cacheLog(key, hash) {
+        console.log("------------");
+        console.log("cached version");
+        console.log(`key : ${key}`);
+        if (hash)
+            console.log(`hash : ${hash}`);
+    }
+    static getCachedVersion(key, hash) {
+        return __awaiter(this, void 0, void 0, function* () {
+            this.cacheLog(key, hash);
+            if (hash) {
+                return yield this.redis.hget(key, hash);
+            }
+            else {
+                return yield this.redis.get(key);
+            }
+        });
+    }
+    static clearCache() {
+        return __awaiter(this, void 0, void 0, function* () {
+            this.redis.del("dishes");
+            this.redis.del("payments");
+            this.redis.del("orders");
+            this.redis.del("tables:sessions");
+        });
+    }
 }
 exports.default = RedisService;

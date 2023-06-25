@@ -15,9 +15,13 @@ const order_model_1 = require("./order.model");
 let Payment = class Payment {
 };
 __decorate([
-    (0, typeorm_1.PrimaryColumn)(),
+    (0, typeorm_1.PrimaryGeneratedColumn)(),
     __metadata("design:type", String)
 ], Payment.prototype, "id", void 0);
+__decorate([
+    (0, typeorm_1.PrimaryColumn)(),
+    __metadata("design:type", String)
+], Payment.prototype, "clientId", void 0);
 __decorate([
     (0, typeorm_1.Column)({ type: "timestamptz", nullable: true }),
     __metadata("design:type", Date)

@@ -19,6 +19,9 @@ const category_model_1 = require("./category.model");
 const table_model_1 = require("./table.model");
 const order_model_1 = require("./order.model");
 const payment_model_1 = require("./payment.model");
+const inventory_item_model_1 = require("./inventory_item.model");
+const menu_customization_model_1 = require("./menu_customization.model");
+const brand_model_1 = require("./brand.model");
 const createAppDataSource = () => __awaiter(void 0, void 0, void 0, function* () {
     const { DB_NAME, DB_HOST, DB_PORT, DB_PASSWORD, DB_USERNAME } = process.env;
     exports.AppDataSource = new typeorm_1.DataSource({
@@ -41,6 +44,11 @@ const createAppDataSource = () => __awaiter(void 0, void 0, void 0, function* ()
             order_model_1.Order,
             payment_model_1.Payment,
             table_model_1.TableCode,
+            inventory_item_model_1.InventoryItem,
+            table_model_1.TableSession,
+            menu_customization_model_1.MenuCustomization,
+            category_model_1.CategoryOrder,
+            brand_model_1.Brand,
         ],
     });
     yield exports.AppDataSource.initialize();

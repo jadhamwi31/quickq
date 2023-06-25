@@ -21,11 +21,15 @@ __decorate([
     __metadata("design:type", Number)
 ], DishIngredient.prototype, "id", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => dish_model_1.Dish, (dish) => dish.dishIngredients),
+    (0, typeorm_1.ManyToOne)(() => dish_model_1.Dish, (dish) => dish.dishIngredients, {
+        onDelete: "CASCADE",
+    }),
     __metadata("design:type", dish_model_1.Dish)
 ], DishIngredient.prototype, "dish", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => ingredient_model_1.Ingredient, (ingredient) => ingredient.dishIngredients),
+    (0, typeorm_1.ManyToOne)(() => ingredient_model_1.Ingredient, (ingredient) => ingredient.dishIngredients, {
+        onDelete: "CASCADE",
+    }),
     __metadata("design:type", ingredient_model_1.Ingredient)
 ], DishIngredient.prototype, "ingredient", void 0);
 __decorate([
@@ -43,17 +47,27 @@ __decorate([
     __metadata("design:type", Number)
 ], OrderDish.prototype, "id", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => order_model_1.Order, (order) => order.orderDishes),
+    (0, typeorm_1.ManyToOne)(() => order_model_1.Order, (order) => order.orderDishes, { onDelete: "CASCADE" }),
     __metadata("design:type", order_model_1.Order)
 ], OrderDish.prototype, "order", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => dish_model_1.Dish, (dish) => dish.orderDishes),
+    (0, typeorm_1.ManyToOne)(() => dish_model_1.Dish, (dish) => dish.orderDishes, {
+        onDelete: "CASCADE",
+    }),
     __metadata("design:type", dish_model_1.Dish)
 ], OrderDish.prototype, "dish", void 0);
+__decorate([
+    (0, typeorm_1.CreateDateColumn)(),
+    __metadata("design:type", Date)
+], OrderDish.prototype, "date", void 0);
 __decorate([
     (0, typeorm_1.Column)(),
     __metadata("design:type", Number)
 ], OrderDish.prototype, "quantity", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ default: 20 }),
+    __metadata("design:type", Number)
+], OrderDish.prototype, "price", void 0);
 OrderDish = __decorate([
     (0, typeorm_1.Entity)()
 ], OrderDish);

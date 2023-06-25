@@ -1,0 +1,13 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.MenuRouter = void 0;
+const express_1 = require("express");
+const auth_middleware_1 = require("../middlewares/auth.middleware");
+const menu_validators_1 = require("../validators/menu.validators");
+const menu_controller_1 = require("../controllers/menu.controller");
+exports.MenuRouter = (0, express_1.Router)();
+exports.MenuRouter.post("/customizations", (0, auth_middleware_1.authFor)(["manager"]), menu_validators_1.MenuValidators.validateAddMenuCustomization, menu_controller_1.MenuController.addMenuCustomizationHandler);
+exports.MenuRouter.put("/customizations/:name", (0, auth_middleware_1.authFor)(["manager"]), menu_validators_1.MenuValidators.validateUpdateMenuCustomization, menu_controller_1.MenuController.updateMenuCustomizationHandler);
+exports.MenuRouter.delete("/customizations/:name", (0, auth_middleware_1.authFor)(["manager"]), menu_validators_1.MenuValidators.validateDeleteMenuCustomization, menu_controller_1.MenuController.deleteMenuCustomizationHandler);
+exports.MenuRouter.get("/active", (0, auth_middleware_1.authFor)(["manager"]), menu_controller_1.MenuController.getMenuHandler);
+exports.MenuRouter.get("/customizations", (0, auth_middleware_1.authFor)(["manager"]), menu_controller_1.MenuController.getAllMenuCustomizationsHandler);

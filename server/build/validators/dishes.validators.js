@@ -19,6 +19,9 @@ const validateCreateNewDish = (req, res, next) => {
     if (!ingredients || ingredients.length === 0) {
         return next(new error_model_1.BadRequestError("ingredients are required"));
     }
+    if (!ingredients.every((ingredient) => ingredient.amount && ingredient.name)) {
+        return next(new error_model_1.BadRequestError("invalid ingredients"));
+    }
     return next();
 };
 const validateDeleteDish = (req, res, next) => {
@@ -29,20 +32,17 @@ const validateDeleteDish = (req, res, next) => {
     return next();
 };
 const validateUpdateDish = (req, res, next) => {
-    const { name, description, price, ingredients } = req.body;
+    const { name, price, description, ingredients, category } = req.body;
     const dishName = req.params.name;
-    if (!name) {
-        return next(new error_model_1.BadRequestError("key : name is required"));
+    if (!name && !price && !description && !ingredients && !category) {
+        return next(new error_model_1.BadRequestError("update fields are missing"));
     }
-    if (!description) {
-        return next(new error_model_1.BadRequestError("key : description is required"));
-    }
-    if (!price) {
-        return next(new error_model_1.BadRequestError("key : price is required"));
-    }
-    if (!ingredients || ingredients.length === 0) {
-        return next(new error_model_1.BadRequestError("key : ingredients is required"));
-    }
+    if (ingredients)
+        ingredients.forEach((ingredient) => {
+            if (!ingredient.name && !ingredient.amount) {
+                return next(new error_model_1.BadRequestError("ingredient : name or amount is missing"));
+            }
+        });
     if (!dishName) {
         return next(new error_model_1.BadRequestError("dish name parameter is missing"));
     }
