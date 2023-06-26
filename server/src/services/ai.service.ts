@@ -5,14 +5,7 @@ import {Dish} from "../models/dish.model";
 import {Parser} from "json2csv";
 import axios from "axios";
 import {csv} from "../utils/temp";
-
-axios.interceptors.request.use(config => {
-    console.log('Request:', config);
-    return config;
-}, error => {
-    console.error('Request error:', error);
-    return Promise.reject(error);
-});
+import {DishesService} from "./dishes.service";
 
 
 type TestData = {
@@ -24,7 +17,21 @@ type TestData = {
     }[]
 }
 
-type PredictedData = {id:number,predictedPrice:number}[]
+interface IPredictedData {
+    item_id: number,
+    Actual: number,
+    Predicted: number
+}
+
+interface IPredictedDataReformed {
+    dish_name: string,
+    actual_price: number,
+    recommended_price: number
+}
+
+type PredictedData = IPredictedData[]
+
+type PredictedPricesReformedType = IPredictedDataReformed[]
 
 const dateFormat = "YYYY-MM-DD"
 
@@ -59,14 +66,24 @@ const getPricesTestData = async () => {
 }
 
 
-const predictPrices = async(_csv: string) => {
-    try{
+const predictPrices = async (csv: string) => {
+    try {
+        const predictedPrices: PredictedData = await axios.post("http://0.0.0.0:5000/predictions/prices", csv).then(({data}) => {
+            return data;
+        })
 
-    const predictedPrices:PredictedData = await axios.post("http://192.168.1.9:5000/predictions/prices",csv).then(({data}) => {
-        return data;
-    })
-    return predictedPrices;
-    }catch(e){
+        const predictedPricesReformed: PredictedPricesReformedType = [];
+        for (const entry of predictedPrices) {
+            const dish = await DishesService.getDishById(entry.item_id);
+            predictedPricesReformed.push({
+                actual_price: entry.Actual,
+                recommended_price: entry.Predicted,
+                dish_name: dish.name ?? "unknown"
+            })
+
+        }
+        return predictedPricesReformed;
+    } catch (e) {
         console.log(e)
         return []
     }
@@ -74,6 +91,11 @@ const predictPrices = async(_csv: string) => {
 
 const getPricesPrediction = async () => {
     const pricesTestData = await getPricesTestData();
+    return [{
+        "actual_price": 20,
+        "recommended_price": 15.1282110214,
+        "dish_name": "jad"
+    }]
     return await predictPrices(pricesTestData);
 }
 

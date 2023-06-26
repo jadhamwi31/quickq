@@ -70,8 +70,20 @@ const validateUpdateDish = (
 	return next();
 };
 
+const validateGetDish = (
+	req: Request<Partial<Pick<Dish, "id">>>,
+	res: Response,
+	next: NextFunction
+) => {
+	if(!req.params.id){
+		return next(new BadRequestError("dish id is required"))
+	}
+	return next();
+};
+
+
 export const DishesValidator = {
 	validateCreateNewDish,
 	validateDeleteDish,
-	validateUpdateDish,
+	validateUpdateDish,validateGetDish
 };

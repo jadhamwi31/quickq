@@ -33,3 +33,5 @@ DishesRouter.get(
 	"/",
 	DishesController.getDishesHandler
 );
+
+DishesRouter.get("/:id",DishesValidator.validateGetDish,DishesController.getDishHandler)

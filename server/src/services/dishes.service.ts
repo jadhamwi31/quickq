@@ -12,6 +12,37 @@ import {deleteImage} from "./upload.service";
 import {Payment} from "../models/payment.model";
 import moment from "moment";
 
+
+const getDishById = async (dishId: number) => {
+    if (await RedisService.isCached("dishes", String(dishId))) {
+        return JSON.parse(await RedisService.getCachedVersion("dishes", String(dishId)))
+    } else {
+        const dishesRepo = AppDataSource.getRepository(Dish);
+        const dishRecord = (await dishesRepo.findOne({
+            where: {id: dishId},
+            relations: {dishIngredients: {ingredient:true}, category: true}
+        }))
+        if (dishRecord) {
+            const redisDish = {
+                name: dishRecord.name,
+                price: dishRecord.price,
+                description: dishRecord.description,
+                ingredients: dishRecord.dishIngredients.map((ingredient) => ({
+                    name: ingredient.ingredient.name,
+                    amount: ingredient.amount,
+                    unit: ingredient.ingredient.unit,
+                })),
+                category: dishRecord.category.name,
+                image: dishRecord.image,
+            };
+            await RedisService.redis.hset("dishes", String(dishId), JSON.stringify(redisDish))
+            return redisDish;
+        }else{
+            throw new NotFoundError("dish not found")
+        }
+    }
+}
+
 const createNewDish = async (dish: IDish) => {
     const ingredientsRepo = AppDataSource.getRepository(Ingredient);
     const dishesRepo = AppDataSource.getRepository(Dish);
@@ -243,5 +274,5 @@ export const DishesService = {
     deleteDish,
     getDishes,
     updateDish,
-
+    getDishById
 };
