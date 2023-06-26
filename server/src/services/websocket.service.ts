@@ -59,20 +59,20 @@ export default class WebsocketService {
             }
             socket.emit("authorized", `you're authorized as ${socket.user.role}`);
 
-            socket.on("request_checkout", (tableId) => {
+            socket.on("request_checkout", () => {
                 socket
                     .to(["cashier"])
                     .emit(
                         "notification",
                         "Table Checkout Request",
-                        `Table Number : ${tableId}`
+                        `Table Number : ${socket.user.tableId}`
                     );
             });
-            socket.on("request_help", (tableId) => {
-                socket.to(["cashier"]).emit("notification", "Table Help Call", `Table Number : ${tableId}`)
+            socket.on("request_help", () => {
+                socket.to(["cashier"]).emit("notification", "Table Help Call", `Table Number : ${socket.user.tableId}`)
             })
             socket.on("disconnect", () => {
-                console.log("disconnected")
+
                 if (socket.user.tableId) {
 
                     this.map.delete(socket.user.tableId)
