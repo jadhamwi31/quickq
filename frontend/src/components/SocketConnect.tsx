@@ -5,12 +5,9 @@ import { Outlet } from "react-router-dom";
 type Props = {};
 
 const SocketConnect = (props: Props) => {
-	const { socket, connectSocket } = useSocketIoContext();
+	const { socket, connectSocket,disconnectSocket } = useSocketIoContext();
 	useEffect(() => {
-		if (!socket) {
 			connectSocket();
-		}
-
 	}, []);
 	return <>{socket ? <Outlet /> : <div>Loading...</div>}</>;
 };
