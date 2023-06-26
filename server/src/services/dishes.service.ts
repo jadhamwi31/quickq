@@ -1,4 +1,4 @@
-import _ from "lodash";
+import _, {isEmpty} from "lodash";
 import { AppDataSource } from "../models";
 import { Category } from "../models/category.model";
 import { Dish } from "../models/dish.model";
@@ -150,8 +150,10 @@ const getDishes = async () => {
 			dishes.push(dishObject);
 			redisDishesToSet[dish.id] = JSON.stringify(dishObject);
 		}
-		console.log(redisDishesToSet)
+		if(!isEmpty(redisDishesToSet)){
+
 		await RedisService.redis.hmset("dishes", redisDishesToSet);
+		}
 		return dishes;
 	}
 };

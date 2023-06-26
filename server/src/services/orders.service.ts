@@ -18,6 +18,7 @@ import RedisService from "./redis.service";
 import {TablesService} from "./tables.service";
 import WebsocketService from "./websocket.service";
 import {UserRoleType} from "../ts/types/user.types";
+import {isEmpty} from "lodash";
 
 const createNewOrder = async (newOrder: OrderDishesType, tableId: number) => {
     const dishesRepo = AppDataSource.getRepository(Dish);
@@ -281,11 +282,15 @@ const getTodayOrders = async () => {
                     })
                 ),
             };
+
             orders.push(orderObject);
             redisOrdersToSet[order.id] = JSON.stringify(orderObject);
         }
+        if(!isEmpty(redisOrdersToSet)){
+
         // Update Orders In Redis
         await RedisService.redis.hmset("orders", redisOrdersToSet);
+        }
 
         return orders;
     }
