@@ -1,20 +1,13 @@
-import { v4 as uuid } from "uuid";
-import { AppDataSource } from "../models";
-import {
-	BadRequestError,
-	ConflictError,
-	NotFoundError,
-} from "../models/error.model";
-import { Payment } from "../models/payment.model";
-import { Table, TableCode, TableSession } from "../models/table.model";
-import { TableStatus } from "../ts/types/table.types";
+import {v4 as uuid} from "uuid";
+import {AppDataSource} from "../models";
+import {BadRequestError, ConflictError, NotFoundError,} from "../models/error.model";
+import {Payment} from "../models/payment.model";
+import {Table, TableCode, TableSession} from "../models/table.model";
+import {TableStatus} from "../ts/types/table.types";
 import RedisService from "./redis.service";
-import { OrdersService } from "./orders.service";
-import { UserRoleType } from "../ts/types/user.types";
+import {OrdersService} from "./orders.service";
+import {UserRoleType} from "../ts/types/user.types";
 import WebsocketService from "./websocket.service";
-import requestContext from "express-http-context";
-import {Order} from "../models/order.model";
-import {EntityManager, getManager} from "typeorm";
 
 const getTableSessionClientId = async (tableId: number) => {
 	const isTableSessionCached = await RedisService.isCached(

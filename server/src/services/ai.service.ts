@@ -4,7 +4,6 @@ import moment from "moment";
 import {Dish} from "../models/dish.model";
 import {Parser} from "json2csv";
 import axios from "axios";
-import {csv} from "../utils/temp";
 import {DishesService} from "./dishes.service";
 
 
@@ -60,17 +59,18 @@ const getPricesTestData = async () => {
         }
     }
     const dataFlattened = Object.values(data).flat()
+    console.log(dataFlattened)
     const parser = new Parser({fields: ["date", "item_id", "price", "item_count"], header: true})
-
     return parser.parse(dataFlattened)
 }
 
 
-const predictPrices = async (_csv: string) => {
+const predictPrices = async (csv: string) => {
+    console.log(csv)
     try {
-        const predictedPrices: PredictedData = await axios.post("http://0.0.0.0:5000/predictions/prices", csv).then(({data}) => {
+        const predictedPrices: PredictedData = (await axios.post("http://0.0.0.0:5000/predictions/prices", csv).then(({data}) => {
             return data;
-        })
+        }))
 
         const predictedPricesReformed: PredictedPricesReformedType = [];
         for (const entry of predictedPrices) {
@@ -83,11 +83,7 @@ const predictPrices = async (_csv: string) => {
                 dish_name: dish.name
             })
             }catch(e){
-                predictedPricesReformed.push({
-                    actual_price: entry.Actual,
-                    recommended_price: entry.Predicted,
-                    dish_name: "unknown"
-                })
+                console.log(e)
             }
         }
         return predictedPricesReformed;
