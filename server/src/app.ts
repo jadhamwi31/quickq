@@ -54,7 +54,7 @@ dotenv.config();
 	app.use("/menu", MenuRouter);
 	app.use("/cache", CacheRouter);
 	app.use("/users", UsersRouter);
-	app.use("/brand", authFor(["manager"]), BrandRouter);
+	app.use("/brand", BrandRouter);
 	app.use("/images", express.static(imagesDirectory));
 	app.use("/ai",AiRouter);
 	app.use(errorMiddleware);
