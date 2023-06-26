@@ -24,7 +24,7 @@ export const createAppDataSource = async () => {
 		port: Number(DB_PORT),
 		database: DB_NAME,
 		synchronize: true,
-		logging: true,
+		logging: false,
 		entities: [
 			User,
 			Dish,

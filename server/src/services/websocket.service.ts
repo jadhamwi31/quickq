@@ -49,7 +49,7 @@ export default class WebsocketService {
             }
         });
         this._io.on("connection", (socket) => {
-
+            console.log("connected",socket.user)
             if (socket.user.role === "client") {
                 socket.join(String(socket.user.tableId));
                 this.map.set(String(socket.user.tableId), socket.id);
@@ -57,7 +57,8 @@ export default class WebsocketService {
                 socket.join(socket.user.role);
                 this.map.set(String(socket.user.username), socket.id);
             }
-            socket.emit("authorized", `you're authorized as ${socket.user.role}`);
+            socket.emit("authorized", `you're authorized as ${socket.user.username || socket.user.role
+            }`);
 
             socket.on("request_checkout", () => {
                 socket
@@ -72,7 +73,7 @@ export default class WebsocketService {
                 socket.to(["cashier"]).emit("notification", "Table Help Call", `Table Number : ${socket.user.tableId}`)
             })
             socket.on("disconnect", () => {
-
+                console.log("disconnected client",socket.user)
                 if (socket.user.tableId) {
 
                     this.map.delete(socket.user.tableId)
@@ -89,7 +90,7 @@ export default class WebsocketService {
         ev: keyof IServerToClientEvents,
         ...params: Parameters<IServerToClientEvents[typeof ev]>
     ) {
-
+        console.log(this.map)
         const httpRequestClientSocket = this.getHttpRequestClientSocket();
 
 
@@ -100,7 +101,7 @@ export default class WebsocketService {
 
     private static getHttpRequestClientSocket() {
         const key = requestContext.get("username") ?? requestContext.get("tableId");
-        console.log(key)
+
         const socketId = this.map.get(key);
 
         return this._io.sockets.sockets.get(socketId);
