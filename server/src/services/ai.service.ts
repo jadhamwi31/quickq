@@ -66,7 +66,7 @@ const getPricesTestData = async () => {
 }
 
 
-const predictPrices = async (csv: string) => {
+const predictPrices = async (_csv: string) => {
     try {
         const predictedPrices: PredictedData = await axios.post("http://0.0.0.0:5000/predictions/prices", csv).then(({data}) => {
             return data;
@@ -74,13 +74,21 @@ const predictPrices = async (csv: string) => {
 
         const predictedPricesReformed: PredictedPricesReformedType = [];
         for (const entry of predictedPrices) {
+            try{
+
             const dish = await DishesService.getDishById(entry.item_id);
             predictedPricesReformed.push({
                 actual_price: entry.Actual,
                 recommended_price: entry.Predicted,
-                dish_name: dish.name ?? "unknown"
+                dish_name: dish.name
             })
-
+            }catch(e){
+                predictedPricesReformed.push({
+                    actual_price: entry.Actual,
+                    recommended_price: entry.Predicted,
+                    dish_name: "unknown"
+                })
+            }
         }
         return predictedPricesReformed;
     } catch (e) {
@@ -91,11 +99,6 @@ const predictPrices = async (csv: string) => {
 
 const getPricesPrediction = async () => {
     const pricesTestData = await getPricesTestData();
-    return [{
-        "actual_price": 20,
-        "recommended_price": 15.1282110214,
-        "dish_name": "jad"
-    }]
     return await predictPrices(pricesTestData);
 }
 

@@ -6,14 +6,14 @@ const updateInventoryItemValidator = (
 	req: Request<
 		Partial<{ ingredientName: string }>,
 		{},
-		Partial<Pick<InventoryItem, "available" | "needed">>
+		Partial<Pick<InventoryItem, "available" | "needed" | "thresh_hold">>
 	>,
 	res: Response,
 	next: NextFunction
 ) => {
-	const { available, needed } = req.body;
+	const { available, needed ,thresh_hold} = req.body;
 	const { ingredientName } = req.params;
-	if (!available && !needed) {
+	if (!available && !needed && !thresh_hold) {
 		next(new BadRequestError("available or needed is required"));
 	}
 	if (!ingredientName) {

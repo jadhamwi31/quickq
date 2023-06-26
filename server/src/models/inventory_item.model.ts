@@ -22,4 +22,7 @@ export class InventoryItem {
 
 	@Column()
 	needed: number;
+
+	@Column({default:0})
+	thresh_hold: number;
 }
