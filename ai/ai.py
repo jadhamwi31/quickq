@@ -27,15 +27,15 @@ app = Flask(__name__)
 
 
 
-@app.route("/",methods=["GET"])
-def index():
-    return "index";
-
 @app.route('/predictions/prices', methods=['POST'])
 def predict():
-    
+
     csv_string = request.get_data().decode("utf-8") # Get input data from the request
-    input_data = pd.read_csv(io.StringIO(csv_string));
+    restaurant_data = pd.read_csv(io.StringIO(csv_string))
+    initial_data = pd.read_csv("./initial_data.csv")
+    print(restaurant_data,initial_data)
+    input_data = pd.concat([initial_data, restaurant_data], ignore_index=True)
+    print(input_data)
     y = input_data.price
     input_data.info()
     #print(input_data)
@@ -63,12 +63,10 @@ def predict():
     predictions_df = pd.DataFrame({'item_id' : input_data['item_id'],'Actual': y, 'Predicted': predictions})
     aggregated_predictions = predictions_df.groupby(input_data1['item_id']).mean()
     aggregated_predictions['item_id'] = aggregated_predictions['item_id'].astype(int)
-    j = aggregated_predictions.to_json(orient='records')
+    predictions_json = aggregated_predictions.to_json(orient='records')
 
-    print(j)
-    #return jsonify([])
-    # Return the predictions as a response
-    return j
+
+    return predictions_json
 
 
 # In[ ]:
