@@ -108,10 +108,27 @@ const getOrdersHistoryHandler = async (
 	}
 };
 
+const getTableOrdersHandler = async (
+	req: Request<{tableId:number}>,
+	res: Response,
+	next: NextFunction
+) => {
+	try {
+		const orders = await OrdersService.getTableOrders(req.params.tableId);
+		return res.status(StatusCodes.OK).send({
+			code: StatusCodes.OK,
+			data: orders,
+		});
+	} catch (e) {
+		return next(e);
+	}
+};
+
+
 export const OrdersController = {
 	newOrderHandler,
 	updateOrderHandler,
 	updateOrderStatusHandler,
 	getTodayOrdersHandler,
-	getOrdersHistoryHandler,
+	getOrdersHistoryHandler,getTableOrdersHandler
 };

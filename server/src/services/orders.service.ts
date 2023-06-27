@@ -6,18 +6,12 @@ import {BadRequestError, NotFoundError} from "../models/error.model";
 import {Order} from "../models/order.model";
 import {Payment} from "../models/payment.model";
 import {OrderDish} from "../models/shared.model";
-import requestContext from "express-http-context";
 import {Table} from "../models/table.model";
 import {IRedisTableOrder} from "../ts/interfaces/order.interfaces";
-import {
-    OrderDishesType,
-    OrderStatusType,
-    RedisOrderDish,
-} from "../ts/types/order.types";
+import {OrderDishesType, OrderStatusType, RedisOrderDish,} from "../ts/types/order.types";
 import RedisService from "./redis.service";
 import {TablesService} from "./tables.service";
 import WebsocketService from "./websocket.service";
-import {UserRoleType} from "../ts/types/user.types";
 import {isEmpty} from "lodash";
 
 const createNewOrder = async (newOrder: OrderDishesType, tableId: number) => {
@@ -252,8 +246,8 @@ const getTodayOrders = async () => {
         const dayEnd = moment().endOf("day").toDate();
         const _orders = await AppDataSource.createQueryBuilder()
             .from(Order, "order")
-            .addSelect(["order.id", "order.status","order.date"])
-            .leftJoin("order.table","table")
+            .addSelect(["order.id", "order.status", "order.date"])
+            .leftJoin("order.table", "table")
             .addSelect(["table.id"])
             .leftJoin("order.orderDishes", "order_dish")
             .addSelect(["order_dish.quantity"])
@@ -286,12 +280,12 @@ const getTodayOrders = async () => {
             orders.push(orderObject);
             redisOrdersToSet[order.id] = JSON.stringify(orderObject);
         }
-        if(!isEmpty(redisOrdersToSet)){
+        if (!isEmpty(redisOrdersToSet)) {
 
-        // Update Orders In Redis
-        await RedisService.redis.hmset("orders", redisOrdersToSet);
-        }else{
-        await RedisService.redis.hmset("orders", {dumb:"dumb"});
+            // Update Orders In Redis
+            await RedisService.redis.hmset("orders", redisOrdersToSet);
+        } else {
+            await RedisService.redis.hmset("orders", {dumb: "dumb"});
 
         }
 
@@ -318,11 +312,16 @@ const getOrdersHistory = async () => {
     return orders;
 };
 
+const getTableOrders = async (tableId: number) => {
+    const todayOrders = await getTodayOrders();
+    return todayOrders.filter((order) => order.tableId === tableId);
+}
+
 export const OrdersService = {
     createNewOrder,
     orderBelongsToTable,
     updateOrder,
     updateOrderStatus,
     getTodayOrders,
-    getOrdersHistory,
+    getOrdersHistory,getTableOrders
 };

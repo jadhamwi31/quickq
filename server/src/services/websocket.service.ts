@@ -24,7 +24,6 @@ export default class WebsocketService {
         InterServerEvents
     >;
     private static map = new Map<string | number, string>();
-    private static numberOfClients = 0;
 
     public static init(httpServer: HttpServer) {
         this._io = new Server(httpServer);
