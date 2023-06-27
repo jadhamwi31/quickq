@@ -72,7 +72,7 @@ export const SocketIoContextProvider = ({children}: Props) => {
             const socket: Socket<IServerToClientEvents, IClientToServerEvents> = io({
                 extraHeaders: {
                     token: jwt,
-                },forceNew:true
+                },
             });
 
 
@@ -81,8 +81,10 @@ export const SocketIoContextProvider = ({children}: Props) => {
                 setSocket(socket);
             });
 
-
-
+            socket.on("disconnect",() => {
+                setSocket(null)
+            })
+            console.log("connect")
         }
     };
 
@@ -91,6 +93,7 @@ export const SocketIoContextProvider = ({children}: Props) => {
 
 
             isConnected.current = false;
+            console.log("disconnect")
             socket.close();
         }
     };
