@@ -19,7 +19,7 @@ const getTableSessionClientId = async (tableId: number) => {
 			"tables:sessions",
 			String(tableId)
 		);
-		console.log(clientId);
+
 
 		return clientId;
 	} else {
@@ -131,6 +131,7 @@ const openNewTableSession = async (tableId: number, clientId: string) => {
 	const paymentsRepo = AppDataSource.getRepository(Payment);
 	const tablesRepo = AppDataSource.getRepository(Table);
 	const table = await tablesRepo.findOneBy({ id: tableId });
+	console.log(table)
 	if (table.status === "Busy") {
 		throw new BadRequestError("table is busy");
 	}

@@ -31,7 +31,7 @@ const newPayment = async (tableId: number, amountPaid: number) => {
 	if (payment) {
 		payment.date = new Date();
 		payment.amount = amountPaid;
-		paymentsRepo.save(payment);
+		await paymentsRepo.save(payment);
 	} else {
 		throw new BadRequestError("no payment for this table right now");
 	}
@@ -42,7 +42,7 @@ const newPayment = async (tableId: number, amountPaid: number) => {
 		where: { table: { id: tableId } },
 	});
 	tableSessionRecord.clientId = null;
-	tablesSessionsRepo.save(tableSessionRecord);
+	await tablesSessionsRepo.save(tableSessionRecord);
 	// Clear Table Session From Cache
 	await RedisService.redis.hdel("tables:sessions", String(tableId));
 

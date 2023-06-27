@@ -33,9 +33,6 @@ export default class RedisService {
 	}
 
 	public static async clearCache() {
-		this.redis.del("dishes");
-		this.redis.del("payments");
-		this.redis.del("orders");
-		this.redis.del("tables:sessions");
+		await this.redis.flushall()
 	}
 }
