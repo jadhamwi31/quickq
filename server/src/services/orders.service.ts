@@ -152,13 +152,23 @@ const updateOrder = async (
     await ordersDishesRepo.save(orderDishesRecords);
     const orders = await getTodayOrders();
     const currentOrder = orders.find((order) => order.id == orderId);
-    if (dishesToMutate || dishesToRemove)
+    if (dishesToMutate || dishesToRemove) {
+
         WebsocketService.publishEvent(
             ["chef", "manager", String(orderRecord.table.id), "cashier"],
             "update_order",
             orderId,
             {dishesToMutate, dishesToRemove}
         );
+        const MutatedDishesStr = dishesToMutate.map((dish) => `${dish.name} : ${dish.quantity}`).join("\n")
+        const RemovedDishesStr = dishesToRemove.map((dish) => `${dish.name}`).join("\n")
+        WebsocketService.publishEvent(
+            ["chef"],
+            "notification",
+            "Order Update",
+            `Dishes Modified :\n${MutatedDishesStr}\nDishes Removed :\n${RemovedDishesStr}`
+        );
+    }
 
     currentOrder.dishes = orderDishesRecords.map(
         (orderDish): RedisOrderDish => ({
@@ -325,5 +335,5 @@ export const OrdersService = {
     updateOrder,
     updateOrderStatus,
     getTodayOrders,
-    getOrdersHistory,getTableOrders
+    getOrdersHistory, getTableOrders
 };
