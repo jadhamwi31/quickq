@@ -160,13 +160,13 @@ const openNewTableSession = async (tableId: number, clientId: string) => {
 
 const checkoutTable = async (tableId: number) => {
 	const orders = await OrdersService.getTodayOrders();
-
+	console.log(tableId)
 	const tableOrders = orders.filter((order) => order.tableId == tableId);
-
 	const total = tableOrders.reduce(
 		(total, current) => total + current.total,
 		0
 	);
+	console.log(total)
 
 	return { receipt: tableOrders, total };
 };
