@@ -248,7 +248,7 @@ const getTodayOrders = async () => {
         RedisService.cacheLog("orders");
         const _todayOrders = Object.values(
             await RedisService.redis.hgetall("orders")
-        ).filter((val) => val !== "dumb").map((order): IRedisTableOrder => JSON.parse(order));
+        ).map((order): IRedisTableOrder => JSON.parse(order));
         const _todayOrdersSorted = _todayOrders.sort((a, b) => b.id - a.id);
         return _todayOrdersSorted;
     } else {
@@ -294,9 +294,6 @@ const getTodayOrders = async () => {
 
             // Update Orders In Redis
             await RedisService.redis.hmset("orders", redisOrdersToSet);
-        } else {
-            await RedisService.redis.hmset("orders", {dumb: "dumb"});
-
         }
 
         return orders;

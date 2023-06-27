@@ -142,7 +142,7 @@ const getDishes = async () => {
         RedisService.cacheLog("dishes");
         const dishes: RedisDishesType = Object.values(
             await RedisService.redis.hgetall("dishes")
-        ).filter((val) => val !== "dumb").map((dish) => JSON.parse(dish));
+        ).map((dish) => JSON.parse(dish));
         return dishes;
     } else {
         const _dishes = await AppDataSource.getRepository(Dish)
@@ -184,8 +184,6 @@ const getDishes = async () => {
         if (!isEmpty(redisDishesToSet)) {
 
             await RedisService.redis.hmset("dishes", redisDishesToSet);
-        } else {
-            await RedisService.redis.hmset("dishes", {dumb: "dumb"});
         }
         return dishes;
     }
