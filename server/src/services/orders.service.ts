@@ -313,8 +313,10 @@ const getOrdersHistory = async () => {
 };
 
 const getTableOrders = async (tableId: number) => {
+
     const todayOrders = await getTodayOrders();
-    return todayOrders.filter((order) => order.tableId === tableId);
+
+    return todayOrders.filter((order) => order.tableId == tableId);
 }
 
 export const OrdersService = {
