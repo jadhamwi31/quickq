@@ -231,7 +231,7 @@ const updateDish = async (dishName: string, dish: Partial<IDish>) => {
             dishIngredient.ingredient = ingredientRecord;
             dishIngredientsToSave.push(dishIngredient);
         }
-        dishIngredientsRepo.save(dishIngredientsToSave);
+        await dishIngredientsRepo.save(dishIngredientsToSave);
         dishRecord.dishIngredients = dishIngredientsToSave;
     }
 
