@@ -1,15 +1,4 @@
-import {
-	Column,
-	Entity,
-	JoinColumn,
-	OneToMany,
-	OneToOne,
-	PrimaryColumn,
-	PrimaryGeneratedColumn,
-	Unique,
-} from "typeorm";
-import { Ingredient } from "./ingredient.model";
-import { CategoryOrder } from "./category.model";
+import {Column, Entity, PrimaryColumn,} from "typeorm";
 
 @Entity()
 export class MenuCustomization {
@@ -22,9 +11,4 @@ export class MenuCustomization {
 	@Column()
 	active: boolean;
 
-	@OneToMany(
-		() => CategoryOrder,
-		(categoryOrder) => categoryOrder.menuCustomization
-	)
-	categories_order: CategoryOrder[];
 }

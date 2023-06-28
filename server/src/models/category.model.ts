@@ -25,33 +25,7 @@ export class Category {
 	@OneToMany(() => Dish, (dish) => dish.category)
 	dishes: Dish[];
 
-	@OneToMany(() => CategoryOrder, (categoryOrder) => categoryOrder.category)
-	categories_order: CategoryOrder[];
-
 	@Column({ nullable: true })
 	image: string;
 }
 
-@Entity()
-export class CategoryOrder {
-	@PrimaryGeneratedColumn()
-	id: number;
-
-	@ManyToOne(
-		() => MenuCustomization,
-		(menuCustomization) => menuCustomization.categories_order,
-		{
-			onDelete: "CASCADE",
-		}
-	)
-	menuCustomization: MenuCustomization;
-
-	@Column()
-	order: number;
-
-	@ManyToOne(() => Category, (category) => category.categories_order, {
-		onDelete: "CASCADE",
-	})
-	@JoinColumn()
-	category: Category;
-}

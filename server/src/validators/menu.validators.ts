@@ -10,7 +10,6 @@ type DeepPartial<T> = T extends object
 	: T;
 
 const createMenuCustomizationSchema = (type: "optional" | "required") => {
-	const MenuCategoriesOrderSchema = z.array(z.string()).optional();
 	if (type === "optional") {
 		const CSSPropertiesSchema = z.record(z.any(), z.any()).optional();
 
@@ -19,7 +18,6 @@ const createMenuCustomizationSchema = (type: "optional" | "required") => {
 			body: CSSPropertiesSchema,
 			item: CSSPropertiesSchema,
 			category: CSSPropertiesSchema,
-			categories_order: MenuCategoriesOrderSchema,
 			status: z.union([z.literal("active"), z.literal("in-active")]).optional(),
 		});
 	} else {
@@ -30,7 +28,6 @@ const createMenuCustomizationSchema = (type: "optional" | "required") => {
 			body: CSSPropertiesSchema,
 			item: CSSPropertiesSchema,
 			category: CSSPropertiesSchema,
-			categories_order: MenuCategoriesOrderSchema,
 		});
 	}
 };
