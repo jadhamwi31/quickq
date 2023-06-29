@@ -18,7 +18,7 @@ const loginByUsernameAndPassword = async (
 				username: user.username,
 				role: user.role,
 			});
-			return token;
+			return {token,role:user.role};
 		} else {
 			throw new UnauthorizedError("incorrect password");
 		}
@@ -58,8 +58,8 @@ const loginByTableCode = async (code: string) => {
 		String(tableCodeRecord.table.id),
 		clientId
 	);
-
-	return token;
+	console.log(tableCodeRecord.table.id)
+	return {token,role:"client",tableId:tableCodeRecord.table.id};
 };
 
 export const AuthService = {

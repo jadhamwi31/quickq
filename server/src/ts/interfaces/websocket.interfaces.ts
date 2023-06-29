@@ -1,6 +1,8 @@
 import { OrderDishesType, OrderStatusType } from "../types/order.types";
 import { TableStatus } from "../types/table.types";
 import {IOrderDish, IRedisTableOrder} from "./order.interfaces";
+import {Payment} from "../../models/payment.model";
+import {INewPayment, IRedisPayment} from "./payment.interfaces";
 
 export interface IServerToClientEvents {
 	update_table_status: (tableId: number, status: TableStatus) => void;
@@ -20,6 +22,7 @@ export interface IServerToClientEvents {
 	authorized: (msg: string) => void;
 	notification: (title: string, content: string) => void;
 	new_order:(order:IRedisTableOrder) => void;
+	new_payment:(payment:(IRedisPayment & {clientId:string})) => void;
 }
 
 export interface IClientToServerEvents {

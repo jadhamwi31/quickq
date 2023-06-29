@@ -25,6 +25,7 @@ const table_model_1 = require("../models/table.model");
 const redis_service_1 = __importDefault(require("./redis.service"));
 const tables_service_1 = require("./tables.service");
 const websocket_service_1 = __importDefault(require("./websocket.service"));
+const lodash_1 = require("lodash");
 const createNewOrder = (newOrder, tableId) => __awaiter(void 0, void 0, void 0, function* () {
     const dishesRepo = models_1.AppDataSource.getRepository(dish_model_1.Dish);
     const tablesRepo = models_1.AppDataSource.getRepository(table_model_1.Table);
@@ -137,8 +138,12 @@ const updateOrder = (orderId, dishesToMutate, dishesToRemove) => __awaiter(void 
     yield ordersDishesRepo.save(orderDishesRecords);
     const orders = yield getTodayOrders();
     const currentOrder = orders.find((order) => order.id == orderId);
-    if (dishesToMutate || dishesToRemove)
+    if (dishesToMutate || dishesToRemove) {
         websocket_service_1.default.publishEvent(["chef", "manager", String(orderRecord.table.id), "cashier"], "update_order", orderId, { dishesToMutate, dishesToRemove });
+        const MutatedDishesStr = dishesToMutate.map((dish) => `${dish.name} : ${dish.quantity}`).join("\n");
+        const RemovedDishesStr = dishesToRemove.map((dish) => `${dish.name}`).join("\n");
+        websocket_service_1.default.publishEvent(["chef"], "notification", "Order Update", `Dishes Modified :\n${MutatedDishesStr}\nDishes Removed :\n${RemovedDishesStr}`);
+    }
     currentOrder.dishes = orderDishesRecords.map((orderDish) => ({
         id: orderDish.id,
         quantity: orderDish.quantity,
@@ -222,8 +227,10 @@ const getTodayOrders = () => __awaiter(void 0, void 0, void 0, function* () {
             orders.push(orderObject);
             redisOrdersToSet[order.id] = JSON.stringify(orderObject);
         }
-        // Update Orders In Redis
-        yield redis_service_1.default.redis.hmset("orders", redisOrdersToSet);
+        if (!(0, lodash_1.isEmpty)(redisOrdersToSet)) {
+            // Update Orders In Redis
+            yield redis_service_1.default.redis.hmset("orders", redisOrdersToSet);
+        }
         return orders;
     }
 });
@@ -245,11 +252,15 @@ const getOrdersHistory = () => __awaiter(void 0, void 0, void 0, function* () {
         .getMany();
     return orders;
 });
+const getTableOrders = (tableId) => __awaiter(void 0, void 0, void 0, function* () {
+    const todayOrders = yield getTodayOrders();
+    return todayOrders.filter((order) => order.tableId == tableId);
+});
 exports.OrdersService = {
     createNewOrder,
     orderBelongsToTable,
     updateOrder,
     updateOrderStatus,
     getTodayOrders,
-    getOrdersHistory,
+    getOrdersHistory, getTableOrders
 };

@@ -41,7 +41,7 @@ const newPayment = (tableId, amountPaid) => __awaiter(void 0, void 0, void 0, fu
     if (payment) {
         payment.date = new Date();
         payment.amount = amountPaid;
-        paymentsRepo.save(payment);
+        yield paymentsRepo.save(payment);
     }
     else {
         throw new error_model_1.BadRequestError("no payment for this table right now");
@@ -52,7 +52,7 @@ const newPayment = (tableId, amountPaid) => __awaiter(void 0, void 0, void 0, fu
         where: { table: { id: tableId } },
     });
     tableSessionRecord.clientId = null;
-    tablesSessionsRepo.save(tableSessionRecord);
+    yield tablesSessionsRepo.save(tableSessionRecord);
     // Clear Table Session From Cache
     yield redis_service_1.default.redis.hdel("tables:sessions", String(tableId));
     // Table Orders

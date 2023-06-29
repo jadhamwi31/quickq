@@ -7,7 +7,6 @@ exports.MenuValidators = void 0;
 const zod_1 = __importDefault(require("zod"));
 const error_model_1 = require("../models/error.model");
 const createMenuCustomizationSchema = (type) => {
-    const MenuCategoriesOrderSchema = zod_1.default.array(zod_1.default.string()).optional();
     if (type === "optional") {
         const CSSPropertiesSchema = zod_1.default.record(zod_1.default.any(), zod_1.default.any()).optional();
         return zod_1.default.object({
@@ -15,7 +14,6 @@ const createMenuCustomizationSchema = (type) => {
             body: CSSPropertiesSchema,
             item: CSSPropertiesSchema,
             category: CSSPropertiesSchema,
-            categories_order: MenuCategoriesOrderSchema,
             status: zod_1.default.union([zod_1.default.literal("active"), zod_1.default.literal("in-active")]).optional(),
         });
     }
@@ -26,7 +24,6 @@ const createMenuCustomizationSchema = (type) => {
             body: CSSPropertiesSchema,
             item: CSSPropertiesSchema,
             category: CSSPropertiesSchema,
-            categories_order: MenuCategoriesOrderSchema,
         });
     }
 };

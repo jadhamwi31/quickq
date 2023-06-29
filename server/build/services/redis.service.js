@@ -40,7 +40,7 @@ class RedisService {
     }
     static getCachedVersion(key, hash) {
         return __awaiter(this, void 0, void 0, function* () {
-            this.cacheLog(key, hash);
+            // this.cacheLog(key, hash);
             if (hash) {
                 return yield this.redis.hget(key, hash);
             }
@@ -51,10 +51,7 @@ class RedisService {
     }
     static clearCache() {
         return __awaiter(this, void 0, void 0, function* () {
-            this.redis.del("dishes");
-            this.redis.del("payments");
-            this.redis.del("orders");
-            this.redis.del("tables:sessions");
+            yield this.redis.flushall();
         });
     }
 }

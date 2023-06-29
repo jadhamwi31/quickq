@@ -19,7 +19,6 @@ const dotenv_1 = __importDefault(require("dotenv"));
 const express_1 = __importDefault(require("express"));
 const http_1 = require("http");
 const morgan_1 = __importDefault(require("morgan"));
-const auth_middleware_1 = require("./middlewares/auth.middleware");
 const error_middleware_1 = require("./middlewares/error.middleware");
 const models_1 = require("./models");
 const auth_router_1 = require("./routers/auth.router");
@@ -64,14 +63,14 @@ dotenv_1.default.config();
         app.use("/menu", menu_router_1.MenuRouter);
         app.use("/cache", cache_router_1.CacheRouter);
         app.use("/users", users_router_1.UsersRouter);
-        app.use("/brand", (0, auth_middleware_1.authFor)(["manager"]), brand_router_1.BrandRouter);
+        app.use("/brand", brand_router_1.BrandRouter);
         app.use("/images", express_1.default.static(upload_service_1.imagesDirectory));
         app.use("/ai", ai_router_1.AiRouter);
         app.use(error_middleware_1.errorMiddleware);
         const port = process.env.SERVER_PORT;
         const httpServer = (0, http_1.createServer)(app);
         websocket_service_1.default.init(httpServer);
-        httpServer.listen(port, () => {
+        httpServer.listen(80, () => {
             console.log(`Listening on port ${port}`);
         });
     });

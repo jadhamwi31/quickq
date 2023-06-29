@@ -16,18 +16,18 @@ const loginHandler = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
     const { username, password, table_code } = req.body;
     try {
         if (username && password) {
-            const jwt = yield auth_service_1.AuthService.loginByUsernameAndPassword(username, password);
+            const { token, role } = yield auth_service_1.AuthService.loginByUsernameAndPassword(username, password);
             return res
                 .status(http_status_codes_1.StatusCodes.OK)
-                .cookie("jwt", jwt, { httpOnly: false })
-                .send({ code: http_status_codes_1.StatusCodes.OK, message: "logged in", token: jwt });
+                .cookie("jwt", token, { httpOnly: false })
+                .send({ code: http_status_codes_1.StatusCodes.OK, message: "logged in", token, username, role });
         }
         if (table_code) {
-            const jwt = yield auth_service_1.AuthService.loginByTableCode(table_code);
+            const { token, role } = yield auth_service_1.AuthService.loginByTableCode(table_code);
             return res
                 .status(http_status_codes_1.StatusCodes.OK)
-                .cookie("jwt", jwt, { httpOnly: false })
-                .send({ code: http_status_codes_1.StatusCodes.OK, message: "logged in", token: jwt });
+                .cookie("jwt", token, { httpOnly: false })
+                .send({ code: http_status_codes_1.StatusCodes.OK, message: "logged in", token, role, username });
         }
     }
     catch (e) {

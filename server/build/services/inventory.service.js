@@ -17,7 +17,8 @@ const models_1 = require("../models");
 const error_model_1 = require("../models/error.model");
 const inventory_item_model_1 = require("../models/inventory_item.model");
 const websocket_service_1 = __importDefault(require("./websocket.service"));
-const updateInventoryItem = (ingredientName, { available, needed }) => __awaiter(void 0, void 0, void 0, function* () {
+const utils_1 = require("../utils/utils");
+const updateInventoryItem = (ingredientName, { available, needed, thresh_hold }) => __awaiter(void 0, void 0, void 0, function* () {
     const inventoryItemsRepo = models_1.AppDataSource.getRepository(inventory_item_model_1.InventoryItem);
     const inventoryItemRecord = yield inventoryItemsRepo.findOne({
         where: { ingredient: { name: ingredientName } },
@@ -30,18 +31,16 @@ const updateInventoryItem = (ingredientName, { available, needed }) => __awaiter
         inventoryItemRecord.available = available;
     if (needed)
         inventoryItemRecord.needed = needed;
-    const updateInventoryItemEventPayload = (function () {
-        if (available && needed) {
-            return { available, needed };
-        }
-        if (available)
-            return { available };
-        if (needed)
-            return { needed };
-    })();
+    if (thresh_hold)
+        inventoryItemRecord.thresh_hold = thresh_hold;
+    const updateInventoryItemEventPayload = (0, utils_1.removeUndefinedProperties)({ available, needed, thresh_hold });
+    console.log("payload", updateInventoryItemEventPayload);
     yield inventoryItemsRepo.save(inventoryItemRecord);
     websocket_service_1.default.publishEvent(["manager", "chef", "cashier"], "update_inventory_item", inventoryItemRecord.ingredient.name, updateInventoryItemEventPayload);
     websocket_service_1.default.publishEvent(["manager", "cashier", "chef"], "notification", `Inventory Item Update | Item : ${inventoryItemRecord.ingredient.name}`, `Available : ${inventoryItemRecord.available} | Needed : ${inventoryItemRecord.needed}`);
+    if (inventoryItemRecord.thresh_hold <= inventoryItemRecord.available) {
+        websocket_service_1.default.publishEvent(["manager", "cashier", "chef"], "notification", `Warning`, `Inventory Item : ${inventoryItemRecord.ingredient.name} | About to run out`);
+    }
 });
 const getInventoryItems = () => __awaiter(void 0, void 0, void 0, function* () {
     const inventoryItemsRepo = models_1.AppDataSource.getRepository(inventory_item_model_1.InventoryItem);
@@ -53,6 +52,7 @@ const getInventoryItems = () => __awaiter(void 0, void 0, void 0, function* () {
         available: inventoryItem.available,
         needed: inventoryItem.needed,
         unit: inventoryItem.ingredient.unit,
+        thresh_hold: inventoryItem.thresh_hold
     }));
 });
 exports.InventoryService = { updateInventoryItem, getInventoryItems };

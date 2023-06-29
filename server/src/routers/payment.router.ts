@@ -21,6 +21,6 @@ PaymentRouter.get(
 
 PaymentRouter.get(
 	"/today",
-	authFor(["cashier", "manager"]),
+	// authFor(["cashier", "manager"]),
 	PaymentController.getPaymentsTodayHandler
 );

@@ -10,6 +10,7 @@ import {
 } from "typeorm";
 import { TableStatus } from "../ts/types/table.types";
 import { Order } from "./order.model";
+import {Payment} from "./payment.model";
 
 @Entity()
 export class Table {
@@ -18,6 +19,8 @@ export class Table {
 	@Column()
 	status: TableStatus;
 
+	@OneToMany(() => Payment, (payment) => payment.table)
+	payments: Payment[];
 
 	@OneToMany(() => Order, (order) => order.table)
 	orders: Order[];

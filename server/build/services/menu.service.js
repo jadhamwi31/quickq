@@ -15,7 +15,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.MenuService = void 0;
 const lodash_1 = require("lodash");
 const models_1 = require("../models");
-const category_model_1 = require("../models/category.model");
 const error_model_1 = require("../models/error.model");
 const menu_customization_model_1 = require("../models/menu_customization.model");
 const dishes_service_1 = require("./dishes.service");
@@ -35,26 +34,6 @@ const addMenuCustomization = (menu) => __awaiter(void 0, void 0, void 0, functio
         item: menu.item,
     });
     yield menuCustomizationsRepository.save(menuCustomization);
-    if (menu.categories_order) {
-        const categoriesOrderRepository = models_1.AppDataSource.getRepository(category_model_1.CategoryOrder);
-        const categoriesRepository = models_1.AppDataSource.getRepository(category_model_1.Category);
-        const categoriesOrder = [];
-        for (const [index, currentCategory] of menu.categories_order.entries()) {
-            const category = yield categoriesRepository.findOneBy({
-                name: currentCategory,
-            });
-            if (!category) {
-                yield menuCustomizationsRepository.delete(menuCustomization);
-                throw new error_model_1.NotFoundError(`category ${currentCategory} was not found`);
-            }
-            const categoryOrder = new category_model_1.CategoryOrder();
-            categoryOrder.category = category;
-            categoryOrder.order = index;
-            categoryOrder.menuCustomization = menuCustomization;
-            categoriesOrder.push(categoryOrder);
-        }
-        yield categoriesOrderRepository.save(categoriesOrder);
-    }
 });
 const updateMenuCustomization = (name, menu) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b, _c;
@@ -83,37 +62,6 @@ const updateMenuCustomization = (name, menu) => __awaiter(void 0, void 0, void 0
         item: (_c = menu.item) !== null && _c !== void 0 ? _c : JSON.parse(menuCustomization.styles).item,
     });
     yield menuCustomizationsRepository.save(menuCustomization);
-    if (menu.categories_order) {
-        const categoriesRepository = models_1.AppDataSource.getRepository(category_model_1.Category);
-        const categoriesOrderRepository = models_1.AppDataSource.getRepository(category_model_1.CategoryOrder);
-        const categoriesOrder = [];
-        for (const [index, currentCategory] of menu.categories_order.entries()) {
-            const category = yield categoriesRepository.findOneBy({
-                name: currentCategory,
-            });
-            if (!category) {
-                yield menuCustomizationsRepository.delete(menuCustomization);
-                throw new error_model_1.NotFoundError(`category ${currentCategory} was not found`);
-            }
-            const categoryOrder = yield categoriesOrderRepository.findOne({
-                where: { category, menuCustomization },
-                relations: { category: true, menuCustomization: true },
-            });
-            if (categoryOrder) {
-                categoryOrder.order = index;
-                categoriesOrder.push(categoryOrder);
-            }
-            else {
-                const newCategoryOrder = new category_model_1.CategoryOrder();
-                newCategoryOrder.order = index;
-                newCategoryOrder.menuCustomization = menuCustomization;
-                newCategoryOrder.category = category;
-                categoriesOrder.push(newCategoryOrder);
-            }
-        }
-        yield categoriesOrderRepository.delete({ menuCustomization });
-        yield categoriesOrderRepository.save(categoriesOrder);
-    }
     if (prevActive && !(0, lodash_1.isUndefined)(menu.active) && !menu.active) {
         yield redis_service_1.default.redis.del("menu:customizations:active");
     }
@@ -125,10 +73,6 @@ const updateMenuCustomization = (name, menu) => __awaiter(void 0, void 0, void 0
             category,
             name: menuCustomization.name,
         };
-        if (menuCustomization.categories_order) {
-            redisMenuCustomization.categories_order =
-                menuCustomization.categories_order.map((categoryOrder) => categoryOrder.category.name);
-        }
         yield redis_service_1.default.redis.set("menu:customizations:active", JSON.stringify(redisMenuCustomization));
     }
 });
@@ -169,10 +113,6 @@ const getActiveMenu = () => __awaiter(void 0, void 0, void 0, function* () {
                 category,
                 name: _activeMenuCustomization.name,
             };
-            if (_activeMenuCustomization.categories_order) {
-                activeMenuCustomization.categories_order =
-                    _activeMenuCustomization.categories_order.map((categoryOrder) => categoryOrder.category.name);
-            }
             yield redis_service_1.default.redis.set("menu:customizations:active", JSON.stringify(activeMenuCustomization));
         }
         else {
@@ -195,13 +135,7 @@ const getActiveMenu = () => __awaiter(void 0, void 0, void 0, function* () {
     return { categories, menu: activeMenuCustomization };
 });
 const getMenuCustomizations = () => __awaiter(void 0, void 0, void 0, function* () {
-    const menuCustomizations = yield models_1.AppDataSource.getRepository(menu_customization_model_1.MenuCustomization)
-        .createQueryBuilder("menu_customization")
-        .leftJoinAndSelect("menu_customization.categories_order", "category_order")
-        .leftJoinAndSelect("category_order.category", "category")
-        .orderBy("category_order.order", "ASC")
-        .select()
-        .getMany();
+    const menuCustomizations = yield models_1.AppDataSource.getRepository(menu_customization_model_1.MenuCustomization).find();
     return menuCustomizations.map((customization) => (Object.assign(Object.assign({}, customization), { styles: JSON.parse(customization.styles) })));
 });
 exports.MenuService = {

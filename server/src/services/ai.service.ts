@@ -5,6 +5,7 @@ import {Dish} from "../models/dish.model";
 import {Parser} from "json2csv";
 import axios from "axios";
 import {DishesService} from "./dishes.service";
+import {InternalServerError} from "../models/error.model";
 
 
 type TestData = {
@@ -34,7 +35,7 @@ type PredictedPricesReformedType = IPredictedDataReformed[]
 
 const dateFormat = "YYYY-MM-DD"
 
-const getPricesTestData = async () => {
+const getDishesSalesData = async () => {
     const payments = await AppDataSource.getRepository(Payment).find();
 
     const dates = [...new Set(payments.filter((payment) => payment.date).map((payment) => (
@@ -42,6 +43,7 @@ const getPricesTestData = async () => {
     )))]
     const dishes = await AppDataSource.getRepository(Dish).find({relations: {orderDishes: true}});
     const data: TestData = {}
+    console.log(dates)
     for (const date of dates) {
         data[date] = []
         for (const dish of dishes) {
@@ -49,13 +51,14 @@ const getPricesTestData = async () => {
             let count = 0;
             let price = -1;
             for (const dishInOrder of dishInOrders) {
-
+                console.log("dish in order", dishInOrder)
                 if (moment(dishInOrder.date).format(dateFormat) === date) {
                     count += dishInOrder.quantity;
                     price = dishInOrder.price;
                 }
             }
-            data[date].push({item_id: dish.id, item_count: count, date, price})
+
+            data[date].push({item_id: dish.id, item_count: count, date, price: price === -1 ? dish.price : price})
         }
     }
     const dataFlattened = Object.values(data).flat()
@@ -66,35 +69,33 @@ const getPricesTestData = async () => {
 
 
 const predictPrices = async (csv: string) => {
-    console.log(csv)
+
     try {
         const predictedPrices: PredictedData = (await axios.post("http://0.0.0.0:5000/predictions/prices", csv).then(({data}) => {
             return data;
         }))
-
         const predictedPricesReformed: PredictedPricesReformedType = [];
         for (const entry of predictedPrices) {
-            try{
+            try {
+                const dish = await DishesService.getDishById(entry.item_id);
+                predictedPricesReformed.push({
+                    actual_price: entry.Actual,
+                    recommended_price: entry.Predicted,
+                    dish_name: dish.name
+                })
+            } catch (e) {
 
-            const dish = await DishesService.getDishById(entry.item_id);
-            predictedPricesReformed.push({
-                actual_price: entry.Actual,
-                recommended_price: entry.Predicted,
-                dish_name: dish.name
-            })
-            }catch(e){
-                console.log(e)
             }
         }
         return predictedPricesReformed;
     } catch (e) {
-        console.log(e)
-        return []
+        throw new InternalServerError("can't predict at this moment, try again later")
     }
 }
 
 const getPricesPrediction = async () => {
-    const pricesTestData = await getPricesTestData();
+    const pricesTestData = await getDishesSalesData();
+
     return await predictPrices(pricesTestData);
 }
 

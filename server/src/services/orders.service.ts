@@ -256,7 +256,7 @@ const getTodayOrders = async () => {
         const dayEnd = moment().endOf("day").toDate();
         const _orders = await AppDataSource.createQueryBuilder()
             .from(Order, "order")
-            .addSelect(["order.id", "order.status", "order.date"])
+            .addSelect(["order.id", "order.status", "order.date","order.total"])
             .leftJoin("order.table", "table")
             .addSelect(["table.id"])
             .leftJoin("order.orderDishes", "order_dish")

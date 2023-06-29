@@ -10,4 +10,5 @@ exports.OrdersRouter.post("/", (0, auth_middleware_1.authFor)(["client", "cashie
 exports.OrdersRouter.put("/:id", (0, auth_middleware_1.authFor)(["client", "cashier", "manager"]), orders_validators_1.OrdersValidators.validateUpdateOrder, orders_controller_1.OrdersController.updateOrderHandler);
 exports.OrdersRouter.put("/:id/status", (0, auth_middleware_1.authFor)(["chef", "manager", "cashier", "client"]), orders_validators_1.OrdersValidators.validateUpdateOrderStatus, orders_controller_1.OrdersController.updateOrderStatusHandler);
 exports.OrdersRouter.get("/today", (0, auth_middleware_1.authFor)(["chef", "cashier", "manager"]), orders_controller_1.OrdersController.getTodayOrdersHandler);
+exports.OrdersRouter.get("/today/:tableId", orders_validators_1.OrdersValidators.validateGetTableOrders, orders_controller_1.OrdersController.getTableOrdersHandler);
 exports.OrdersRouter.get("/history", (0, auth_middleware_1.authFor)(["manager"]), orders_controller_1.OrdersController.getOrdersHistoryHandler);

@@ -64,7 +64,7 @@ dotenv.config();
 
 	WebsocketService.init(httpServer);
 
-	httpServer.listen(80, () => {
+	httpServer.listen(port, () => {
 		console.log(`Listening on port ${port}`);
 	});
 })();

@@ -14,7 +14,8 @@ TablesRouter.post(
 
 TablesRouter.put(
 	"/:id",
-	auth(["manager"]),
+	auth(["manager","cashier"]),
+
 	TablesValidators.validateUpdateTable,
 	TablesController.updateTableHandler
 );

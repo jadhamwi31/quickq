@@ -77,11 +77,12 @@ const openNewTableSessionHandler = async (
 	next: NextFunction
 ) => {
 	const { id: tableId } = req.params;
-	const { role, clientId } = req.user;
+	const { role, clientId,tableId:clientTableId } = req.user;
 
 	try {
 		if (role === "client") {
-			await TablesService.openNewTableSession(tableId, clientId);
+
+			await TablesService.openNewTableSession(clientTableId, clientId);
 		} else {
 			await TablesService.openNewTableSession(tableId, uuid());
 		}
@@ -107,7 +108,9 @@ const checkoutTableHandler = async (
 			receipt: IRedisTableOrder[];
 			total: number;
 		};
+
 		if (role === "client") {
+
 			data = await TablesService.checkoutTable(clientTableId);
 		} else {
 			data = await TablesService.checkoutTable(tableId);

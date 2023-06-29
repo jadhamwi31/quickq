@@ -11,7 +11,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.MenuCustomization = void 0;
 const typeorm_1 = require("typeorm");
-const category_model_1 = require("./category.model");
 let MenuCustomization = class MenuCustomization {
 };
 __decorate([
@@ -26,10 +25,6 @@ __decorate([
     (0, typeorm_1.Column)(),
     __metadata("design:type", Boolean)
 ], MenuCustomization.prototype, "active", void 0);
-__decorate([
-    (0, typeorm_1.OneToMany)(() => category_model_1.CategoryOrder, (categoryOrder) => categoryOrder.menuCustomization),
-    __metadata("design:type", Array)
-], MenuCustomization.prototype, "categories_order", void 0);
 MenuCustomization = __decorate([
     (0, typeorm_1.Entity)()
 ], MenuCustomization);

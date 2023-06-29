@@ -48,8 +48,14 @@ const validateUpdateDish = (req, res, next) => {
     }
     return next();
 };
+const validateGetDish = (req, res, next) => {
+    if (!req.params.id) {
+        return next(new error_model_1.BadRequestError("dish id is required"));
+    }
+    return next();
+};
 exports.DishesValidator = {
     validateCreateNewDish,
     validateDeleteDish,
-    validateUpdateDish,
+    validateUpdateDish, validateGetDish
 };

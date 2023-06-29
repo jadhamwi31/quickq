@@ -32,7 +32,7 @@ const createAppDataSource = () => __awaiter(void 0, void 0, void 0, function* ()
         port: Number(DB_PORT),
         database: DB_NAME,
         synchronize: true,
-        logging: true,
+        logging: false,
         entities: [
             user_model_1.User,
             dish_model_1.Dish,
@@ -47,7 +47,6 @@ const createAppDataSource = () => __awaiter(void 0, void 0, void 0, function* ()
             inventory_item_model_1.InventoryItem,
             table_model_1.TableSession,
             menu_customization_model_1.MenuCustomization,
-            category_model_1.CategoryOrder,
             brand_model_1.Brand,
         ],
     });

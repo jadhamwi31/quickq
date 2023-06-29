@@ -28,7 +28,7 @@ const loginByUsernameAndPassword = (username, password) => __awaiter(void 0, voi
                 username: user.username,
                 role: user.role,
             });
-            return token;
+            return { token, role: user.role };
         }
         else {
             throw new error_model_1.UnauthorizedError("incorrect password");
@@ -59,7 +59,7 @@ const loginByTableCode = (code) => __awaiter(void 0, void 0, void 0, function* (
         clientId,
     });
     yield redis_service_1.default.redis.hset(`tables:sessions`, String(tableCodeRecord.table.id), clientId);
-    return token;
+    return { token, role: "client" };
 });
 exports.AuthService = {
     loginByUsernameAndPassword,

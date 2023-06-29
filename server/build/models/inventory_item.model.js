@@ -31,6 +31,10 @@ __decorate([
     (0, typeorm_1.Column)(),
     __metadata("design:type", Number)
 ], InventoryItem.prototype, "needed", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ default: 0 }),
+    __metadata("design:type", Number)
+], InventoryItem.prototype, "thresh_hold", void 0);
 InventoryItem = __decorate([
     (0, typeorm_1.Entity)()
 ], InventoryItem);

@@ -26,7 +26,7 @@ MenuRouter.delete(
 	MenuController.deleteMenuCustomizationHandler
 );
 
-MenuRouter.get("/active", authFor(["manager"]), MenuController.getMenuHandler);
+MenuRouter.get("/active",  MenuController.getMenuHandler);
 
 MenuRouter.get(
 	"/customizations",

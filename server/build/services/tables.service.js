@@ -25,7 +25,6 @@ const getTableSessionClientId = (tableId) => __awaiter(void 0, void 0, void 0, f
     const isTableSessionCached = yield redis_service_1.default.isCached("tables:sessions", String(tableId));
     if (isTableSessionCached) {
         const clientId = yield redis_service_1.default.getCachedVersion("tables:sessions", String(tableId));
-        console.log(clientId);
         return clientId;
     }
     else {
@@ -105,6 +104,7 @@ const openNewTableSession = (tableId, clientId) => __awaiter(void 0, void 0, voi
     const paymentsRepo = models_1.AppDataSource.getRepository(payment_model_1.Payment);
     const tablesRepo = models_1.AppDataSource.getRepository(table_model_1.Table);
     const table = yield tablesRepo.findOneBy({ id: tableId });
+    console.log(table);
     if (table.status === "Busy") {
         throw new error_model_1.BadRequestError("table is busy");
     }
@@ -127,8 +127,10 @@ const openNewTableSession = (tableId, clientId) => __awaiter(void 0, void 0, voi
 });
 const checkoutTable = (tableId) => __awaiter(void 0, void 0, void 0, function* () {
     const orders = yield orders_service_1.OrdersService.getTodayOrders();
+    console.log(tableId);
     const tableOrders = orders.filter((order) => order.tableId == tableId);
     const total = tableOrders.reduce((total, current) => total + current.total, 0);
+    console.log(total);
     return { receipt: tableOrders, total };
 });
 exports.TablesService = {

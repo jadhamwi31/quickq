@@ -87,10 +87,22 @@ const getOrdersHistoryHandler = (req, res, next) => __awaiter(void 0, void 0, vo
         return next(e);
     }
 });
+const getTableOrdersHandler = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const orders = yield orders_service_1.OrdersService.getTableOrders(req.params.tableId);
+        return res.status(http_status_codes_1.StatusCodes.OK).send({
+            code: http_status_codes_1.StatusCodes.OK,
+            data: orders,
+        });
+    }
+    catch (e) {
+        return next(e);
+    }
+});
 exports.OrdersController = {
     newOrderHandler,
     updateOrderHandler,
     updateOrderStatusHandler,
     getTodayOrdersHandler,
-    getOrdersHistoryHandler,
+    getOrdersHistoryHandler, getTableOrdersHandler
 };

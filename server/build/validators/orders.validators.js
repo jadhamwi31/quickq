@@ -64,8 +64,15 @@ const validateUpdateOrderStatus = (req, res, next) => {
     }
     return next();
 };
+const validateGetTableOrders = (req, res, next) => {
+    const { tableId } = req.params;
+    if (!tableId) {
+        return next(new error_model_1.BadRequestError("tableId is missing"));
+    }
+    return next();
+};
 exports.OrdersValidators = {
     validateNewOrder,
     validateUpdateOrder,
-    validateUpdateOrderStatus,
+    validateUpdateOrderStatus, validateGetTableOrders,
 };

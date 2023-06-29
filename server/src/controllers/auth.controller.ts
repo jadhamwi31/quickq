@@ -14,21 +14,21 @@ const loginHandler = async (
 	const { username, password, table_code } = req.body;
 	try {
 		if (username && password) {
-			const jwt = await AuthService.loginByUsernameAndPassword(
+			const {token,role} = await AuthService.loginByUsernameAndPassword(
 				username,
 				password
 			);
 			return res
 				.status(StatusCodes.OK)
-				.cookie("jwt", jwt, { httpOnly: false })
-				.send({ code: StatusCodes.OK, message: "logged in", token: jwt });
+				.cookie("jwt", token, { httpOnly: false })
+				.send({ code: StatusCodes.OK, message: "logged in", token,username,role });
 		}
 		if (table_code) {
-			const jwt = await AuthService.loginByTableCode(table_code);
+			const {token,role,tableId} = await AuthService.loginByTableCode(table_code);
 			return res
 				.status(StatusCodes.OK)
-				.cookie("jwt", jwt, { httpOnly: false })
-				.send({ code: StatusCodes.OK, message: "logged in", token: jwt });
+				.cookie("jwt", token, { httpOnly: false })
+				.send({ code: StatusCodes.OK, message: "logged in", token,role,tableId});
 		}
 	} catch (e) {
 		next(e);

@@ -14,6 +14,7 @@ import moment from "moment";
 
 
 const getDishById = async (dishId: number) => {
+
     if (await RedisService.isCached("dishes", String(dishId))) {
         return JSON.parse(await RedisService.getCachedVersion("dishes", String(dishId)))
     } else {
@@ -22,6 +23,7 @@ const getDishById = async (dishId: number) => {
             where: {id: dishId},
             relations: {dishIngredients: {ingredient:true}, category: true}
         }))
+
         if (dishRecord) {
             const redisDish = {
                 name: dishRecord.name,

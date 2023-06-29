@@ -36,7 +36,7 @@ export const authFor = (roles: UserRoleType[]) => {
 					if (req.originalUrl !== "/tables/session") {
 						await authorizeClient(user);
 					}
-					requestContext.set("tableId", user.tableId);
+					requestContext.set("tableId", String(user.tableId));
 				} else {
 					requestContext.set("username", user.username);
 				}

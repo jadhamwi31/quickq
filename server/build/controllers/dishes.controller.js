@@ -45,6 +45,15 @@ const getDishesHandler = (req, res, next) => __awaiter(void 0, void 0, void 0, f
         next(e);
     }
 });
+const getDishHandler = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const dish = yield dishes_service_1.DishesService.getDishById(req.params.id);
+        return res.status(http_status_codes_1.StatusCodes.OK).send(dish);
+    }
+    catch (e) {
+        return next(e);
+    }
+});
 const updateDishHandler = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const dish = req.body;
     const dishName = req.params.name;
@@ -62,5 +71,5 @@ exports.DishesController = {
     createNewDishHandler,
     deleteDishHandler,
     updateDishHandler,
-    getDishesHandler,
+    getDishesHandler, getDishHandler
 };

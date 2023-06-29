@@ -132,6 +132,7 @@ const openNewTableSession = async (tableId: number, clientId: string) => {
 	const tablesRepo = AppDataSource.getRepository(Table);
 	const table = await tablesRepo.findOneBy({ id: tableId });
 	console.log(table)
+	console.log(tableId)
 	if (table.status === "Busy") {
 		throw new BadRequestError("table is busy");
 	}

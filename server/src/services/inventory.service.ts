@@ -59,7 +59,7 @@ const getInventoryItems = async () => {
         needed: inventoryItem.needed,
         unit: inventoryItem.ingredient.unit,
         thresh_hold: inventoryItem.thresh_hold
-    }));
+    }))
 };
 
 export const InventoryService = {updateInventoryItem, getInventoryItems};
