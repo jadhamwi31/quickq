@@ -2,6 +2,5 @@
 *.btmp
 *.dtmp
 node_modules
-images
 .idea/
 diagrams
