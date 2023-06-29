@@ -193,7 +193,7 @@ const updateDish = async (dishName: string, dish: Partial<IDish>) => {
     const dishesRepo = AppDataSource.getRepository(Dish);
 
     const dishRecord = await dishesRepo.findOne({
-        relations: {dishIngredients: true, category: true},
+        relations: {dishIngredients: {ingredient:true,dish:true}, category: true},
         where: {name: dishName},
     });
     if (!dishRecord) {
