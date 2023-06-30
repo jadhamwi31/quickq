@@ -115,6 +115,23 @@ export default function CashierOrders() {
 			});
 		});
 	});
+<<<<<<< HEAD
+=======
+	useEffect(() => {
+		const newOrderHandler = (order: Order) => {
+			setOrders((prevOrders) => [...prevOrders, order]);
+		};
+
+		socket!.on("new_order", newOrderHandler);
+
+		return () => {
+			socket!.off("new_order", newOrderHandler);
+		};
+	}, []);
+
+
+
+>>>>>>> 593ddda476d8c3314a5baaaa92ca7e4950143d17
 	return (
 		<div className="GeneralContent">
 			<div className="scroll">

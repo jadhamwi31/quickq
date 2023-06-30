@@ -58,7 +58,11 @@ function OrderLayout() {
                     }}
                 ><i className="bi bi-info" style={{ fontSize: "30px" }}></i><br />Help</button>
                 <NavLink style={{ color: ActiveMenu ? ActiveMenu.data.menu.body.SecondaryColor : "#000" }} to="Payment"><i className="bi bi-cash-coin"></i>Payment</NavLink>
+<<<<<<< HEAD
                 <NavLink style={{ color: ActiveMenu ? ActiveMenu.data.menu.body.SecondaryColor : "#000" }} to="Payment"><i className="bi bi-cash-coin"></i>About</NavLink>
+=======
+                <NavLink style={{ color: ActiveMenu ? ActiveMenu.data.menu.body.SecondaryColor : "#000" }} to="About"><i className="bi bi-cup-hot"></i>About</NavLink>
+>>>>>>> 593ddda476d8c3314a5baaaa92ca7e4950143d17
 
 
 

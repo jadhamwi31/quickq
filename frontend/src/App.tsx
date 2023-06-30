@@ -11,7 +11,11 @@ import "./App.css";
 
 import ManagerLayout from "./layout/Manager/ManagerLayout";
 import MenuLayout from "./layout/Manager/MenuLayout";
+<<<<<<< HEAD
 import Accounting from "./pages/Manager/Accounting";
+=======
+
+>>>>>>> 593ddda476d8c3314a5baaaa92ca7e4950143d17
 import Inventory from "./pages/Manager/Inventory";
 import ManagerHome from "./pages/Manager/ManagerHome";
 import Orders from "./pages/Manager/Orders";
@@ -55,6 +59,10 @@ import AI from "./pages/Manager/Accounting/AI";
 import ClientLogin from "./pages/Client/ClientLogin";
 import CashierTabels from "./pages/Cashier/CashierTabels";
 import ChefTables from "./pages/Chef/ChefTables";
+<<<<<<< HEAD
+=======
+import About from "./pages/Client/Order/About";
+>>>>>>> 593ddda476d8c3314a5baaaa92ca7e4950143d17
 
 function App() {
 	const { authenticated, role } = useAuthContext();
@@ -97,7 +105,12 @@ function App() {
 									<Route path="promotion" element={<></>} />
 									<Route path="MyOrder" element={<Order />} />
 									<Route path="Dish/:name" element={<DishDetails />} />
+<<<<<<< HEAD
 									<Route path="payment" element={<Payment />} />R
+=======
+									<Route path="payment" element={<Payment />} />
+									<Route path="About" element={<About />} />
+>>>>>>> 593ddda476d8c3314a5baaaa92ca7e4950143d17
 								</Route>
 
 								<Route

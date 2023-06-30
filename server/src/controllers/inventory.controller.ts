@@ -34,7 +34,7 @@ const getInventoryItems = async (
 		const items = await InventoryService.getInventoryItems();
 		return res
 			.status(StatusCodes.OK)
-			.send({ code: StatusCodes.OK, data: items });
+			.send(items);
 	} catch (e) {
 		next(e);
 	}

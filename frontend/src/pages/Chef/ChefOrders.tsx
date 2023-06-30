@@ -3,7 +3,11 @@ import Cookies from 'js-cookie';
 import OrderDishes from '../../components/OrderDishes';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+<<<<<<< HEAD
 
+=======
+import { useSocketIoContext } from '../../context/SocketIoContext';
+>>>>>>> 593ddda476d8c3314a5baaaa92ca7e4950143d17
 interface Order {
     id: string;
     tableId: string;
@@ -14,6 +18,10 @@ interface Order {
 }
 
 export default function ChefOrders() {
+<<<<<<< HEAD
+=======
+    const { socket } = useSocketIoContext();
+>>>>>>> 593ddda476d8c3314a5baaaa92ca7e4950143d17
     const [orders, setOrders] = useState<Order[]>([]);
 
     useEffect(() => {
@@ -156,6 +164,22 @@ export default function ChefOrders() {
             );
         });
     };
+<<<<<<< HEAD
+=======
+    useEffect(() => {
+        const newOrderHandler = (order: Order) => {
+            setOrders((prevOrders) => [...prevOrders, order]);
+        };
+
+        socket!.on("new_order", newOrderHandler);
+
+        return () => {
+            socket!.off("new_order", newOrderHandler);
+        };
+    }, []);
+
+
+>>>>>>> 593ddda476d8c3314a5baaaa92ca7e4950143d17
 
     return (
         <div className="GeneralContent">

@@ -36,6 +36,10 @@ export interface IServerToClientEvents {
 		update: Partial<{ available: number; needed: number }>
 	) => void;
 	increment_payins: (amount: number) => void;
+<<<<<<< HEAD
+=======
+	new_order: (order: any) => void;
+>>>>>>> 593ddda476d8c3314a5baaaa92ca7e4950143d17
 	new_payment: (payment: any) => void;
 	authorized: (msg: string) => void;
 	notification: (title: string, content: string) => void;

@@ -88,8 +88,10 @@ const createNewOrder = async (newOrder: OrderDishesType, tableId: number) => {
     // Clear Predictions From Cache
     await RedisService.redis.del("prices:predictions")
 
-    await WebsocketService.publishEvent(["cashier", "chef"], "new_order", redisTableOrder);
-    await WebsocketService.publishEvent(["cashier", "chef"], "notification", "New Order", `New Order | ID : ${redisTableOrder.id} | Table : ${redisTableOrder.tableId}`);
+
+    await WebsocketService.publishEvent(["cashier", "chef", "manager"], "new_order", redisTableOrder);
+    await WebsocketService.publishEvent(["cashier", "chef", "manager"], "notification", "New Order", `New Order | ID : ${redisTableOrder.id} | Table : ${redisTableOrder.tableId}`);
+
 };
 
 const orderBelongsToTable = async (orderId: number, tableId: number) => {
@@ -262,7 +264,7 @@ const getTodayOrders = async () => {
             .addSelect(["order.id", "order.status", "order.date", "order.total"])
             .leftJoin("order.table", "table")
             .addSelect(["table.id"])
-            .leftJoin("table.payments","payment")
+            .leftJoin("table.payments", "payment")
             .addSelect("payment.amount")
             .leftJoin("order.orderDishes", "order_dish")
             .addSelect(["order_dish.quantity"])

@@ -72,7 +72,11 @@ export default function GenerateQrCode(props: ChildComponentProps) {
                         textAlign: "center"
                     }}>
 
+<<<<<<< HEAD
                         <QRCode value={`http://192.168.1.103:3000/loginClient/${props.code}`} size={width} />
+=======
+                        <QRCode value={`http://192.168.1.105:3000/loginClient/${props.code}`} size={width} />
+>>>>>>> 593ddda476d8c3314a5baaaa92ca7e4950143d17
                     </div>
                 </Modal.Body>
                 <Modal.Footer>

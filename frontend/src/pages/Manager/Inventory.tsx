@@ -35,8 +35,13 @@ export default function Inventory() {
 			if (response.ok) {
 				const json = await response.json();
 
+<<<<<<< HEAD
 				setInventoryItems(json.data);
 				setFilteredItems(json.data);
+=======
+				setInventoryItems(json);
+				setFilteredItems(json);
+>>>>>>> 593ddda476d8c3314a5baaaa92ca7e4950143d17
 			}
 		};
 

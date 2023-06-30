@@ -179,11 +179,14 @@ const closeTableSession = async (tableId: number, fromPayment = false) => {
 const checkoutTable = async (tableId: number) => {
 
 
+
     const tableOrders = (await OrdersService.getTableOrders(tableId)).filter((order) => order.status !== "Cancelled")
+
     const total = tableOrders.reduce(
         (total, current) => total + current.total,
         0
     );
+
 
     return {receipt: tableOrders, total};
 };

@@ -61,8 +61,15 @@ function Today() {
         socket!.on("new_payment", (pay) => {
 
 
+<<<<<<< HEAD
             console.log("amount", pay);
 
+=======
+            setData((previousData) => ({
+                ...previousData,
+                transactions: [...previousData.transactions, pay],
+            }));
+>>>>>>> 593ddda476d8c3314a5baaaa92ca7e4950143d17
 
         });
         return () => {

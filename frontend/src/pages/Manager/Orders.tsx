@@ -98,7 +98,11 @@ export default function Orders() {
 		});
 	};
 	useEffect(() => {
+<<<<<<< HEAD
 		const handler = (orderId:any, status : any) => {
+=======
+		const handler = (orderId: any, status: any) => {
+>>>>>>> 593ddda476d8c3314a5baaaa92ca7e4950143d17
 			setOrders((prevOrders) => {
 				const updatedOrders = prevOrders.map((order) => {
 					if (order.id === orderId) {
@@ -110,11 +114,35 @@ export default function Orders() {
 				return updatedOrders;
 			});
 		}
+<<<<<<< HEAD
 		socket!.on("update_order_status",handler );
 		return () => {
 			socket!.off("update_order_status",handler)
 		}
 	},[]);
+=======
+		socket!.on("update_order_status", handler);
+		return () => {
+			socket!.off("update_order_status", handler)
+		}
+	}, []);
+
+	useEffect(() => {
+		const newOrderHandler = (order: Order) => {
+			setOrders((prevOrders) => [...prevOrders, order]);
+		};
+
+		socket!.on("new_order", newOrderHandler);
+
+		return () => {
+			socket!.off("new_order", newOrderHandler);
+		};
+	}, []);
+
+
+
+
+>>>>>>> 593ddda476d8c3314a5baaaa92ca7e4950143d17
 	return (
 		<div className="GeneralContent">
 			<div className="scroll">
