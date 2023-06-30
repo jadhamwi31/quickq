@@ -12,13 +12,6 @@ TablesRouter.post(
 	TablesController.newTableHandler
 );
 
-TablesRouter.put(
-	"/:id",
-	auth(["manager","cashier"]),
-
-	TablesValidators.validateUpdateTable,
-	TablesController.updateTableHandler
-);
 
 TablesRouter.delete(
 	"/:id",
@@ -38,6 +31,13 @@ TablesRouter.post(
 	auth(["cashier", "manager"]),
 	TablesController.openNewTableSessionHandler
 );
+
+TablesRouter.delete(
+	"/:id/session",
+	auth(["cashier", "manager"]),
+	TablesController.closeTableSessionHandler
+);
+
 TablesRouter.post(
 	"/session",
 	auth(["client"]),

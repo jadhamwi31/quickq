@@ -44,7 +44,6 @@ const getDishesSalesData = async () => {
     )))]
     const dishes = await AppDataSource.getRepository(Dish).find({relations: {orderDishes: true}});
     const data: TestData = {}
-    console.log(dates)
     for (const date of dates) {
         data[date] = []
         for (const dish of dishes) {
@@ -52,8 +51,8 @@ const getDishesSalesData = async () => {
             let count = 0;
             let price = -1;
             for (const dishInOrder of dishInOrders) {
-                console.log("dish in order", dishInOrder)
-                if (moment(dishInOrder.date).format(dateFormat) === date) {
+
+                if (moment(dishInOrder.date).format(dateFormat) === date && dishInOrder.order.status !== "Cancelled") {
                     count += dishInOrder.quantity;
                     price = dishInOrder.price;
                 }

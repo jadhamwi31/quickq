@@ -12,7 +12,7 @@ import WebsocketService from "./websocket.service";
 import {OrdersService} from "./orders.service";
 
 const newPayment = async (tableId: number, amountPaid: number) => {
-    const {total} = await TablesService.checkoutTable(tableId);
+    const {total,receipt} = await TablesService.checkoutTable(tableId);
     const clientId = await TablesService.getTableSessionClientId(tableId);
     const tablesRepo = AppDataSource.getRepository(Table);
     const table = await tablesRepo.findOneBy({id: tableId})
@@ -20,9 +20,8 @@ const newPayment = async (tableId: number, amountPaid: number) => {
         throw new ForbiddenError(`amount paid not equel to check total ${total}`);
     }
 
-    const {receipt} = await TablesService.checkoutTable(tableId);
     receipt.forEach((tableOrder) => {
-        if (tableOrder.status !== "Ready") {
+        if (tableOrder.status === "Pending" || tableOrder.status === "In Cook") {
             throw new BadRequestError("pending/in-cook orders still present");
         }
     });
@@ -38,16 +37,7 @@ const newPayment = async (tableId: number, amountPaid: number) => {
         throw new BadRequestError("no payment for this table right now");
     }
 
-    const tablesSessionsRepo = AppDataSource.getRepository(TableSession);
-    const tableSessionRecord = await tablesSessionsRepo.findOne({
-        relations: {table: true},
-        where: {table: {id: tableId}},
-    });
-    tableSessionRecord.clientId = null;
-    await tablesSessionsRepo.save(tableSessionRecord);
-    // Clear Table Session From Cache
-    await RedisService.redis.hdel("tables:sessions", String(tableId));
-
+    await TablesService.closeTableSession(tableId,true)
     // Table Orders
     const redisTablesOrders = await OrdersService.getTodayOrders();
 

@@ -24,18 +24,18 @@ const newTableHandler = async (
 	}
 };
 
-const updateTableHandler = async (
-	req: Request<Pick<Table, "id">, any, Pick<Table, "status">>,
+const closeTableSessionHandler = async (
+	req: Request<Pick<Table, "id">>,
 	res: Response,
 	next: NextFunction
 ) => {
 	const { id } = req.params;
-	const { status } = req.body;
+
 	try {
-		await TablesService.updateTable(id, status);
+		await TablesService.closeTableSession(id);
 		return res
 			.status(StatusCodes.OK)
-			.send({ code: StatusCodes.OK, message: "table updated" });
+			.send({ code: StatusCodes.OK, message: "table session closed" });
 	} catch (e) {
 		next(e);
 	}
@@ -89,7 +89,7 @@ const openNewTableSessionHandler = async (
 
 		return res
 			.status(StatusCodes.OK)
-			.send({ code: StatusCodes.OK, message: "new table session created" });
+			.send({ code: StatusCodes.OK, message: "opened table session" });
 	} catch (e) {
 		next(e);
 	}
@@ -123,7 +123,7 @@ const checkoutTableHandler = async (
 
 export const TablesController = {
 	newTableHandler,
-	updateTableHandler,
+	closeTableSessionHandler,
 	deleteTableHandler,
 	getTablesHandler,
 	openNewTableSessionHandler,
