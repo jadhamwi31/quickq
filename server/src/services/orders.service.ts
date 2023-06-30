@@ -322,11 +322,11 @@ const getOrdersHistory = async () => {
     return orders;
 };
 
-const getTableOrders = async (tableId: number) => {
+const getTableClientOrders = async (tableId: number) => {
+const clientId = await TablesService.getTableSessionClientId(tableId)
+    const tableClientOrders =  await AppDataSource.getRepository(Order).find({relations: {table: true, payment: true},where:{payment:{clientId}}})
 
-    const todayOrders = await getTodayOrders();
-
-    return todayOrders.filter((order) => order.tableId == tableId);
+    return tableClientOrders
 }
 
 export const OrdersService = {
@@ -335,5 +335,5 @@ export const OrdersService = {
     updateOrder,
     updateOrderStatus,
     getTodayOrders,
-    getOrdersHistory, getTableOrders
+    getOrdersHistory,  getTableClientOrders
 };

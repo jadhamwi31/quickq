@@ -12,12 +12,16 @@ import WebsocketService from "./websocket.service";
 import {OrdersService} from "./orders.service";
 
 const newPayment = async (tableId: number, amountPaid: number) => {
-    const {total,receipt} = await TablesService.checkoutTable(tableId);
     const clientId = await TablesService.getTableSessionClientId(tableId);
     const tablesRepo = AppDataSource.getRepository(Table);
     const table = await tablesRepo.findOneBy({id: tableId})
+    const {total, receipt} = await TablesService.checkoutTable(tableId);
     if (total !== amountPaid) {
         throw new ForbiddenError(`amount paid not equel to check total ${total}`);
+    }
+    if (total === 0){
+        await TablesService.closeTableSession(tableId, true)
+        return;
     }
 
     receipt.forEach((tableOrder) => {
@@ -37,8 +41,10 @@ const newPayment = async (tableId: number, amountPaid: number) => {
         throw new BadRequestError("no payment for this table right now");
     }
 
-    await TablesService.closeTableSession(tableId,true)
+    await TablesService.closeTableSession(tableId, true)
+
     // Table Orders
+
     const redisTablesOrders = await OrdersService.getTodayOrders();
 
     // Clear Table Orders From Cache
@@ -93,7 +99,6 @@ const newPayment = async (tableId: number, amountPaid: number) => {
     );
 
 
-
     // Update Table Status
     const tableRecord = await tablesRepo.findOneBy({id: tableId});
     tableRecord.status = "Available";
@@ -115,7 +120,12 @@ const newPayment = async (tableId: number, amountPaid: number) => {
         "increment_payins",
         amountPaid
     );
-    WebsocketService.publishEvent(["manager","cashier"],"new_payment",{amount:payment.amount,tableId:payment.table.id,date:payment.date.toString(),clientId:payment.clientId})
+    WebsocketService.publishEvent(["manager", "cashier"], "new_payment", {
+        amount: payment.amount,
+        tableId: payment.table.id,
+        date: payment.date.toString(),
+        clientId: payment.clientId
+    })
 };
 
 const getPaymentsHistory = async () => {
@@ -126,7 +136,7 @@ const getPaymentsHistory = async () => {
         .leftJoin("payment.orders", "order")
         .getMany();
 
-    return {payments,total:payments.reduce((total,current) => total + current.amount,0)}
+    return {payments, total: payments.reduce((total, current) => total + current.amount, 0)}
 };
 
 const getTodayPayments = async () => {

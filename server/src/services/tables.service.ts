@@ -154,8 +154,8 @@ const closeTableSession = async (tableId: number, fromPayment = false) => {
         relations: {table: true},
         where: {table: {id: tableId}},
     });
-    const tableOrders = await AppDataSource.getRepository(Order).find({relations: {table: true, payment: true},where:{payment:{clientId}}})
-    if (!fromPayment && clientId !== null && tableOrders.length !== 0) {
+    const clientOrders = await OrdersService.getTableClientOrders(tableId)
+    if (!fromPayment && clientOrders.length !== 0) {
         throw new BadRequestError("table has to pay before closing")
     }
     tableSessionRecord.clientId = null;
