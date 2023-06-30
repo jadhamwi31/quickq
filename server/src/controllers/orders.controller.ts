@@ -114,7 +114,7 @@ const getTableOrdersHandler = async (
 	next: NextFunction
 ) => {
 	try {
-		const orders = await OrdersService.getTableOrders(req.params.tableId);
+		const orders = await OrdersService.getTableClientOrders(req.params.tableId);
 		return res.status(StatusCodes.OK).send({
 			code: StatusCodes.OK,
 			data: orders,
