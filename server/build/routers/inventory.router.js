@@ -1,0 +1,10 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.InventoryRouter = void 0;
+const express_1 = require("express");
+const inventory_validators_1 = require("../validators/inventory.validators");
+const auth_middleware_1 = require("../middlewares/auth.middleware");
+const inventory_controller_1 = require("../controllers/inventory.controller");
+exports.InventoryRouter = (0, express_1.Router)();
+exports.InventoryRouter.put("/items/:ingredientName", (0, auth_middleware_1.authFor)(["manager", "chef", "cashier"]), inventory_validators_1.InventoryValidator.updateInventoryItemValidator, inventory_controller_1.InventoryController.updateInventoryItemHandler);
+exports.InventoryRouter.get("/items", (0, auth_middleware_1.authFor)(["manager", "cashier", "chef"]), inventory_controller_1.InventoryController.getInventoryItems);

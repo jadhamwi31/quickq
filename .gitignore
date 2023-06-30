@@ -1,0 +1,6 @@
+*.bkp
+*.btmp
+*.dtmp
+node_modules
+.idea/
+diagrams

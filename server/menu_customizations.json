@@ -1,0 +1,76 @@
+[
+  {
+    "body": {},
+    "item": {},
+    "category": {},
+    "name": "jad",
+    "status": "active"
+  },
+  {
+    "body": {
+      "jadoo": 323
+    },
+    "item": {},
+    "category": {},
+    "name": "jad",
+    "status": "in-active"
+  },
+  {
+    "body": {
+      "jadoo": 323
+    },
+    "item": {},
+    "category": {},
+    "name": "ja3123d",
+    "status": "in-active"
+  },
+  {
+    "body": {
+      "BackgroundColor": "#fdsfsd",
+      "PrimaryColor": "#sDasd",
+      "SecondaryColor": "#AS"
+    },
+    "category": {
+      "FontFamily": "Arial",
+      "TextDecoration": "underline",
+      "Color": "#fff",
+      "BackgroundColor": "#fff",
+      "TextAlign": "center",
+      "fontWeight": "100"
+    },
+    "item": {
+      "FontFamily": "Arial",
+      "TextDecoration": "underline",
+      "Color": "#fff",
+      "BackgroundColor": "#fff",
+      "Align": "center",
+      "fontWeight": "100"
+    },
+    "name": "..."
+  },
+  {
+    "body": {
+      "BackgroundColor": "#fdsfsd",
+      "PrimaryColor": "#sDasd",
+      "SecondaryColor": "#AS"
+    },
+    "category": {
+      "FontFamily": "Arial",
+      "TextDecoration": "underline",
+      "Color": "#fff",
+      "BackgroundColor": "#fff",
+      "TextAlign": "center",
+      "fontWeight": "100"
+    },
+    "item": {
+      "FontFamily": "Arial",
+      "TextDecoration": "underline",
+      "Color": "#fff",
+      "BackgroundColor": "#fff",
+      "Align": "center",
+      "fontWeight": "100"
+    },
+    "name": "...313",
+    "status": "in-active"
+  }
+]

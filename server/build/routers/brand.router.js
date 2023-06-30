@@ -1,0 +1,11 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.BrandRouter = void 0;
+const express_1 = require("express");
+const brand_controller_1 = require("../controllers/brand.controller");
+const upload_middleware_1 = require("../middlewares/upload.middleware");
+const brand_validators_1 = require("../validators/brand.validators");
+const auth_middleware_1 = require("../middlewares/auth.middleware");
+exports.BrandRouter = (0, express_1.Router)();
+exports.BrandRouter.put("/", (0, auth_middleware_1.authFor)(["manager"]), ...(0, upload_middleware_1.uploadMiddlewares)("logo"), brand_validators_1.BrandValidators.validateSetBrand, brand_controller_1.BrandController.setBrandHandler);
+exports.BrandRouter.get("/", brand_controller_1.BrandController.getBrandHandler);
