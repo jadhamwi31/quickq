@@ -20,17 +20,11 @@ export default function EditTabelForm(props: ChildComponentProps) {
     const { dispatch } = useTabelsContext();
     const [showModal, setShowModal] = useState(false);
 
-    const handleSubmit: React.FormEventHandler<HTMLFormElement> = async (
-        event
-    ) => {
-        event.preventDefault();
-
-        const response = await fetch("/tables/" + props.id, {
-            method: "PUT",
-            body: JSON.stringify({ status: status }),
+    const openTable = async () => {
+        const response = await fetch(`/tables/${props.id}/session`, {
+            method: "POST",
             credentials: "include",
             headers: {
-                "Content-Type": "application/json",
                 Authorization: `Bearer ${Cookies.get("jwt")}`,
             },
         });
@@ -54,7 +48,7 @@ export default function EditTabelForm(props: ChildComponentProps) {
                 type: 'UPDATE',
                 payload: {
                     oldCode: props.code,
-                    newStatus: status,
+                    newStatus: "Busy",
                 },
             });
 
@@ -71,8 +65,53 @@ export default function EditTabelForm(props: ChildComponentProps) {
                 theme: "light",
             });
         }
-    };
+    }
+    const closeTable = async () => {
+        const response = await fetch(`/tables/${props.id}/session`, {
+            method: "DELETE",
+            credentials: "include",
+            headers: {
+                Authorization: `Bearer ${Cookies.get("jwt")}`,
+            },
+        });
+        const json = await response.json();
 
+        if (!response.ok) {
+            toast.error(json.message, {
+                position: "bottom-right",
+                autoClose: 1000,
+                hideProgressBar: true,
+                closeOnClick: true,
+                pauseOnHover: false,
+                draggable: true,
+                progress: undefined,
+                theme: "light",
+            });
+        }
+        if (response.ok) {
+
+            dispatch({
+                type: 'UPDATE',
+                payload: {
+                    oldCode: props.code,
+                    newStatus: "Available",
+                },
+            });
+
+
+            setShowModal(false);
+            toast.success(json.message, {
+                position: "bottom-right",
+                autoClose: 1000,
+                hideProgressBar: true,
+                closeOnClick: true,
+                pauseOnHover: false,
+                draggable: true,
+                progress: undefined,
+                theme: "light",
+            });
+        }
+    }
     const handleCloseModal = () => {
         setShowModal(false);
     };
@@ -98,33 +137,34 @@ export default function EditTabelForm(props: ChildComponentProps) {
                 <Modal.Header closeButton>
                     <Modal.Title>Edit Table Number : {props.id}</Modal.Title>
                 </Modal.Header>
-                <form onSubmit={handleSubmit}>
-                    <Modal.Body>
-                        <label className="form-label" htmlFor="CategoryName">
-                            Table Status :
-                        </label>
-                        <select
-                            style={{ marginInline: 'auto' }}
-                            className="form-select shadow-none"
-                            value={status}
-                            onChange={(e) => setStatus(e.target.value)}
-                        >   <option value="">Please Choose</option>
-                            <option value="Available">Available</option>
-                            <option value="Busy">Busy</option>
 
-                        </select>
+                <Modal.Body>
+                    <label className="form-label" htmlFor="CategoryName">
+                        Table Status :
+                    </label><br />
+                    <div style={{
+                        display: "flex",
+                        justifyContent: "space-around"
+                    }}>
 
-                        <br />
-                    </Modal.Body>
-                    <Modal.Footer>
-                        <Button variant="secondary" onClick={handleCloseModal}>
-                            Close
-                        </Button>
-                        <Button variant="primary" type="submit">
-                            Add
-                        </Button>
-                    </Modal.Footer>
-                </form>
+
+
+                        <button onClick={() => {
+                            openTable()
+                        }} className="btn btn-secondary">Open Table</button>
+                        <button onClick={() => {
+                            closeTable()
+                        }} className="btn btn-secondary">Close Table</button>
+                    </div>
+                    <br />
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="secondary" onClick={handleCloseModal}>
+                        Close
+                    </Button>
+
+                </Modal.Footer>
+
             </Modal>
 
         </div>

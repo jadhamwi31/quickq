@@ -1,6 +1,6 @@
-import React, {useState, useEffect, useRef, Fragment} from "react";
-import {useSocketIoContext} from "../context/SocketIoContext";
-import {v4 as uuidv4} from "uuid";
+import React, { useState, useEffect, useRef, Fragment } from "react";
+import { useSocketIoContext } from "../context/SocketIoContext";
+import { v4 as uuidv4 } from "uuid";
 
 const sound = require('../assets/sound.mp3')
 
@@ -32,7 +32,7 @@ function Header() {
     const [NotificationAlarm, setNotificationAlarm] = useState(0)
     const notificationSoundRef = useRef<any>(new Audio(sound));
 
-    const {socket} = useSocketIoContext();
+    const { socket } = useSocketIoContext();
     useEffect(() => {
         notificationSoundRef.current.load()
         const handleNotification = (title: any, content: any) => {
@@ -41,7 +41,7 @@ function Header() {
                 const newId = uuidv4();
                 const idExists = prevNotList.some(item => item.id === newId);
                 if (!idExists) {
-                    return [{id: newId, title: title, content: content}, ...prevNotList];
+                    return [{ id: newId, title: title, content: content }, ...prevNotList];
                 }
                 return prevNotList;
             });
@@ -56,19 +56,19 @@ function Header() {
 
         socket!.on("notification", handleNotification);
         return () => {
-            socket?.off("notification",handleNotification)
+            socket?.off("notification", handleNotification)
         }
 
     }, []);
     const [notificationStatus, setNotificationStatus] = useState(false)
     return (
         <>
-            <nav className="header" style={{zIndex: "1000000000"}}>
+            <nav className="header" style={{ zIndex: "1000000000" }}>
                 <div>
                     <button id="myBtn" onClick={openNav} value="ON">
                         <span
                             id="menuicon"
-                            style={{fontSize: "30px", cursor: "pointer", transition: "0.5s", color: "#7A7A7A"}}
+                            style={{ fontSize: "30px", cursor: "pointer", transition: "0.5s", color: "#7A7A7A" }}
                         >
                             ☰
                         </span>
@@ -78,17 +78,17 @@ function Header() {
                 <input type="checkbox" name="notification" id="notification" style={{
                     display: "none"
                 }}
-                       checked={notificationStatus}
-                       onChange={() => {
-                           setNotificationStatus(prevNotificationStatus => !prevNotificationStatus);
-                           setNotificationAlarm(0)
-                       }}
+                    checked={notificationStatus}
+                    onChange={() => {
+                        setNotificationStatus(prevNotificationStatus => !prevNotificationStatus);
+                        setNotificationAlarm(0)
+                    }}
                 />
 
                 <label htmlFor="notification" style={{
                     cursor: "pointer"
                 }}>
-                    <span style={{fontSize: "30px", marginRight: "300px", color: "#7A7A7A"}}>
+                    <span style={{ fontSize: "30px", marginRight: "300px", color: "#7A7A7A" }}>
 
                         {NotificationAlarm != 0 ? <div style={{
                             backgroundColor: "red",
@@ -101,8 +101,8 @@ function Header() {
                             color: "white",
                             position: "absolute"
                         }}>{NotificationAlarm}</div> : null}
-                        {notificationStatus ? <i className="bi bi-bell-fill" style={{fontSize: "30px"}}></i> :
-                            <i className="bi bi-bell" style={{fontSize: "30px"}}></i>}
+                        {notificationStatus ? <i className="bi bi-bell-fill" style={{ fontSize: "30px" }}></i> :
+                            <i className="bi bi-bell" style={{ fontSize: "30px" }}></i>}
                     </span>
                 </label>
             </nav>
@@ -124,12 +124,12 @@ function Header() {
                     padding: "15px"
                 }}>
                     {notList.map((n: any, index) =>
-                        (<Fragment key={n.id}>
-                                <p>{n.title}</p>
-                                <p>{n.content}</p>
-                                <hr/>
-                            </Fragment>
-                        ))}
+                    (<Fragment key={n.id}>
+                        <p>{n.title}</p>
+                        <p>{n.content}</p>
+                        <hr />
+                    </Fragment>
+                    ))}
                 </div>
             )
             }

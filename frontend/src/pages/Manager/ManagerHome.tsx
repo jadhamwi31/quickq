@@ -15,7 +15,8 @@ export default function ManagerHome() {
     const [dishes, setDishes] = useState([])
     const [categories, setCategories] = useState([])
     const [users, setUsers] = useState([])
-    const [todat, setToday] = useState([])
+    const [todat, setToday] = useState("")
+    const [totalHistory, setTotalHistory] = useState("")
 
     useEffect(() => {
         document.title = `Manager | Home`;
@@ -30,7 +31,8 @@ export default function ManagerHome() {
             if (response.ok) {
                 const json = await response.json();
 
-                setData(json.data);
+                setData(json.data.payments);
+                setTotalHistory(json.data.total);
 
 
             }
@@ -45,7 +47,7 @@ export default function ManagerHome() {
             if (response.ok) {
                 const json = await response.json();
 
-                setToday(json.data.transactions);
+                setToday(json.data.payins);
 
 
             }
@@ -159,8 +161,8 @@ export default function ManagerHome() {
                         <div className="card bg-c-pink order-card">
                             <div className="card-block">
                                 <h6 className="m-b-21">Payments</h6>
-                                <h2 className="text-right"><i ><span className="lnr lnr-chart-bars f-left"></span></i><span>{users.length}</span></h2>
-                                <p className="m-b-0">Today:<span className="f-right">{todat.length}</span></p>
+                                <h2 className="text-right"><i ><span className="lnr lnr-chart-bars f-left"></span></i><span>{todat}</span></h2>
+                                <p className="m-b-0">Today:<span className="f-right">{totalHistory}</span></p>
                             </div>
                         </div>
                     </div>

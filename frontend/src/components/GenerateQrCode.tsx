@@ -7,6 +7,7 @@ import { ToastContainer, toast } from 'react-toastify';
 import { useTabelsContext } from "../hooks/useTabel";
 import QRCode from 'qrcode.react';
 import html2canvas from 'html2canvas';
+import { table } from "console";
 
 interface ChildComponentProps {
     id: String;
@@ -39,6 +40,7 @@ export default function GenerateQrCode(props: ChildComponentProps) {
 
     const handleCloseModal = () => {
         setShowModal(false);
+
     };
 
     return (
@@ -70,7 +72,7 @@ export default function GenerateQrCode(props: ChildComponentProps) {
                         textAlign: "center"
                     }}>
 
-                        <QRCode value={"192.168.1.103:3000/order/Menu"} size={width} />
+                        <QRCode value={`http://192.168.1.103:3000/loginClient/${props.code}`} size={width} />
                     </div>
                 </Modal.Body>
                 <Modal.Footer>

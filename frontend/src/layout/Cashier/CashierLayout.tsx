@@ -15,11 +15,13 @@ export default function CashierLayout() {
                 <img className="logo" src={logo} alt="logo" />
                 <NavLink end to="/cashier"><span className="lnr lnr-text-align-center"></span>Orders</NavLink>
                 <NavLink to="AddOrder"><span className="lnr lnr-file-add"></span>Add Order</NavLink>
+                <NavLink to="Tables"><span className="lnr lnr-inbox"></span>Tables</NavLink>
                 <NavLink to="Payin"><span className="lnr lnr-chart-bars"></span>Pays in</NavLink>
                 <NavLink end to="Account"><span className="lnr lnr-user"></span>Account Setting</NavLink>
                 <Button style={{
-                    marginTop: "56vh",
-                    marginLeft: "30px"
+                    position: "absolute",
+                    bottom: "10px",
+                    left: "10px"
 
 
                 }}

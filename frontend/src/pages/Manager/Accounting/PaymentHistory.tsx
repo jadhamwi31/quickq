@@ -4,6 +4,7 @@ import Cookies from "js-cookie";
 
 function PaymentHistory() {
     const [data, setData] = useState([])
+    const [total, setTotal] = useState('')
 
     useEffect(() => {
         document.title = `Manager | Home`;
@@ -19,7 +20,8 @@ function PaymentHistory() {
 
             if (response.ok) {
                 const json = await response.json();
-                setData(json.data);
+                setData(json.data.payments);
+                setTotal(json.data.total);
             }
         };
 
@@ -33,7 +35,7 @@ function PaymentHistory() {
     return (
 
         <div className="scroll">
-
+            <h1>Total : {total}</h1>
             <table className="table" style={{ paddingLeft: "20px" }}>
                 <thead>
                     <tr>

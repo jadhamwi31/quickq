@@ -3,6 +3,7 @@ import Cookies from 'js-cookie';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Tabels from '../Manager/Tabels';
+import packageJson from '../../../package.json'
 
 
 interface Table {
@@ -56,10 +57,44 @@ function AddOrder(): JSX.Element {
     }, []);
 
 
+    const OpenTable = async () => {
+        const response1 = await fetch(`/tables/${id}/session`, {
+            method: 'POST',
+            body: JSON.stringify({ tableId: id, dishes: orderItems }),
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${Cookies.get('jwt')}`,
+            },
+        });
 
-    useEffect(() => {
+        if (response1.ok) {
+            toast.success(`Table Is Opend`, {
+                position: 'bottom-right',
+                autoClose: 1000,
+                hideProgressBar: true,
+                closeOnClick: true,
+                pauseOnHover: false,
+                draggable: true,
+                progress: undefined,
+                theme: 'light',
+            });
 
-    }, []);
+        }
+        if (!response1.ok) {
+            toast.success(`Table Can't Be Opend`, {
+                position: 'bottom-right',
+                autoClose: 1000,
+                hideProgressBar: true,
+                closeOnClick: true,
+                pauseOnHover: false,
+                draggable: true,
+                progress: undefined,
+                theme: 'light',
+            });
+
+        }
+    }
 
     useEffect(() => {
         const getTables = async (): Promise<void> => {
@@ -99,18 +134,7 @@ function AddOrder(): JSX.Element {
     const insertOrder = async () => {
 
 
-        const response1 = await fetch(`/tables/${id}/session`, {
-            method: 'POST',
-            body: JSON.stringify({ tableId: id, dishes: orderItems }),
-            credentials: 'include',
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${Cookies.get('jwt')}`,
-            },
-        });
-        if (response1.ok) {
 
-        }
 
         const response = await fetch('/orders/', {
             method: 'POST',
@@ -176,8 +200,12 @@ function AddOrder(): JSX.Element {
                                 setID(e.target.value);
 
 
+
                             }}
                         >
+                            <option value="" >
+                                Please Choose
+                            </option>
 
                             {tables.map((t) =>
 
@@ -188,7 +216,7 @@ function AddOrder(): JSX.Element {
                             )}
 
                         </select>
-                        <button className='btn btn-secondary btn-sm' disabled={tabelActive == 'Busy'} onClick={() => { console.log(tabelActive) }}>Open Tabel</button><br /><br />
+                        <button className='btn btn-secondary btn-sm' disabled={tabelActive == 'Busy' || tabelActive == ''} onClick={() => { OpenTable() }}>Open Tabel</button><br /><br />
 
 
                         <table className='table table-sm'>
@@ -268,7 +296,7 @@ function AddOrder(): JSX.Element {
                                         cursor: "pointer",
                                         width: "200px",
                                         height: "100px",
-                                        backgroundImage: `url(http://localhost:80/images/${d.image})`,
+                                        backgroundImage: `url(${packageJson.proxy}/images/${d.image})`,
                                         backgroundSize: "cover",
                                         borderRadius: "20px",
                                         textAlign: "center",

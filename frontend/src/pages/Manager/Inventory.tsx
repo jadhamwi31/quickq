@@ -9,9 +9,9 @@ export default function Inventory() {
 	const { socket } = useSocketIoContext();
 	const [filteredItems, setFilteredItems] = useState<any[]>([]);
 	const [inventoryItems, setInventoryItems] = useState<any[]>([]);
-	const [available, setAvailable] = useState('');
-	const [needed, setNeeded] = useState('');
-
+	const [available, setAvailable] = useState("");
+	const [needed, setNeeded] = useState("");
+	const [thold, setThold] = useState("");
 
 	useEffect(() => {
 		document.title = "Manager | Inventory";
@@ -22,10 +22,9 @@ export default function Inventory() {
 		};
 	}, [socket]);
 
-
 	const [showModal, setShowModal] = useState(false);
+	const [selectedInventory, setSelectedInventory] = useState("");
 
-	const [selectedInventory, setSelectedInventory] = useState('');
 	useEffect(() => {
 		const getInventoryItems = async () => {
 			const response = await fetch("/inventory/items", {
@@ -35,10 +34,9 @@ export default function Inventory() {
 			});
 			if (response.ok) {
 				const json = await response.json();
-				const items: any[] = json.data.items;
-				setInventoryItems(items);
 
-				setFilteredItems(items);
+				setInventoryItems(json.data);
+				setFilteredItems(json.data);
 			}
 		};
 
@@ -51,15 +49,18 @@ export default function Inventory() {
 		);
 		setFilteredItems(filtered);
 	};
+
 	const handleCloseModal = () => {
 		setShowModal(false);
 	};
+
 	const updateInventoryItems = async (itemName: string) => {
 		const response = await fetch("/inventory/items/" + itemName, {
 			method: "PUT",
 			body: JSON.stringify({
-				available: available, needed: needed
-
+				available: available,
+				needed: needed,
+				thresh_hold: thold,
 			}),
 			credentials: "include",
 			headers: {
@@ -67,6 +68,7 @@ export default function Inventory() {
 				Authorization: `Bearer ${Cookies.get("jwt")}`,
 			},
 		});
+
 		const json = await response.json();
 
 		if (!response.ok) {
@@ -81,17 +83,22 @@ export default function Inventory() {
 				theme: "light",
 			});
 		}
-		const updatedData = {
-			available: available, needed: needed
 
+		const updatedData = {
+			available: parseFloat(available),
+			needed: parseFloat(needed),
+			thresh_hold: parseFloat(thold),
 		};
+
 		if (response.ok) {
-			setFilteredItems((prevUsers) =>
-				prevUsers.map((i) =>
-					i.name === itemName ? { ...i, ...updatedData } : i
+			setFilteredItems((prevItems) =>
+				prevItems.map((item) =>
+					item.name === itemName ? { ...item, ...updatedData } : item
 				)
 			);
-			handleCloseModal()
+
+			handleCloseModal();
+
 			toast.success(json.message, {
 				position: "bottom-right",
 				autoClose: 1000,
@@ -104,35 +111,33 @@ export default function Inventory() {
 			});
 		}
 	};
-	useEffect(() => {
 
+	useEffect(() => {
 		socket!.on("update_inventory_item", (ingredientName, { available, needed }) => {
 			const updatedData = {
-				available: available, needed: needed
+				available: available,
+				needed: needed,
 			};
-			setFilteredItems((prevUsers) =>
-				prevUsers.map((i) =>
-					i.name === ingredientName ? { ...i, ...updatedData } : i
+
+			setFilteredItems((prevItems) =>
+				prevItems.map((item) =>
+					item.name === ingredientName ? { ...item, ...updatedData } : item
 				)
 			);
 		});
-		return () => {
-			socket!.off("update_inventory_item")
-		}
 
+		return () => {
+			socket!.off("update_inventory_item");
+		};
 	}, []);
+
 	return (
 		<div className="GeneralContent">
 			<div className="scroll">
 				<div className="t">
-					<div
-						style={{ width: "50%", marginInline: "auto", marginBottom: "25px" }}
-					>
-						<div className="form-group has-search">
-							<span className="fa fa-search form-control-feedback">
-								{" "}
-								<i className="bi bi-search"></i>
-							</span>
+					<div style={{ width: "50%", marginInline: "auto", marginBottom: "25px" }}>
+						<div className="form-group">
+
 							<input
 								type="text"
 								className="form-control shadow-none"
@@ -147,33 +152,33 @@ export default function Inventory() {
 							<tr>
 								<th scope="col">Name</th>
 								<th scope="col">Unit</th>
+								<th scope="col">Threshhold</th>
 								<th scope="col">Available</th>
 								<th scope="col">Needed</th>
 								<th scope="col">Action</th>
 							</tr>
 						</thead>
 						<tbody>
-							{filteredItems.map((item, index) => (
+							{filteredItems && filteredItems.map((item, index) => (
 								<tr key={item.name}>
 									<td style={{ paddingTop: "15px" }}>{item.name}</td>
 									<td style={{ paddingTop: "15px" }}>{item.unit}</td>
-
-
+									<td style={{ paddingTop: "15px" }}>{item.thresh_hold}</td>
+									<td style={{ paddingTop: "15px" }}>{item.available}</td>
+									<td style={{ paddingTop: "15px" }}>{item.needed}</td>
 									<td>
-										{item.available}
-									</td>
-									<td>
-
-										{item.needed}
-									</td>
-									<td>
-										<button className='btn btn-link btn-sm' onClick={() => {
-
-											setSelectedInventory(item.name)
-											setNeeded(item.needed)
-											setAvailable(item.available)
-											setShowModal(true);
-										}}>Update</button>
+										<button
+											className="btn btn-link btn-sm"
+											onClick={() => {
+												setSelectedInventory(item.name);
+												setNeeded(item.needed);
+												setAvailable(item.available);
+												setThold(item.thresh_hold);
+												setShowModal(true);
+											}}
+										>
+											Update
+										</button>
 									</td>
 								</tr>
 							))}
@@ -184,38 +189,51 @@ export default function Inventory() {
 
 			<Modal show={showModal} onHide={handleCloseModal} centered>
 				<Modal.Header closeButton>
-					<Modal.Title>Information for {selectedInventory} </Modal.Title>
+					<Modal.Title>Information for {selectedInventory}</Modal.Title>
 				</Modal.Header>
 
 				<Modal.Body>
 					<div>
-
+						<label htmlFor="username">Threshhold</label>
+						<input
+							type="text"
+							className="form-control"
+							value={thold}
+							onChange={(e) => {
+								setThold(e.target.value);
+							}}
+						/>
 						<label htmlFor="username">Available</label>
-						<input type="text" className='form-control' value={available} onChange={(e) => {
-							setAvailable(e.target.value)
-						}} />
+						<input
+							type="text"
+							className="form-control"
+							value={available}
+							onChange={(e) => {
+								setAvailable(e.target.value);
+							}}
+						/>
 						<label htmlFor="password">Needed</label>
-						<input type="text" className='form-control' value={needed} onChange={(e) => {
-							setNeeded(e.target.value)
-						}} />
-
+						<input
+							type="text"
+							className="form-control"
+							value={needed}
+							onChange={(e) => {
+								setNeeded(e.target.value);
+							}}
+						/>
 						<br />
-
 					</div>
 				</Modal.Body>
 				<Modal.Footer>
 					<Button variant="secondary" onClick={handleCloseModal}>
 						Close
 					</Button>
-					<Button variant="primary" onClick={() => {
-						updateInventoryItems(selectedInventory);
-
-					}}>
+					<Button variant="primary" onClick={() => updateInventoryItems(selectedInventory)}>
 						Update
 					</Button>
 				</Modal.Footer>
-
 			</Modal>
+
 			<ToastContainer
 				position="bottom-right"
 				autoClose={1000}
@@ -223,7 +241,7 @@ export default function Inventory() {
 				newestOnTop={false}
 				closeOnClick
 				rtl={false}
-				pauseOnFocusLoss
+				pauseOnFocusLoss={false}
 				draggable
 				pauseOnHover={false}
 				theme="light"

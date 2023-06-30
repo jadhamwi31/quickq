@@ -3,7 +3,7 @@ import Cookies from 'js-cookie';
 import { ToastContainer, toast } from 'react-toastify';
 
 import 'react-toastify/dist/ReactToastify.css';
-import { log } from 'console';
+import PackageJson from '../../../package.json'
 interface Brand {
     name: string,
     logo: string,
@@ -16,9 +16,8 @@ function Resturant() {
     const [brand, setBrand] = useState<any>([]);
     const [name, setName] = useState('');
     const [slogan, setSlogan] = useState('');
-    const [logo, setLogo] = useState<any>();
-
-
+    const [logo, setLogo] = useState<any>("");
+    const [usedLogo, setUsedLogo] = useState("");
 
 
     const add = async () => {
@@ -33,11 +32,11 @@ function Resturant() {
             headers: {
                 Authorization: `Bearer ${Cookies.get('jwt')}`,
             },
+
         });
 
         const json = await response.json();
         if (response.ok) {
-            console.log(logo)
 
             toast.success(json.message, {
                 position: 'bottom-right',
@@ -49,6 +48,7 @@ function Resturant() {
                 progress: undefined,
                 theme: 'light',
             });
+            getBrand();
         } else {
             toast.error(json.message, {
                 position: 'bottom-right',
@@ -62,23 +62,27 @@ function Resturant() {
             });
         }
     };
+    const getBrand = async () => {
+        const response = await fetch('/brand', {
+            headers: {
+                Authorization: `Bearer ${Cookies.get('jwt')}`,
+            },
+        });
 
+        if (response.ok) {
+            const json = await response.json();
+            setBrand(json.data.brand)
+            setName(json.data.brand.name)
+            setSlogan(json.data.brand.slogan)
+            setUsedLogo(json.data.brand.logo)
+
+        }
+    };
     useEffect(() => {
-        const getBrand = async () => {
-            const response = await fetch('/brand', {
-                headers: {
-                    Authorization: `Bearer ${Cookies.get('jwt')}`,
-                },
-            });
 
-            if (response.ok) {
-                const json = await response.json();
-                setBrand(json.data)
-                console.log(json.data)
-            }
-        };
 
         getBrand();
+
     }, []);
     return (
         <div className="GeneralContent">
@@ -98,9 +102,12 @@ function Resturant() {
                 </div>
                 <div className="col-8">
                     <div className="GeneralItem scroll" style={{ textAlign: "center" }}>
-                        <img src={`http://localhost:80/images/${brand.logo}`} alt='' width="400px"></img>
-                        <h3>Name</h3>
-                        <h5><i>Lorem ipsum dolor consectetur voluptates, beatae optio dicta dolorem maxime quo officia consequatur at, consequuntur repellat.</i></h5>
+                        <img src={`${PackageJson.proxy}/images/${usedLogo ? usedLogo : ""}`} alt='' width="400px" style={{
+                            margin: "20px",
+                            borderRadius: "15px"
+                        }}></img>
+                        <h3>{brand ? brand.name : ""}</h3>
+                        <h5><i>{brand ? brand.slogan : ""}</i></h5>
                     </div>
 
                 </div>

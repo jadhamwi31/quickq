@@ -3,6 +3,7 @@ import Cookies from 'js-cookie';
 import { ToastContainer, toast } from 'react-toastify';
 import { Modal, Button } from "react-bootstrap";
 import 'react-toastify/dist/ReactToastify.css';
+import { useAuthContext } from '../../context/AuthContext';
 
 interface User {
     username: string;
@@ -133,7 +134,7 @@ function Users() {
                     'Content-Type': 'application/json',
                     Authorization: `Bearer ${Cookies.get('jwt')}`,
                 },
-                body:JSON.stringify({username})
+                body: JSON.stringify({ username })
             });
 
             const json = await response.json();
@@ -192,6 +193,8 @@ function Users() {
 
         getUsers();
     }, []);
+
+    const { username } = useAuthContext();
     return (
         <div className="GeneralContent">
             <div className="row">
@@ -235,7 +238,7 @@ function Users() {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {users.map((user) => (
+                                        {users.filter((user) => user.username !== username).map((user) => (
                                             <tr key={user.username}>
                                                 <td>{user.username}</td>
                                                 <td>{user.password}</td>

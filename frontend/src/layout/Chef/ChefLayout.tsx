@@ -13,11 +13,14 @@ export default function ChefLayout() {
             <div id="mySidenav" className="sidenav" >
                 <img className="logo" src={logo} alt="logo" />
                 <NavLink end to="/chef"><span className="lnr lnr-text-align-center"></span>Orders</NavLink>
+                <NavLink to="Tables"><span className="lnr lnr-inbox"></span>Tables</NavLink>
                 <NavLink end to="Inventory"><span className="lnr lnr-store"></span>Inventory</NavLink>
                 <NavLink end to="Account"><span className="lnr lnr-user"></span>Account Setting</NavLink>
+
                 <Button style={{
-                    marginTop: "56vh",
-                    marginLeft: "30px"
+                    position: "absolute",
+                    bottom: "10px",
+                    left: "10px"
 
 
                 }}

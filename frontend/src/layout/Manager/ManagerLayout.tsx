@@ -40,15 +40,17 @@ export default function ManagerLayout() {
 					<NavLink to="Orders">
 						<span className="lnr lnr-text-align-center"></span>Orders
 					</NavLink>
-					<NavLink to="Users">
-						<span className="lnr lnr-users"></span>Users
-					</NavLink>
 					<NavLink to="Resturant">
 						<span className="lnr lnr-construction"></span>Resutrant
 					</NavLink>
+					<NavLink to="Users">
+						<span className="lnr lnr-users"></span>Users
+					</NavLink>
+					<NavLink end to="Account"><span className="lnr lnr-user"></span>Account Setting</NavLink>
 					<Button style={{
-						marginTop: "31vh",
-						marginLeft: "30px"
+						position: "absolute",
+						bottom: "10px",
+						left: "10px"
 
 
 					}}

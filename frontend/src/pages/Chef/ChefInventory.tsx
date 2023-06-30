@@ -1,87 +1,74 @@
-import { useEffect, useState } from 'react';
-import Cookies from 'js-cookie';
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { useEffect, useState } from "react";
+import Cookies from "js-cookie";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { useSocketIoContext } from "../../context/SocketIoContext";
+import { Modal, Button } from "react-bootstrap";
 
 export default function ChefInventory() {
-    interface InventoryItem {
-        name: string;
-        available: number;
-        needed: number;
-        unit: string;
-    }
-    const [filteredItems, setFilteredItems] = useState<InventoryItem[]>([]);
-    const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([]);
-    const [activeItems, setActiveItems] = useState<boolean[]>([]);
-    const [availableItems, setAvailableItems] = useState<string[]>([]);
-    const [neededItems, setNeededItems] = useState<string[]>([]);
+    const { socket } = useSocketIoContext();
+    const [filteredItems, setFilteredItems] = useState<any[]>([]);
+    const [inventoryItems, setInventoryItems] = useState<any[]>([]);
+    const [available, setAvailable] = useState("");
+    const [needed, setNeeded] = useState("");
+    const [thold, setThold] = useState("");
 
     useEffect(() => {
-        document.title = 'Manager | Inventory';
-    }, []);
+        document.title = "Manager | Inventory";
+
+        return () => {
+            // Clean up the socket connection when the component is unmounted
+            socket!.off("update_inventory_item");
+        };
+    }, [socket]);
+
+    const [showModal, setShowModal] = useState(false);
+    const [selectedInventory, setSelectedInventory] = useState("");
 
     useEffect(() => {
         const getInventoryItems = async () => {
-            const response = await fetch('/inventory/items', {
+            const response = await fetch("/inventory/items", {
                 headers: {
-                    Authorization: `Bearer ${Cookies.get('jwt')}`,
+                    Authorization: `Bearer ${Cookies.get("jwt")}`,
                 },
             });
             if (response.ok) {
                 const json = await response.json();
-                const items: InventoryItem[] = json.data.items;
-                setInventoryItems(items);
-                setActiveItems(new Array(items.length).fill(false));
-                setAvailableItems(items.map(item => item.available.toString()));
-                setNeededItems(items.map(item => item.needed.toString()));
-                setFilteredItems(items);
+
+                setInventoryItems(json.data);
+                setFilteredItems(json.data);
             }
         };
 
         getInventoryItems();
     }, []);
+
     const handleSearch = (query: string) => {
-        const filtered = inventoryItems.filter(item =>
+        const filtered = inventoryItems.filter((item) =>
             item.name.toLowerCase().includes(query.toLowerCase())
         );
         setFilteredItems(filtered);
     };
-    const handleCheckboxChange = (index: number) => {
-        setActiveItems(prevActiveItems => {
-            const updatedActiveItems = [...prevActiveItems];
-            updatedActiveItems[index] = !updatedActiveItems[index];
-            return updatedActiveItems;
-        });
+
+    const handleCloseModal = () => {
+        setShowModal(false);
     };
 
-    const handleAvailableChange = (index: number, value: string) => {
-        setAvailableItems(prevAvailableItems => {
-            const updatedAvailableItems = [...prevAvailableItems];
-            updatedAvailableItems[index] = value;
-            return updatedAvailableItems;
-        });
-    };
-
-    const handleNeededChange = (index: number, value: string) => {
-        setNeededItems(prevNeededItems => {
-            const updatedNeededItems = [...prevNeededItems];
-            updatedNeededItems[index] = value;
-            return updatedNeededItems;
-        });
-    };
-
-    const updateInventoryItems = async (index: number, itemName: string) => {
-
-
+    const updateInventoryItems = async (itemName: string) => {
         const response = await fetch("/inventory/items/" + itemName, {
             method: "PUT",
-            body: JSON.stringify({ available: availableItems[index], needed: neededItems[index] }),
+            body: JSON.stringify({
+                available: available,
+                needed: needed,
+                thresh_hold: thold,
+            }),
             credentials: "include",
             headers: {
                 "Content-Type": "application/json",
                 Authorization: `Bearer ${Cookies.get("jwt")}`,
             },
         });
+
         const json = await response.json();
 
         if (!response.ok) {
@@ -96,12 +83,22 @@ export default function ChefInventory() {
                 theme: "light",
             });
         }
+
+        const updatedData = {
+            available: parseFloat(available),
+            needed: parseFloat(needed),
+            thresh_hold: parseFloat(thold),
+        };
+
         if (response.ok) {
-            setActiveItems(prevActiveItems => {
-                const updatedActiveItems = [...prevActiveItems];
-                updatedActiveItems[index] = false;
-                return updatedActiveItems;
-            });
+            setFilteredItems((prevItems) =>
+                prevItems.map((item) =>
+                    item.name === itemName ? { ...item, ...updatedData } : item
+                )
+            );
+
+            handleCloseModal();
+
             toast.success(json.message, {
                 position: "bottom-right",
                 autoClose: 1000,
@@ -113,98 +110,72 @@ export default function ChefInventory() {
                 theme: "light",
             });
         }
-
-
-
     };
 
-    return (
+    useEffect(() => {
+        socket!.on("update_inventory_item", (ingredientName, { available, needed }) => {
+            const updatedData = {
+                available: available,
+                needed: needed,
+            };
 
-        <div className="GeneralContent" >
+            setFilteredItems((prevItems) =>
+                prevItems.map((item) =>
+                    item.name === ingredientName ? { ...item, ...updatedData } : item
+                )
+            );
+        });
+
+        return () => {
+            socket!.off("update_inventory_item");
+        };
+    }, []);
+
+    return (
+        <div className="GeneralContent">
             <div className="scroll">
                 <div className="t">
                     <div style={{ width: "50%", marginInline: "auto", marginBottom: "25px" }}>
+                        <div className="form-group">
 
-
-                        <div className="form-group has-search">
-                            <span className="fa fa-search form-control-feedback"> <i className="bi bi-search"></i></span>
-                            <input type="text" className="form-control shadow-none" placeholder="Search" onChange={e => handleSearch(e.target.value)} />
+                            <input
+                                type="text"
+                                className="form-control shadow-none"
+                                placeholder="Search"
+                                onChange={(e) => handleSearch(e.target.value)}
+                            />
                         </div>
                     </div>
 
-                    <table className="table" style={{ paddingLeft: '20px' }}>
-                        <thead
-
-                        >
+                    <table className="table" style={{ paddingLeft: "20px" }}>
+                        <thead>
                             <tr>
                                 <th scope="col">Name</th>
                                 <th scope="col">Unit</th>
-                                <th scope="col">Active</th>
+
                                 <th scope="col">Available</th>
                                 <th scope="col">Needed</th>
                                 <th scope="col">Action</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {filteredItems.map((item, index) => (
+                            {filteredItems && filteredItems.map((item, index) => (
                                 <tr key={item.name}>
                                     <td style={{ paddingTop: "15px" }}>{item.name}</td>
                                     <td style={{ paddingTop: "15px" }}>{item.unit}</td>
-                                    <td style={{ paddingTop: "15px" }}>
-                                        <input
-                                            style={{ cursor: "pointer" }}
-                                            className="form-check-input"
-                                            type="checkbox"
-                                            checked={activeItems[index]}
-                                            onChange={() => handleCheckboxChange(index)}
-                                            name={item.name}
-                                        />
-                                    </td>
-                                    <td>
-                                        <input
-                                            type="text"
-                                            className="form-control"
-                                            disabled={!activeItems[index]}
-                                            value={availableItems[index]}
-                                            onChange={e => handleAvailableChange(index, e.target.value)}
-                                            onKeyPress={e => {
-                                                // Allow only decimal numbers and backspace
-                                                const charCode = e.which ? e.which : e.keyCode;
-                                                if (
-                                                    (charCode > 31 && (charCode < 48 || charCode > 57)) // Check for digits
-                                                    && charCode !== 46 // Check for decimal point (.)
-                                                    && charCode !== 8 // Check for backspace
-                                                ) {
-                                                    e.preventDefault();
-                                                }
-                                            }}
-                                        />
-                                    </td>
-                                    <td>
-                                        <input
-                                            type="text"
-                                            className="form-control"
-                                            disabled={!activeItems[index]}
-                                            value={neededItems[index]}
-                                            onChange={e => handleNeededChange(index, e.target.value)}
-                                            onKeyPress={e => {
-                                                // Allow only decimal numbers and backspace
-                                                const charCode = e.which ? e.which : e.keyCode;
-                                                if (
-                                                    (charCode > 31 && (charCode < 48 || charCode > 57)) // Check for digits
-                                                    && charCode !== 46 // Check for decimal point (.)
-                                                    && charCode !== 8 // Check for backspace
-                                                ) {
-                                                    e.preventDefault();
-                                                }
-                                            }}
-                                        />
-                                    </td>
+                                    <td style={{ paddingTop: "15px" }}>{item.thresh_hold}</td>
+                                    <td style={{ paddingTop: "15px" }}>{item.available}</td>
+                                    <td style={{ paddingTop: "15px" }}>{item.needed}</td>
                                     <td>
                                         <button
-                                            disabled={!activeItems[index]}
                                             className="btn btn-link btn-sm"
-                                            onClick={() => updateInventoryItems(index, item.name)}
+                                            onClick={() => {
+                                                setSelectedInventory(item.name);
+                                                setNeeded(item.needed);
+                                                setAvailable(item.available);
+                                                setThold(item.thresh_hold);
+                                                setShowModal(true);
+                                            }}
                                         >
                                             Update
                                         </button>
@@ -213,9 +184,48 @@ export default function ChefInventory() {
                             ))}
                         </tbody>
                     </table>
-
                 </div>
             </div>
+
+            <Modal show={showModal} onHide={handleCloseModal} centered>
+                <Modal.Header closeButton>
+                    <Modal.Title>Information for {selectedInventory}</Modal.Title>
+                </Modal.Header>
+
+                <Modal.Body>
+                    <div>
+
+                        <label htmlFor="username">Available</label>
+                        <input
+                            type="text"
+                            className="form-control"
+                            value={available}
+                            onChange={(e) => {
+                                setAvailable(e.target.value);
+                            }}
+                        />
+                        <label htmlFor="password">Needed</label>
+                        <input
+                            type="text"
+                            className="form-control"
+                            value={needed}
+                            onChange={(e) => {
+                                setNeeded(e.target.value);
+                            }}
+                        />
+                        <br />
+                    </div>
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="secondary" onClick={handleCloseModal}>
+                        Close
+                    </Button>
+                    <Button variant="primary" onClick={() => updateInventoryItems(selectedInventory)}>
+                        Update
+                    </Button>
+                </Modal.Footer>
+            </Modal>
+
             <ToastContainer
                 position="bottom-right"
                 autoClose={1000}
@@ -223,12 +233,11 @@ export default function ChefInventory() {
                 newestOnTop={false}
                 closeOnClick
                 rtl={false}
-                pauseOnFocusLoss
+                pauseOnFocusLoss={false}
                 draggable
                 pauseOnHover={false}
                 theme="light"
             />
-
         </div>
     );
 }

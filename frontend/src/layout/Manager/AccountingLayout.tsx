@@ -10,7 +10,7 @@ export default function AccountingLayout() {
 				<div className="MenuNav">
 					<NavLink to="today">Today</NavLink>
 					<NavLink to="History">History</NavLink>
-					<NavLink to="AI">AI</NavLink>
+					<NavLink to="AI">Prediction</NavLink>
 
 				</div>
 				<Outlet />

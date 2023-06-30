@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import Cookies from "js-cookie";
+import { useSocketIoContext } from '../../../context/SocketIoContext';
 interface Transaction {
     date: string;
     amount: number;
@@ -12,10 +13,13 @@ interface Data {
 }
 
 function Today() {
+    const { socket } = useSocketIoContext();
     const [data, setData] = useState<Data>({
         transactions: [],
         payins: 0,
     });
+
+    const [today, setToday] = useState(0);
 
 
     useEffect(() => {
@@ -33,11 +37,45 @@ function Today() {
             if (response.ok) {
                 const json = await response.json();
                 setData(json.data);
+                setToday(json.data.payins);
             }
         };
 
         getSales();
     }, []);
+    useEffect(() => {
+        socket!.on("increment_payins", (amount) => {
+            setToday((previous) => previous + amount)
+
+            console.log("amount", amount);
+
+
+        });
+        return () => {
+            socket!.off("increment_payins")
+        }
+
+
+    }, []);
+    useEffect(() => {
+        socket!.on("new_payment", (pay) => {
+
+
+            console.log("amount", pay);
+
+
+        });
+        return () => {
+            socket!.off("new_payment")
+        }
+
+
+    }, []);
+
+
+
+
+
     const parseTime = (dateString: string) => {
         const date = new Date(dateString);
         return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
@@ -46,7 +84,7 @@ function Today() {
     return (
 
         <div className="scroll">
-            <h3>Total : {data.payins.toLocaleString()}</h3>
+            <h3>Total : {today}</h3>
             <table className="table" style={{ paddingLeft: "20px" }}>
                 <thead>
                     <tr>

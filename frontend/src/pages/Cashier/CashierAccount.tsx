@@ -19,7 +19,7 @@ function CashierAccount() {
 
     const updatePassword = async () => {
         if (newPassword === confirmPassword) {
-            const response = await fetch(`/Users/${userName}`, {
+            const response = await fetch(`/Users`, {
                 method: "PUT",
                 body: JSON.stringify({ oldPassword: oldPassword, password: newPassword }),
                 credentials: "include",

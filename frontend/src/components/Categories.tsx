@@ -4,7 +4,7 @@ import Cookies from 'js-cookie';
 import UpdateCategory from './UpdateCategory';
 import { ToastContainer, toast } from 'react-toastify';
 import { Modal, Button } from 'react-bootstrap';
-
+import PackageJson from '../../package.json'
 function Categories() {
     const [dishes, setDishes] = useState([] as {
         name: string;
@@ -20,6 +20,7 @@ function Categories() {
     const [dishName, setDishName] = useState('');
     const [dishName1, setDishName1] = useState('');
     const [dishPrice, setDishPrice] = useState('');
+    const [dishPrice1, setDishPrice1] = useState('');
     const [showModal, setShowModal] = useState(false);
     const { Categories, dispatch } = useCategoriesContext();
 
@@ -218,7 +219,7 @@ function Categories() {
                                                     alignItems: 'center',
                                                 }}
                                             >
-                                                <div style={{ paddingTop: '7px' }}><img src={c.image ? `http://localhost:80/images/${c.image}` : ''} style={{
+                                                <div style={{ paddingTop: '7px' }}><img src={c.image ? `${PackageJson.proxy}/images/${c.image}` : ''} style={{
                                                     borderRadius: "15px",
                                                     width: "50px",
                                                     height: "50px",
@@ -250,6 +251,7 @@ function Categories() {
                                                                     onClick={() => {
                                                                         setShowModal(true);
                                                                         setDishName1(d.name);
+
                                                                     }}
                                                                     className="btn btn-link btn-sm"
                                                                 >
@@ -257,7 +259,7 @@ function Categories() {
                                                                 </button>
                                                                 <Modal show={showModal} onHide={handleCloseModal} centered>
                                                                     <Modal.Header closeButton>
-                                                                        <Modal.Title>Edit Dish</Modal.Title>
+                                                                        <Modal.Title>Edit Dish {dishName1}</Modal.Title>
                                                                     </Modal.Header>
                                                                     <form onSubmit={handleSubmit}>
                                                                         <Modal.Body>
