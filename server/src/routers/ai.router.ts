@@ -7,4 +7,4 @@ export const AiRouter = Router();
 
 
 
-AiRouter.get("/predictions/prices",authFor(["manager"]),AiController.predictPricesHandler)
+AiRouter.get("/predictions/prices",AiController.predictPricesHandler)

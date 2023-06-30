@@ -85,6 +85,9 @@ const createNewOrder = async (newOrder: OrderDishesType, tableId: number) => {
         JSON.stringify(redisTableOrder)
     );
 
+    // Clear Predictions From Cache
+    await RedisService.redis.del("prices:predictions")
+
     await WebsocketService.publishEvent(["cashier", "chef"], "new_order", redisTableOrder);
     await WebsocketService.publishEvent(["cashier", "chef"], "notification", "New Order", `New Order | ID : ${redisTableOrder.id} | Table : ${redisTableOrder.tableId}`);
 };

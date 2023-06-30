@@ -102,6 +102,8 @@ const newPayment = async (tableId: number, amountPaid: number) => {
         Number(prevPayins) + payment.amount
     );
 
+
+
     // Update Table Status
     const tableRecord = await tablesRepo.findOneBy({id: tableId});
     tableRecord.status = "Available";
@@ -127,11 +129,14 @@ const newPayment = async (tableId: number, amountPaid: number) => {
 };
 
 const getPaymentsHistory = async () => {
-    return await AppDataSource.createQueryBuilder()
+
+    const payments = await AppDataSource.createQueryBuilder()
         .from(Payment, "payment")
         .addSelect(["payment.date", "payment.amount"])
         .leftJoin("payment.orders", "order")
         .getMany();
+
+    return {payments,total:payments.reduce((total,current) => total + current.amount,0)}
 };
 
 const getTodayPayments = async () => {

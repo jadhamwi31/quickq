@@ -6,6 +6,7 @@ import {Parser} from "json2csv";
 import axios from "axios";
 import {DishesService} from "./dishes.service";
 import {InternalServerError} from "../models/error.model";
+import RedisService from "./redis.service";
 
 
 type TestData = {
@@ -94,9 +95,17 @@ const predictPrices = async (csv: string) => {
 }
 
 const getPricesPrediction = async () => {
-    const pricesTestData = await getDishesSalesData();
+    const predictionsCached = await RedisService.isCached("prices:predictions");
+    if(predictionsCached){
+     return JSON.parse(await RedisService.redis.get("prices:predictions"))
+    }else{
+        const dishesSales = await getDishesSalesData();
 
-    return await predictPrices(pricesTestData);
+        const predictedPrices= await predictPrices(dishesSales);
+        await RedisService.redis.set("prices:predictions",JSON.stringify(predictedPrices))
+        return predictedPrices
+    }
+
 }
 
 export const AiService = {
