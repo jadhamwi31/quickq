@@ -8,6 +8,7 @@ import RedisService from "./redis.service";
 import {OrdersService} from "./orders.service";
 import {UserRoleType} from "../ts/types/user.types";
 import WebsocketService from "./websocket.service";
+import {Order} from "../models/order.model";
 
 const getTableSessionClientId = async (tableId: number) => {
     const isTableSessionCached = await RedisService.isCached(
@@ -138,7 +139,7 @@ const openNewTableSession = async (tableId: number, clientId: string) => {
     );
 };
 
-const closeTableSession = async (tableId: number,fromPayment = false) => {
+const closeTableSession = async (tableId: number, fromPayment = false) => {
 
     const tablesRepo = AppDataSource.getRepository(Table);
     const table = await tablesRepo.findOneBy({id: tableId});
@@ -153,7 +154,8 @@ const closeTableSession = async (tableId: number,fromPayment = false) => {
         relations: {table: true},
         where: {table: {id: tableId}},
     });
-    if(!fromPayment && clientId !== null){
+    const tableOrders = await AppDataSource.getRepository(Order).find({relations: {table: true, payment: true},where:{payment:{clientId}}})
+    if (!fromPayment && clientId !== null && tableOrders.length !== 0) {
         throw new BadRequestError("table has to pay before closing")
     }
     tableSessionRecord.clientId = null;
