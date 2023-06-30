@@ -19,10 +19,7 @@ const newPayment = async (tableId: number, amountPaid: number) => {
     if (total !== amountPaid) {
         throw new ForbiddenError(`amount paid not equel to check total ${total}`);
     }
-    if (total === 0){
-        await TablesService.closeTableSession(tableId, true)
-        return;
-    }
+
 
     receipt.forEach((tableOrder) => {
         if (tableOrder.status === "Pending" || tableOrder.status === "In Cook") {
@@ -32,6 +29,7 @@ const newPayment = async (tableId: number, amountPaid: number) => {
 
     const paymentsRepo = AppDataSource.getRepository(Payment);
     const payment = await paymentsRepo.findOneBy({clientId});
+
     if (payment) {
         payment.date = new Date();
         payment.amount = amountPaid;
@@ -43,15 +41,12 @@ const newPayment = async (tableId: number, amountPaid: number) => {
 
     await TablesService.closeTableSession(tableId, true)
 
-    // Table Orders
-
-    const redisTablesOrders = await OrdersService.getTodayOrders();
 
     // Clear Table Orders From Cache
-    for (const order of redisTablesOrders) {
-        if (order.tableId == tableId) {
-            await RedisService.redis.hdel("orders", String(order.id));
-        }
+    for (const order of receipt) {
+
+        await RedisService.redis.hdel("orders", String(order.id));
+
     }
 
     // Previous Cache Values
@@ -120,6 +115,13 @@ const newPayment = async (tableId: number, amountPaid: number) => {
         "increment_payins",
         amountPaid
     );
+
+    console.log({
+        amount: payment.amount,
+        tableId: payment.table.id,
+        date: payment.date.toString(),
+        clientId: payment.clientId
+    })
     WebsocketService.publishEvent(["manager", "cashier"], "new_payment", {
         amount: payment.amount,
         tableId: payment.table.id,

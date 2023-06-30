@@ -154,7 +154,7 @@ const closeTableSession = async (tableId: number, fromPayment = false) => {
         relations: {table: true},
         where: {table: {id: tableId}},
     });
-    const clientOrders = await OrdersService.getTableClientOrders(tableId)
+    const clientOrders = await OrdersService.getTableOrders(tableId)
     if (!fromPayment && clientOrders.length !== 0) {
         throw new BadRequestError("table has to pay before closing")
     }
@@ -177,14 +177,14 @@ const closeTableSession = async (tableId: number, fromPayment = false) => {
 };
 
 const checkoutTable = async (tableId: number) => {
-    const orders = await OrdersService.getTodayOrders();
-    console.log(tableId)
-    const tableOrders = orders.filter((order) => order.tableId == tableId).filter((order) => order.status !== "Cancelled")
+
+
+    const tableOrders = (await OrdersService.getTableOrders(tableId))
     const total = tableOrders.reduce(
         (total, current) => total + current.total,
         0
     );
-
+    console.log(tableOrders)
 
     return {receipt: tableOrders, total};
 };

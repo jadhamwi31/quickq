@@ -259,14 +259,17 @@ const getTodayOrders = async () => {
         const dayEnd = moment().endOf("day").toDate();
         const _orders = await AppDataSource.createQueryBuilder()
             .from(Order, "order")
-            .addSelect(["order.id", "order.status", "order.date","order.total"])
+            .addSelect(["order.id", "order.status", "order.date", "order.total"])
             .leftJoin("order.table", "table")
             .addSelect(["table.id"])
+            .leftJoin("table.payments","payment")
+            .addSelect("payment.amount")
             .leftJoin("order.orderDishes", "order_dish")
             .addSelect(["order_dish.quantity"])
             .leftJoin("order_dish.dish", "dish")
             .addSelect(["dish.name", "dish.price"])
             .where({date: Between(dayStart, dayEnd)})
+            .andWhere("payment.amount IS NULL")
             .orderBy("order.date", "DESC")
             .getMany();
 
@@ -322,11 +325,10 @@ const getOrdersHistory = async () => {
     return orders;
 };
 
-const getTableClientOrders = async (tableId: number) => {
-const clientId = await TablesService.getTableSessionClientId(tableId)
-    const tableClientOrders =  await AppDataSource.getRepository(Order).find({relations: {table: true, payment: true},where:{payment:{clientId}}})
+const getTableOrders = async (tableId: number) => {
+    const tableClientOrders = await getTodayOrders();
 
-    return tableClientOrders
+    return tableClientOrders.filter((order) => order.tableId == tableId)
 }
 
 export const OrdersService = {
@@ -335,5 +337,5 @@ export const OrdersService = {
     updateOrder,
     updateOrderStatus,
     getTodayOrders,
-    getOrdersHistory,  getTableClientOrders
+    getOrdersHistory, getTableOrders
 };
