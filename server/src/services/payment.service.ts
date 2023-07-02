@@ -1,5 +1,5 @@
 import moment from "moment";
-import {Between} from "typeorm";
+import {Between, IsNull, Not} from "typeorm";
 import {AppDataSource} from "../models";
 import {BadRequestError, ForbiddenError} from "../models/error.model";
 import {Payment} from "../models/payment.model";
@@ -57,7 +57,7 @@ const newPayment = async (tableId: number, amountPaid: number) => {
     );
     const prevPayins = await RedisService.redis.hget("payments", "payins");
 
-    // Update Trasanctions In Cache
+
     if (areTransactionsCached) {
 
         await RedisService.redis.hset(
@@ -160,8 +160,9 @@ const getTodayPayments = async () => {
         const dayEnd = moment().endOf("day").toDate();
 
         const _transactions = await AppDataSource.getRepository(Payment).find({
-            where: {date: Between(dayStart, dayEnd)}, relations: {table: true},
+            where: {date: Between(dayStart, dayEnd),amount:Not(IsNull())}, relations: {table: true},
             select: ["date", "amount", "clientId", "table"],
+
         });
         console.log(_transactions)
 

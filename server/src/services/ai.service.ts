@@ -42,7 +42,7 @@ const getDishesSalesData = async () => {
     const dates = [...new Set(payments.filter((payment) => payment.date).map((payment) => (
         moment(payment.date).format(dateFormat)
     )))]
-    const dishes = await AppDataSource.getRepository(Dish).find({relations: {orderDishes: true}});
+    const dishes = await AppDataSource.getRepository(Dish).find({relations: {orderDishes: {order:true}}});
     const data: TestData = {}
     for (const date of dates) {
         data[date] = []

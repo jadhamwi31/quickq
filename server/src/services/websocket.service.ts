@@ -89,8 +89,7 @@ export default class WebsocketService {
         ev: keyof IServerToClientEvents,
         ...params: Parameters<IServerToClientEvents[typeof ev]>
     ) {
-        console.log("emitted to ",rooms," event ",ev)
-        console.log(this.map)
+        console.log("emitted to ",rooms)
         const httpRequestClientSocket = this.getHttpRequestClientSocket();
 
 

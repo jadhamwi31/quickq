@@ -113,6 +113,7 @@ const createNewDish = async (dish: IDish) => {
         String(dishRecord.id),
         JSON.stringify(redisDish)
     );
+    await RedisService.redis.del("prices:predictions")
 };
 
 export const deleteDish = async (name: string) => {
@@ -135,6 +136,7 @@ export const deleteDish = async (name: string) => {
     await dishesIngredientsRepo.remove(dishesIngredients);
 
     await RedisService.redis.hdel("dishes", String(dishId));
+    await RedisService.redis.del("prices:predictions")
 };
 
 const getDishes = async () => {
@@ -266,6 +268,7 @@ const updateDish = async (dishName: string, dish: Partial<IDish>) => {
         String(dishRecord.id),
         JSON.stringify(redisDish)
     );
+    await RedisService.redis.del("prices:predictions")
 };
 
 

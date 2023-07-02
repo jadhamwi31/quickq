@@ -21,8 +21,7 @@ const updateInventoryItem = async (
     if (needed) inventoryItemRecord.needed = needed;
     if (thresh_hold) inventoryItemRecord.thresh_hold = thresh_hold;
 
-    const updateInventoryItemEventPayload = removeUndefinedProperties({available, needed, thresh_hold});
-    console.log("payload", updateInventoryItemEventPayload)
+    const updateInventoryItemEventPayload = removeUndefinedProperties({available, needed,  thresh_hold});
     await inventoryItemsRepo.save(inventoryItemRecord);
     WebsocketService.publishEvent(
         ["manager", "chef", "cashier"],
@@ -36,7 +35,7 @@ const updateInventoryItem = async (
         `Inventory Item Update | Item : ${inventoryItemRecord.ingredient.name}`,
         `Available : ${inventoryItemRecord.available} | Needed : ${inventoryItemRecord.needed}`
     );
-    if(inventoryItemRecord.thresh_hold <= inventoryItemRecord.available){
+    if (inventoryItemRecord.thresh_hold <= inventoryItemRecord.available) {
         WebsocketService.publishEvent(
             ["manager", "cashier", "chef"],
             "notification",

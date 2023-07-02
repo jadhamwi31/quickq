@@ -16,7 +16,7 @@ export interface IServerToClientEvents {
 	) => void;
 	update_inventory_item: (
 		ingredientName: string,
-		update: Partial<{ available: number; needed: number }>
+		update: Partial<{ available: number; needed: number,thresh_hold:number }>
 	) => void;
 	increment_payins: (amount: number) => void;
 	authorized: (msg: string) => void;

@@ -23,7 +23,7 @@ const createNewIngredient = async (
 	const inventoryItem = new InventoryItem();
 	inventoryItem.ingredient = ingredientRecord;
 	inventoryItem.available = 0;
-	inventoryItem.needed = 0;
+	inventoryItem.needed = 0;	
 	await inventoryItemsRepo.save(inventoryItem);
 };
 

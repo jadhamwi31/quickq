@@ -229,6 +229,9 @@ const updateOrderStatus = async (orderId: number, status: OrderStatusType) => {
             await RedisService.redis.hget("orders", String(orderId))
         );
         newRedisOrder.status = status;
+        if(newRedisOrder.status === "Cancelled"){
+            newRedisOrder.total = 0;
+        }
 
         await RedisService.redis.hset(
             "orders",
@@ -239,6 +242,9 @@ const updateOrderStatus = async (orderId: number, status: OrderStatusType) => {
         const orders = await getTodayOrders();
         const currentOrder = orders.find((order) => order.id == orderId);
         currentOrder.status = status;
+        if(currentOrder.status === "Cancelled"){
+            currentOrder.total = 0;
+        }
         await RedisService.redis.hset(
             "orders",
             String(orderId),
@@ -274,6 +280,8 @@ const getTodayOrders = async () => {
             .andWhere("payment.amount IS NULL")
             .orderBy("order.date", "DESC")
             .getMany();
+
+        console.log(_orders)
 
         const orders: IRedisTableOrder[] = [];
         const redisOrdersToSet: { [orderId: string]: string } = {};

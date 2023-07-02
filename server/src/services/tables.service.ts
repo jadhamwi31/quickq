@@ -106,7 +106,7 @@ const openNewTableSession = async (tableId: number, clientId: string) => {
     const paymentsRepo = AppDataSource.getRepository(Payment);
     const tablesRepo = AppDataSource.getRepository(Table);
     const table = await tablesRepo.findOneBy({id: tableId});
-
+    const prevStatus = table.status;
     if (table.status === "Busy") {
         throw new BadRequestError("table is busy");
     }
@@ -124,11 +124,12 @@ const openNewTableSession = async (tableId: number, clientId: string) => {
     tableSessionRecord.clientId = clientId;
     await tablesSessionsRepo.save(tableSessionRecord);
     await RedisService.redis.hset("tables:sessions", String(tableId), clientId);
+    if(prevStatus === "Available"){
 
     WebsocketService.publishEvent(
         ["manager", "cashier", "chef"],
         "update_table_status",
-        tableId,
+        Number(tableId),
         "Busy"
     );
     WebsocketService.publishEvent(
@@ -137,15 +138,19 @@ const openNewTableSession = async (tableId: number, clientId: string) => {
         `Table Status Update | Table Number : ${tableId}`,
         "Busy"
     );
+    }
 };
 
 const closeTableSession = async (tableId: number, fromPayment = false) => {
 
     const tablesRepo = AppDataSource.getRepository(Table);
     const table = await tablesRepo.findOneBy({id: tableId});
-    const clientId = await getTableSessionClientId(tableId);
 
-
+    const prevStatus = table.status;
+    const clientOrders = await OrdersService.getTableOrders(tableId)
+    if (!fromPayment && clientOrders.length !== 0) {
+        throw new BadRequestError("table has to pay before closing")
+    }
     table.status = "Available";
     await tablesRepo.save(table);
 
@@ -154,18 +159,15 @@ const closeTableSession = async (tableId: number, fromPayment = false) => {
         relations: {table: true},
         where: {table: {id: tableId}},
     });
-    const clientOrders = await OrdersService.getTableOrders(tableId)
-    if (!fromPayment && clientOrders.length !== 0) {
-        throw new BadRequestError("table has to pay before closing")
-    }
     tableSessionRecord.clientId = null;
     await tablesSessionsRepo.save(tableSessionRecord);
     await RedisService.redis.hdel("tables:sessions", String(tableId));
+    if(prevStatus === "Busy"){
 
     WebsocketService.publishEvent(
         ["manager", "cashier", "chef"],
         "update_table_status",
-        tableId,
+        Number(tableId),
         "Available"
     );
     WebsocketService.publishEvent(
@@ -174,6 +176,7 @@ const closeTableSession = async (tableId: number, fromPayment = false) => {
         `Table Status Update | Table Number : ${tableId}`,
         "Available"
     );
+    }
 };
 
 const checkoutTable = async (tableId: number) => {
@@ -186,6 +189,7 @@ const checkoutTable = async (tableId: number) => {
         (total, current) => total + current.total,
         0
     );
+    console.log(tableOrders,total)
 
 
     return {receipt: tableOrders, total};

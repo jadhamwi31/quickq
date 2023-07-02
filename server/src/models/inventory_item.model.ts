@@ -13,7 +13,7 @@ export class InventoryItem {
 	@PrimaryGeneratedColumn()
 	id: number;
 
-	@OneToOne(() => Ingredient)
+	@OneToOne(() => Ingredient,{onDelete:"CASCADE"})
 	@JoinColumn()
 	ingredient: Ingredient;
 
