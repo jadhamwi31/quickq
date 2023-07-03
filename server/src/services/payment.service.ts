@@ -68,7 +68,7 @@ const newPayment = async (tableId: number, amountPaid: number) => {
                 {
                     date: payment.date.toString(),
                     amount: payment.amount,
-                    tableId,
+                    tableId:Number(tableId),
                 } as IRedisPayment,
             ])
         );
@@ -81,7 +81,7 @@ const newPayment = async (tableId: number, amountPaid: number) => {
                 {
                     date: payment.date.toString(),
                     amount: payment.amount,
-                    tableId,
+                    tableId:Number(tableId),
                 } as IRedisPayment,
             ])
         );
