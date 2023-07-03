@@ -27,14 +27,13 @@ const newTableHandler = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
         next(e);
     }
 });
-const updateTableHandler = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+const closeTableSessionHandler = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const { id } = req.params;
-    const { status } = req.body;
     try {
-        yield tables_service_1.TablesService.updateTable(id, status);
+        yield tables_service_1.TablesService.closeTableSession(id);
         return res
             .status(http_status_codes_1.StatusCodes.OK)
-            .send({ code: http_status_codes_1.StatusCodes.OK, message: "table updated" });
+            .send({ code: http_status_codes_1.StatusCodes.OK, message: "table session closed" });
     }
     catch (e) {
         next(e);
@@ -63,17 +62,17 @@ const getTablesHandler = (req, res, next) => __awaiter(void 0, void 0, void 0, f
 });
 const openNewTableSessionHandler = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const { id: tableId } = req.params;
-    const { role, clientId } = req.user;
+    const { role, clientId, tableId: clientTableId } = req.user;
     try {
         if (role === "client") {
-            yield tables_service_1.TablesService.openNewTableSession(tableId, clientId);
+            yield tables_service_1.TablesService.openNewTableSession(clientTableId, clientId);
         }
         else {
             yield tables_service_1.TablesService.openNewTableSession(tableId, (0, uuid_1.v4)());
         }
         return res
             .status(http_status_codes_1.StatusCodes.OK)
-            .send({ code: http_status_codes_1.StatusCodes.OK, message: "new table session created" });
+            .send({ code: http_status_codes_1.StatusCodes.OK, message: "opened table session" });
     }
     catch (e) {
         next(e);
@@ -98,7 +97,7 @@ const checkoutTableHandler = (req, res, next) => __awaiter(void 0, void 0, void 
 });
 exports.TablesController = {
     newTableHandler,
-    updateTableHandler,
+    closeTableSessionHandler,
     deleteTableHandler,
     getTablesHandler,
     openNewTableSessionHandler,

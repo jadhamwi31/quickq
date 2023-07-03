@@ -61,7 +61,7 @@ const authFor = (roles) => {
                     if (req.originalUrl !== "/tables/session") {
                         yield authorizeClient(user);
                     }
-                    express_http_context_1.default.set("tableId", user.tableId);
+                    express_http_context_1.default.set("tableId", String(user.tableId));
                 }
                 else {
                     express_http_context_1.default.set("username", user.username);

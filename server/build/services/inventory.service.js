@@ -34,7 +34,6 @@ const updateInventoryItem = (ingredientName, { available, needed, thresh_hold })
     if (thresh_hold)
         inventoryItemRecord.thresh_hold = thresh_hold;
     const updateInventoryItemEventPayload = (0, utils_1.removeUndefinedProperties)({ available, needed, thresh_hold });
-    console.log("payload", updateInventoryItemEventPayload);
     yield inventoryItemsRepo.save(inventoryItemRecord);
     websocket_service_1.default.publishEvent(["manager", "chef", "cashier"], "update_inventory_item", inventoryItemRecord.ingredient.name, updateInventoryItemEventPayload);
     websocket_service_1.default.publishEvent(["manager", "cashier", "chef"], "notification", `Inventory Item Update | Item : ${inventoryItemRecord.ingredient.name}`, `Available : ${inventoryItemRecord.available} | Needed : ${inventoryItemRecord.needed}`);

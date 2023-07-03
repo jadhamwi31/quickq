@@ -24,7 +24,7 @@ export default class RedisService {
 		console.log(logStr)
 	}
 	public static async getCachedVersion(key: string, hash?: string) {
-		// this.cacheLog(key, hash);
+		this.cacheLog(key, hash);
 		if (hash) {
 			return await this.redis.hget(key, hash);
 		} else {

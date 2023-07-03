@@ -33,7 +33,7 @@ const updateOrderHandler = (req, res, next) => __awaiter(void 0, void 0, void 0,
     const { dishesToMutate, dishesToRemove } = req.body;
     try {
         if (role === "client" &&
-            !orders_service_1.OrdersService.orderBelongsToTable(id, req.user.tableId)) {
+            !(yield orders_service_1.OrdersService.orderBelongsToTable(id, req.user.tableId))) {
             throw new error_model_1.ForbiddenError("order should belong to your table");
         }
         yield orders_service_1.OrdersService.updateOrder(id, dishesToMutate, dishesToRemove);
@@ -51,7 +51,7 @@ const updateOrderStatusHandler = (req, res, next) => __awaiter(void 0, void 0, v
     const { role } = req.user;
     try {
         if (role === "client" &&
-            !orders_service_1.OrdersService.orderBelongsToTable(id, req.user.tableId)) {
+            !(yield orders_service_1.OrdersService.orderBelongsToTable(id, req.user.tableId))) {
             throw new error_model_1.ForbiddenError("order should belong to your table");
         }
         yield orders_service_1.OrdersService.updateOrderStatus(id, status);

@@ -20,13 +20,14 @@ const dish_model_1 = require("../models/dish.model");
 const json2csv_1 = require("json2csv");
 const axios_1 = __importDefault(require("axios"));
 const dishes_service_1 = require("./dishes.service");
+const error_model_1 = require("../models/error.model");
+const redis_service_1 = __importDefault(require("./redis.service"));
 const dateFormat = "YYYY-MM-DD";
 const getDishesSalesData = () => __awaiter(void 0, void 0, void 0, function* () {
     const payments = yield models_1.AppDataSource.getRepository(payment_model_1.Payment).find();
     const dates = [...new Set(payments.filter((payment) => payment.date).map((payment) => ((0, moment_1.default)(payment.date).format(dateFormat))))];
-    const dishes = yield models_1.AppDataSource.getRepository(dish_model_1.Dish).find({ relations: { orderDishes: true } });
+    const dishes = yield models_1.AppDataSource.getRepository(dish_model_1.Dish).find({ relations: { orderDishes: { order: true } } });
     const data = {};
-    console.log(dates);
     for (const date of dates) {
         data[date] = [];
         for (const dish of dishes) {
@@ -34,8 +35,7 @@ const getDishesSalesData = () => __awaiter(void 0, void 0, void 0, function* () 
             let count = 0;
             let price = -1;
             for (const dishInOrder of dishInOrders) {
-                console.log("dish in order", dishInOrder);
-                if ((0, moment_1.default)(dishInOrder.date).format(dateFormat) === date) {
+                if ((0, moment_1.default)(dishInOrder.date).format(dateFormat) === date && dishInOrder.order.status !== "Cancelled") {
                     count += dishInOrder.quantity;
                     price = dishInOrder.price;
                 }
@@ -64,22 +64,25 @@ const predictPrices = (csv) => __awaiter(void 0, void 0, void 0, function* () {
                 });
             }
             catch (e) {
-                predictedPricesReformed.push({
-                    actual_price: entry.Actual,
-                    recommended_price: entry.Predicted,
-                    dish_name: "unknown"
-                });
             }
         }
         return predictedPricesReformed;
     }
     catch (e) {
-        return [];
+        throw new error_model_1.InternalServerError("can't predict at this moment, try again later");
     }
 });
 const getPricesPrediction = () => __awaiter(void 0, void 0, void 0, function* () {
-    const pricesTestData = yield getDishesSalesData();
-    return yield predictPrices(pricesTestData);
+    const predictionsCached = yield redis_service_1.default.isCached("prices:predictions");
+    if (predictionsCached) {
+        return JSON.parse(yield redis_service_1.default.getCachedVersion("prices:predictions"));
+    }
+    else {
+        const dishesSales = yield getDishesSalesData();
+        const predictedPrices = yield predictPrices(dishesSales);
+        yield redis_service_1.default.redis.set("prices:predictions", JSON.stringify(predictedPrices));
+        return predictedPrices;
+    }
 });
 exports.AiService = {
     getPricesPrediction,

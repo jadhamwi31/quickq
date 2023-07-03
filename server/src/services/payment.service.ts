@@ -41,9 +41,9 @@ const newPayment = async (tableId: number, amountPaid: number) => {
 
     await TablesService.closeTableSession(tableId, true)
 
-
+    const tableOrders = await OrdersService.getTableOrders(tableId);
     // Clear Table Orders From Cache
-    for (const order of receipt) {
+    for (const order of tableOrders) {
 
         await RedisService.redis.hdel("orders", String(order.id));
 
@@ -138,7 +138,7 @@ const getPaymentsHistory = async () => {
         .leftJoin("payment.orders", "order")
         .getMany();
 
-    return {payments, total: payments.reduce((total, current) => total + current.amount, 0)}
+    return {payments:payments.map((payment) => ({...payment,date:moment(payment.date).format("DD/MM/YYYY")})), total: payments.reduce((total, current) => total + current.amount, 0)}
 };
 
 const getTodayPayments = async () => {

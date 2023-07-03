@@ -12,6 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.TableSession = exports.TableCode = exports.Table = void 0;
 const typeorm_1 = require("typeorm");
 const order_model_1 = require("./order.model");
+const payment_model_1 = require("./payment.model");
 let Table = class Table {
 };
 __decorate([
@@ -22,6 +23,10 @@ __decorate([
     (0, typeorm_1.Column)(),
     __metadata("design:type", String)
 ], Table.prototype, "status", void 0);
+__decorate([
+    (0, typeorm_1.OneToMany)(() => payment_model_1.Payment, (payment) => payment.table),
+    __metadata("design:type", Array)
+], Table.prototype, "payments", void 0);
 __decorate([
     (0, typeorm_1.OneToMany)(() => order_model_1.Order, (order) => order.table),
     __metadata("design:type", Array)

@@ -32,15 +32,13 @@ class RedisService {
         });
     }
     static cacheLog(key, hash) {
-        console.log("------------");
-        console.log("cached version");
-        console.log(`key : ${key}`);
-        if (hash)
-            console.log(`hash : ${hash}`);
+        const hashString = hash ? ` : ${hash}` : ``;
+        const logStr = `Cached ${key}${hashString}`;
+        console.log(logStr);
     }
     static getCachedVersion(key, hash) {
         return __awaiter(this, void 0, void 0, function* () {
-            // this.cacheLog(key, hash);
+            this.cacheLog(key, hash);
             if (hash) {
                 return yield this.redis.hget(key, hash);
             }

@@ -67,19 +67,6 @@ const createNewTable = (id) => __awaiter(void 0, void 0, void 0, function* () {
         yield tablesSessionsRepo.remove(tableSession);
     }
 });
-const updateTable = (id, status) => __awaiter(void 0, void 0, void 0, function* () {
-    const tablesRepo = models_1.AppDataSource.getRepository(table_model_1.Table);
-    const tableRecord = yield tablesRepo.findOneBy({ id });
-    if (!tableRecord) {
-        throw new error_model_1.NotFoundError("table with this id doesn't exist");
-    }
-    if (tableRecord.status !== status) {
-        tableRecord.status = status;
-        websocket_service_1.default.publishEvent(["manager", "cashier", "chef", String(tableRecord.id)], "update_table_status", tableRecord.id, status);
-        websocket_service_1.default.publishEvent(["manager", "cashier", "chef"], "notification", `Table Status Update | Table Number : ${tableRecord.id}`, status);
-    }
-    yield tablesRepo.save(tableRecord);
-});
 const deleteTable = (id) => __awaiter(void 0, void 0, void 0, function* () {
     const tablesRepo = models_1.AppDataSource.getRepository(table_model_1.Table);
     const tableRecord = yield tablesRepo.findOneBy({ id });
@@ -104,7 +91,7 @@ const openNewTableSession = (tableId, clientId) => __awaiter(void 0, void 0, voi
     const paymentsRepo = models_1.AppDataSource.getRepository(payment_model_1.Payment);
     const tablesRepo = models_1.AppDataSource.getRepository(table_model_1.Table);
     const table = yield tablesRepo.findOneBy({ id: tableId });
-    console.log(table);
+    const prevStatus = table.status;
     if (table.status === "Busy") {
         throw new error_model_1.BadRequestError("table is busy");
     }
@@ -118,27 +105,49 @@ const openNewTableSession = (tableId, clientId) => __awaiter(void 0, void 0, voi
         relations: { table: true },
         where: { table: { id: tableId } },
     });
-    if (tableSessionRecord.clientId !== null)
-        throw new error_model_1.BadRequestError("session is already opened on this table");
     tableSessionRecord.clientId = clientId;
     yield tablesSessionsRepo.save(tableSessionRecord);
     yield redis_service_1.default.redis.hset("tables:sessions", String(tableId), clientId);
-    websocket_service_1.default.publishEvent(["manager", "cashier", "chef", String(tableId)], "update_table_status", tableId, "Busy");
+    if (prevStatus === "Available") {
+        websocket_service_1.default.publishEvent(["manager", "cashier", "chef"], "update_table_status", Number(tableId), "Busy");
+        websocket_service_1.default.publishEvent(["manager", "cashier", "chef"], "notification", `Table Status Update | Table Number : ${tableId}`, "Busy");
+    }
+});
+const closeTableSession = (tableId, fromPayment = false) => __awaiter(void 0, void 0, void 0, function* () {
+    const tablesRepo = models_1.AppDataSource.getRepository(table_model_1.Table);
+    const table = yield tablesRepo.findOneBy({ id: tableId });
+    const prevStatus = table.status;
+    const clientOrders = yield orders_service_1.OrdersService.getTableOrders(tableId);
+    if (!fromPayment && clientOrders.length !== 0) {
+        throw new error_model_1.BadRequestError("table has to pay before closing");
+    }
+    table.status = "Available";
+    yield tablesRepo.save(table);
+    const tablesSessionsRepo = models_1.AppDataSource.getRepository(table_model_1.TableSession);
+    const tableSessionRecord = yield tablesSessionsRepo.findOne({
+        relations: { table: true },
+        where: { table: { id: tableId } },
+    });
+    tableSessionRecord.clientId = null;
+    yield tablesSessionsRepo.save(tableSessionRecord);
+    yield redis_service_1.default.redis.hdel("tables:sessions", String(tableId));
+    if (prevStatus === "Busy") {
+        websocket_service_1.default.publishEvent(["manager", "cashier", "chef"], "update_table_status", Number(tableId), "Available");
+        websocket_service_1.default.publishEvent(["manager", "cashier", "chef"], "notification", `Table Status Update | Table Number : ${tableId}`, "Available");
+    }
 });
 const checkoutTable = (tableId) => __awaiter(void 0, void 0, void 0, function* () {
-    const orders = yield orders_service_1.OrdersService.getTodayOrders();
-    console.log(tableId);
-    const tableOrders = orders.filter((order) => order.tableId == tableId);
+    const tableOrders = (yield orders_service_1.OrdersService.getTableOrders(tableId)).filter((order) => order.status !== "Cancelled");
     const total = tableOrders.reduce((total, current) => total + current.total, 0);
-    console.log(total);
+    console.log(tableOrders, total);
     return { receipt: tableOrders, total };
 });
 exports.TablesService = {
     createNewTable,
-    updateTable,
     deleteTable,
     getTables,
     openNewTableSession,
     checkoutTable,
     getTableSessionClientId,
+    closeTableSession,
 };

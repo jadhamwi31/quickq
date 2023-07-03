@@ -67,7 +67,7 @@ class WebsocketService {
         });
     }
     static publishEvent(rooms, ev, ...params) {
-        console.log(this.map);
+        console.log("emitted to ", rooms);
         const httpRequestClientSocket = this.getHttpRequestClientSocket();
         if (httpRequestClientSocket)
             httpRequestClientSocket.to(rooms).emit(ev, ...params);

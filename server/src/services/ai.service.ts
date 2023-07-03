@@ -42,7 +42,7 @@ const getDishesSalesData = async () => {
     const dates = [...new Set(payments.filter((payment) => payment.date).map((payment) => (
         moment(payment.date).format(dateFormat)
     )))]
-    const dishes = await AppDataSource.getRepository(Dish).find({relations: {orderDishes: {order:true}}});
+    const dishes = await AppDataSource.getRepository(Dish).find({relations: {orderDishes: {order: true}}});
     const data: TestData = {}
     for (const date of dates) {
         data[date] = []
@@ -95,13 +95,14 @@ const predictPrices = async (csv: string) => {
 
 const getPricesPrediction = async () => {
     const predictionsCached = await RedisService.isCached("prices:predictions");
-    if(predictionsCached){
-     return JSON.parse(await RedisService.redis.get("prices:predictions"))
-    }else{
+    if (predictionsCached) {
+
+        return JSON.parse(await RedisService.getCachedVersion("prices:predictions"))
+    } else {
         const dishesSales = await getDishesSalesData();
 
-        const predictedPrices= await predictPrices(dishesSales);
-        await RedisService.redis.set("prices:predictions",JSON.stringify(predictedPrices))
+        const predictedPrices = await predictPrices(dishesSales);
+        await RedisService.redis.set("prices:predictions", JSON.stringify(predictedPrices))
         return predictedPrices
     }
 

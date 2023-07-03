@@ -19,7 +19,7 @@ __decorate([
     __metadata("design:type", Number)
 ], InventoryItem.prototype, "id", void 0);
 __decorate([
-    (0, typeorm_1.OneToOne)(() => ingredient_model_1.Ingredient),
+    (0, typeorm_1.OneToOne)(() => ingredient_model_1.Ingredient, { onDelete: "CASCADE" }),
     (0, typeorm_1.JoinColumn)(),
     __metadata("design:type", ingredient_model_1.Ingredient)
 ], InventoryItem.prototype, "ingredient", void 0);

@@ -31,7 +31,7 @@ const getInventoryItems = (req, res, next) => __awaiter(void 0, void 0, void 0, 
         const items = yield inventory_service_1.InventoryService.getInventoryItems();
         return res
             .status(http_status_codes_1.StatusCodes.OK)
-            .send({ code: http_status_codes_1.StatusCodes.OK, data: { items } });
+            .send(items);
     }
     catch (e) {
         next(e);

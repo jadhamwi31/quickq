@@ -46,7 +46,6 @@ const shared_model_1 = require("../models/shared.model");
 const redis_service_1 = __importDefault(require("./redis.service"));
 const upload_service_1 = require("./upload.service");
 const getDishById = (dishId) => __awaiter(void 0, void 0, void 0, function* () {
-    console.log(dishId);
     if (yield redis_service_1.default.isCached("dishes", String(dishId))) {
         return JSON.parse(yield redis_service_1.default.getCachedVersion("dishes", String(dishId)));
     }
@@ -56,7 +55,6 @@ const getDishById = (dishId) => __awaiter(void 0, void 0, void 0, function* () {
             where: { id: dishId },
             relations: { dishIngredients: { ingredient: true }, category: true }
         }));
-        console.log(dishRecord);
         if (dishRecord) {
             const redisDish = {
                 name: dishRecord.name,
@@ -138,6 +136,7 @@ const createNewDish = (dish) => __awaiter(void 0, void 0, void 0, function* () {
         image: dishRecord.image,
     };
     yield redis_service_1.default.redis.hset("dishes", String(dishRecord.id), JSON.stringify(redisDish));
+    yield redis_service_1.default.redis.del("prices:predictions");
 });
 const deleteDish = (name) => __awaiter(void 0, void 0, void 0, function* () {
     const dishesRepo = models_1.AppDataSource.getRepository(dish_model_1.Dish);
@@ -157,6 +156,7 @@ const deleteDish = (name) => __awaiter(void 0, void 0, void 0, function* () {
     });
     yield dishesIngredientsRepo.remove(dishesIngredients);
     yield redis_service_1.default.redis.hdel("dishes", String(dishId));
+    yield redis_service_1.default.redis.del("prices:predictions");
 });
 exports.deleteDish = deleteDish;
 const getDishes = () => __awaiter(void 0, void 0, void 0, function* () {
@@ -274,6 +274,7 @@ const updateDish = (dishName, dish) => __awaiter(void 0, void 0, void 0, functio
         category: dishRecord.category.name,
     };
     yield redis_service_1.default.redis.hset("dishes", String(dishRecord.id), JSON.stringify(redisDish));
+    yield redis_service_1.default.redis.del("prices:predictions");
 });
 exports.DishesService = {
     createNewDish,

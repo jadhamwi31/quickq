@@ -81,8 +81,10 @@ const createNewOrder = (newOrder, tableId) => __awaiter(void 0, void 0, void 0, 
     };
     // Update Orders In Cache
     yield redis_service_1.default.redis.hset("orders", String(redisTableOrder.id), JSON.stringify(redisTableOrder));
-    yield websocket_service_1.default.publishEvent(["cashier", "chef"], "new_order", redisTableOrder);
-    yield websocket_service_1.default.publishEvent(["cashier", "chef"], "notification", "New Order", `New Order | ID : ${redisTableOrder.id} | Table : ${redisTableOrder.tableId}`);
+    // Clear Predictions From Cache
+    yield redis_service_1.default.redis.del("prices:predictions");
+    yield websocket_service_1.default.publishEvent(["cashier", "chef", "manager"], "new_order", redisTableOrder);
+    yield websocket_service_1.default.publishEvent(["cashier", "chef", "manager"], "notification", "New Order", `New Order | ID : ${redisTableOrder.id} | Table : ${redisTableOrder.tableId}`);
 });
 const orderBelongsToTable = (orderId, tableId) => __awaiter(void 0, void 0, void 0, function* () {
     const orders = yield getTodayOrders();
@@ -175,12 +177,18 @@ const updateOrderStatus = (orderId, status) => __awaiter(void 0, void 0, void 0,
         redis_service_1.default.cacheLog("orders", String(orderId));
         const newRedisOrder = JSON.parse(yield redis_service_1.default.redis.hget("orders", String(orderId)));
         newRedisOrder.status = status;
+        if (newRedisOrder.status === "Cancelled") {
+            newRedisOrder.total = 0;
+        }
         yield redis_service_1.default.redis.hset("orders", String(orderId), JSON.stringify(newRedisOrder));
     }
     else {
         const orders = yield getTodayOrders();
         const currentOrder = orders.find((order) => order.id == orderId);
         currentOrder.status = status;
+        if (currentOrder.status === "Cancelled") {
+            currentOrder.total = 0;
+        }
         yield redis_service_1.default.redis.hset("orders", String(orderId), JSON.stringify(currentOrder));
     }
 });
@@ -197,16 +205,20 @@ const getTodayOrders = () => __awaiter(void 0, void 0, void 0, function* () {
         const dayEnd = (0, moment_1.default)().endOf("day").toDate();
         const _orders = yield models_1.AppDataSource.createQueryBuilder()
             .from(order_model_1.Order, "order")
-            .addSelect(["order.id", "order.status", "order.date"])
+            .addSelect(["order.id", "order.status", "order.date", "order.total"])
             .leftJoin("order.table", "table")
             .addSelect(["table.id"])
+            .leftJoin("table.payments", "payment")
+            .addSelect("payment.amount")
             .leftJoin("order.orderDishes", "order_dish")
             .addSelect(["order_dish.quantity"])
             .leftJoin("order_dish.dish", "dish")
             .addSelect(["dish.name", "dish.price"])
             .where({ date: (0, typeorm_1.Between)(dayStart, dayEnd) })
+            .andWhere("payment.amount IS NULL")
             .orderBy("order.date", "DESC")
             .getMany();
+        console.log(_orders);
         const orders = [];
         const redisOrdersToSet = {};
         // Transform Orders To Redis Order Structure
@@ -253,8 +265,8 @@ const getOrdersHistory = () => __awaiter(void 0, void 0, void 0, function* () {
     return orders;
 });
 const getTableOrders = (tableId) => __awaiter(void 0, void 0, void 0, function* () {
-    const todayOrders = yield getTodayOrders();
-    return todayOrders.filter((order) => order.tableId == tableId);
+    const tableClientOrders = yield getTodayOrders();
+    return tableClientOrders.filter((order) => order.tableId == tableId);
 });
 exports.OrdersService = {
     createNewOrder,

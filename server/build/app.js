@@ -70,7 +70,7 @@ dotenv_1.default.config();
         const port = process.env.SERVER_PORT;
         const httpServer = (0, http_1.createServer)(app);
         websocket_service_1.default.init(httpServer);
-        httpServer.listen(80, () => {
+        httpServer.listen(port, () => {
             console.log(`Listening on port ${port}`);
         });
     });

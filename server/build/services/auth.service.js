@@ -59,7 +59,8 @@ const loginByTableCode = (code) => __awaiter(void 0, void 0, void 0, function* (
         clientId,
     });
     yield redis_service_1.default.redis.hset(`tables:sessions`, String(tableCodeRecord.table.id), clientId);
-    return { token, role: "client" };
+    console.log(tableCodeRecord.table.id);
+    return { token, role: "client", tableId: tableCodeRecord.table.id };
 });
 exports.AuthService = {
     loginByUsernameAndPassword,

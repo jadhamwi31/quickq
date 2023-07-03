@@ -12,6 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Payment = void 0;
 const typeorm_1 = require("typeorm");
 const order_model_1 = require("./order.model");
+const table_model_1 = require("./table.model");
 let Payment = class Payment {
 };
 __decorate([
@@ -34,6 +35,10 @@ __decorate([
     (0, typeorm_1.OneToMany)(() => order_model_1.Order, (order) => order.payment),
     __metadata("design:type", Array)
 ], Payment.prototype, "orders", void 0);
+__decorate([
+    (0, typeorm_1.ManyToOne)(() => table_model_1.Table, (table) => table.payments, { onDelete: "CASCADE" }),
+    __metadata("design:type", table_model_1.Table)
+], Payment.prototype, "table", void 0);
 Payment = __decorate([
     (0, typeorm_1.Entity)()
 ], Payment);

@@ -23,11 +23,11 @@ const loginHandler = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
                 .send({ code: http_status_codes_1.StatusCodes.OK, message: "logged in", token, username, role });
         }
         if (table_code) {
-            const { token, role } = yield auth_service_1.AuthService.loginByTableCode(table_code);
+            const { token, role, tableId } = yield auth_service_1.AuthService.loginByTableCode(table_code);
             return res
                 .status(http_status_codes_1.StatusCodes.OK)
                 .cookie("jwt", token, { httpOnly: false })
-                .send({ code: http_status_codes_1.StatusCodes.OK, message: "logged in", token, role, username });
+                .send({ code: http_status_codes_1.StatusCodes.OK, message: "logged in", token, role, tableId });
         }
     }
     catch (e) {
