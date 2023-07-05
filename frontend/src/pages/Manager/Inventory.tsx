@@ -35,13 +35,8 @@ export default function Inventory() {
 			if (response.ok) {
 				const json = await response.json();
 
-<<<<<<< HEAD
-				setInventoryItems(json.data);
-				setFilteredItems(json.data);
-=======
 				setInventoryItems(json);
 				setFilteredItems(json);
->>>>>>> 593ddda476d8c3314a5baaaa92ca7e4950143d17
 			}
 		};
 
@@ -118,10 +113,11 @@ export default function Inventory() {
 	};
 
 	useEffect(() => {
-		socket!.on("update_inventory_item", (ingredientName, { available, needed }) => {
+		socket!.on("update_inventory_item", (ingredientName, { available, needed, thresh_hold }) => {
 			const updatedData = {
 				available: available,
 				needed: needed,
+				thresh_hold
 			};
 
 			setFilteredItems((prevItems) =>

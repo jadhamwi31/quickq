@@ -47,7 +47,7 @@ export default function EditTabelForm(props: ChildComponentProps) {
             dispatch({
                 type: 'UPDATE',
                 payload: {
-                    oldCode: props.code,
+                    oldCode: props.id,
                     newStatus: "Busy",
                 },
             });
@@ -93,7 +93,7 @@ export default function EditTabelForm(props: ChildComponentProps) {
             dispatch({
                 type: 'UPDATE',
                 payload: {
-                    oldCode: props.code,
+                    oldCode: props.id,
                     newStatus: "Available",
                 },
             });

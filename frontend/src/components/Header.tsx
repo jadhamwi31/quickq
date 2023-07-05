@@ -1,11 +1,7 @@
 import React, { useState, useEffect, useRef, Fragment } from "react";
 import { useSocketIoContext } from "../context/SocketIoContext";
 import { v4 as uuidv4 } from "uuid";
-<<<<<<< HEAD
-
-=======
 import { ToastContainer, toast } from 'react-toastify';
->>>>>>> 593ddda476d8c3314a5baaaa92ca7e4950143d17
 const sound = require('../assets/sound.mp3')
 
 
@@ -40,20 +36,7 @@ function Header() {
     useEffect(() => {
         notificationSoundRef.current.load()
         const handleNotification = (title: any, content: any) => {
-<<<<<<< HEAD
-
-=======
-            toast(title, {
-                position: "bottom-center",
-                autoClose: 500,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: true,
-                draggable: true,
-                progress: undefined,
-                theme: "colored",
-            });
->>>>>>> 593ddda476d8c3314a5baaaa92ca7e4950143d17
+            toast(`${title}\n${content}`);
             setNotList(prevNotList => {
                 const newId = uuidv4();
                 const idExists = prevNotList.some(item => item.id === newId);
@@ -147,21 +130,18 @@ function Header() {
                         <hr />
                     </Fragment>
                     ))}
-<<<<<<< HEAD
-=======
                     <ToastContainer
-                        position="bottom-center"
-                        autoClose={500}
+                        position="top-left"
+                        autoClose={2}
                         hideProgressBar={false}
                         newestOnTop={false}
                         closeOnClick
                         rtl={false}
                         pauseOnFocusLoss
-                        draggable
+                        draggable={false}
                         pauseOnHover
-                        theme="colored"
+                        theme="dark"
                     />
->>>>>>> 593ddda476d8c3314a5baaaa92ca7e4950143d17
                 </div>
             )
             }

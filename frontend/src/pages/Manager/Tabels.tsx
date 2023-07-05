@@ -1,14 +1,14 @@
 import Cookies from "js-cookie";
-import {useEffect} from "react";
+import { useEffect } from "react";
 import AddTabelForm from "../../components/AddTabelForm";
 import Tabel from "../../components/Tabel";
-import {useTabelsContext} from "../../hooks/useTabel";
-import {useSocketIoContext} from "../../context/SocketIoContext";
+import { useTabelsContext } from "../../hooks/useTabel";
+import { useSocketIoContext } from "../../context/SocketIoContext";
 import React from "react";
 
 export default function Tabels() {
-    const {socket} = useSocketIoContext();
-    const {Tabels, dispatch} = useTabelsContext();
+    const { socket } = useSocketIoContext();
+    const { Tabels, dispatch } = useTabelsContext();
 
     useEffect(() => {
         document.title = `Manager | Tabels`;
@@ -28,7 +28,7 @@ export default function Tabels() {
 
                 if (response.ok) {
                     const json = await response.json();
-                    dispatch({type: "SET", payload: json});
+                    dispatch({ type: "SET", payload: json });
                 }
             } catch (error) {
                 console.error("Error fetching tables:", error);
@@ -36,23 +36,24 @@ export default function Tabels() {
         };
 
         fetchTables();
-    },[])
+    }, [])
 
     useEffect(() => {
 
 
         socket!.on("update_table_status", (id, status) => {
-            console.log(id,status)
             const updatedTables = Tabels.map((table: any) => {
+                console.log(table, id);
+
                 if (table.id === id) {
-                    return {...table, status};
+                    return { ...table, status };
                 }
                 return table;
             });
 
             const foundTable = updatedTables.find((table: any) => table.id === id);
             if (foundTable) {
-                dispatch({type: "SET", payload: updatedTables});
+                dispatch({ type: "SET", payload: updatedTables });
             } else {
                 console.error("Table not found:", id);
             }
@@ -61,7 +62,7 @@ export default function Tabels() {
             socket!.off("update_table_status")
         }
 
-    }, [Tabels]);
+    }, [Tabels, dispatch]);
 
     return (
         <div className="tabels">
@@ -74,7 +75,7 @@ export default function Tabels() {
                         code={table.code}
                     />
                 ))}
-            <AddTabelForm/>
+            <AddTabelForm />
         </div>
     );
 }

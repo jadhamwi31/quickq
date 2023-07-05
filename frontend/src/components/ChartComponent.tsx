@@ -34,7 +34,7 @@ const ChartComponent: React.FC<ChartProps> = ({ data }) => {
                             x: {
                                 type: 'time',
                                 time: {
-                                    parser: 'yyyy-MM-ddTHH:mm',
+                                    parser: 'ddTHH:mm',
                                     tooltipFormat: 'MMM d, yyyy HH:mm',
                                     unit: 'minute',
                                     displayFormats: {

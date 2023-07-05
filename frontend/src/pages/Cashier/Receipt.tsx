@@ -143,7 +143,7 @@ function Receipt(props: any) {
         };
 
         getTodayOrders();
-    }, []);
+    });
 
     useEffect(() => {
         const handleAfterPrint = () => {

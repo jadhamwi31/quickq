@@ -106,7 +106,7 @@ export default function CashierOrders() {
 			setOrders((prevOrders) => {
 				const updatedOrders = prevOrders.map((order) => {
 					if (order.id === orderId) {
-						return { ...order, status };
+						return { ...order, status, total: status === "Cancelled" ? "0" : order.total };
 					}
 					return order;
 				});
@@ -115,8 +115,6 @@ export default function CashierOrders() {
 			});
 		});
 	});
-<<<<<<< HEAD
-=======
 	useEffect(() => {
 		const newOrderHandler = (order: Order) => {
 			setOrders((prevOrders) => [...prevOrders, order]);
@@ -131,7 +129,6 @@ export default function CashierOrders() {
 
 
 
->>>>>>> 593ddda476d8c3314a5baaaa92ca7e4950143d17
 	return (
 		<div className="GeneralContent">
 			<div className="scroll">

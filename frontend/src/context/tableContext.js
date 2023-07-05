@@ -20,7 +20,7 @@ export const TabelsReducer = (state, action) => {
         case 'UPDATE':
             return {
                 Tabels: state.Tabels.map((tabel) =>
-                    tabel.code === action.payload.oldCode ? { ...tabel, status: action.payload.newStatus } : tabel
+                    tabel.id === action.payload.oldCode ? { ...tabel, status: action.payload.newStatus } : tabel
                 ),
             };
 
